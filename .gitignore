@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Data files - videos, images, outputs
+mc_multiplayer_v1_eval/
+mc_multiplayer_v2_eval/
+generations/
+logs/
+frame_extraction/
+sanity_check_visualizations/
+sanity_check_detailed/
+ground_truths/
+
+# Result JSON files (evaluation outputs)
+results_json/
+eval_results*.json
+
+# Other data files
+*.mp4
+*.avi
+*.mov
+*.png
+*.jpg
+*.jpeg
+*.csv
+
+# Misc
+.DS_Store
+Thumbs.db

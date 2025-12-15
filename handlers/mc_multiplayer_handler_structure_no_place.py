@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""
+Handler for structureNoPlaceEval dataset (structure NOT built).
+
+Similar to structure handler but expects "no" - the structure should NOT be visible
+because it was not placed.
+"""
+
+import json
+from pathlib import Path
+from typing import List, Optional
+import sys
+
+# Add the parent directory to the path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
+
+
+class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
+    """
+    Handler for Minecraft structure building evaluation where NO structure is placed.
+
+    Evaluates from the perspective of the non-building bot to verify that
+    NO structure is visible (because it was not placed).
+    """
+
+    DATASET_NAMES = ["structureNoPlaceEval"]
+
+    def __init__(self, summary_json_path: str):
+        """
+        Initialize handler with path to structure building summary JSON.
+
+        Args:
+            summary_json_path: Path to structure_building_summary.json
+        """
+        self.summary_json_path = summary_json_path
+        self.summary_data = self._load_summary()
+
+    def _load_summary(self) -> dict:
+        """Load the structure building summary JSON."""
+        with open(self.summary_json_path) as f:
+            return json.load(f)
+
+    def get_prompt(self) -> str:
+        return (
+            "Here is a Minecraft screenshot potentially showing stone structures. "
+            "Can you tell me what if there is a structure built close to the player, about 6 blocks away? "
+            "Answer with a single word from \"yes\", \"no\", or \"unclear\"."
+        )
+
+    def validate_response(self, response: str, expected: str) -> bool:
+        """
+        Validate the VLM response against the expected answer.
+
+        For structureNoPlaceEval, we expect "no" for all structure types
+        since the structure was NOT placed.
+
+        Args:
+            response: VLM response (should be "yes", "no", or "unclear")
+            expected: Expected structure from JSON (e.g., "wall_4x1", "tower_2", "wall_2x2")
+
+        Returns:
+            True if response is "no", False otherwise
+        """
+        # For no-place evaluation, we expect "no" for all structure types
+        structure_mapping = {
+            "wall_4x1": "no",
+            "tower_2": "no",
+            "wall_2x2": "no"
+        }
+
+        # Normalize the response
+        normalized_response = response.strip().lower()
+
+        # Map expected structure to prompt format
+        expected_answer = structure_mapping.get(expected.strip().lower(), "unclear")
+
+        # Check if response matches expected answer
+        return normalized_response == expected_answer
+
+    def extract_keyframes(self, video_pair: VideoPair) -> List[KeyframeQuery]:
+        """
+        Extract keyframes from the non-building bot's perspective.
+
+        Args:
+            video_pair: Pair of videos and JSON files for alpha and bravo
+
+        Returns:
+            List of keyframe queries (one per episode, from observer's perspective)
+        """
+        queries = []
+
+        # Get episode and instance info
+        # Strip leading zeros from episode and instance numbers for JSON lookup
+        episode_num = str(int(video_pair.episode_num))
+        instance_num = str(int(video_pair.instance_num))
+
+        episode_key = f"episode_{episode_num}"
+        instance_key = f"instance_{instance_num}"
+
+        # Get builder info from summary
+        if instance_key not in self.summary_data:
+            print(f"  ⚠ Instance {video_pair.instance_num} not found in summary")
+            return queries
+
+        if episode_key not in self.summary_data[instance_key]:
+            print(f"  ⚠ Episode {video_pair.episode_num} not found in instance {video_pair.instance_num}")
+            return queries
+
+        episode_data = self.summary_data[instance_key][episode_key]
+        builder = episode_data["builder"]
+        structure = episode_data["structure"]
+
+        # Determine which bot is observing (not building)
+        if builder == "alpha":
+            observer = "bravo"
+            observer_video = video_pair.bravo_video
+            observer_json = video_pair.bravo_json
+        else:
+            observer = "alpha"
+            observer_video = video_pair.alpha_video
+            observer_json = video_pair.alpha_json
+
+        # Load observer JSON to verify it has enough frames
+        with open(observer_json) as f:
+            observer_data = json.load(f)
+
+        # Calculate keyframe indices
+        # Start from frame 20 to allow scene to stabilize
+        frame1_idx = 20
+        frame2_idx = frame1_idx + 240
+
+        # Check if we have enough frames
+        if frame2_idx >= len(observer_data):
+            print(f"  ⚠ Episode {video_pair.episode_num} instance {video_pair.instance_num}: "
+                  f"Not enough frames (need {frame2_idx}, have {len(observer_data)})")
+            return queries
+
+        # Create keyframe query only for the observer (non-building bot)
+        queries.append(KeyframeQuery(
+            video_path=observer_video,
+            frame_index=frame2_idx,
+            expected_answer=structure,
+            metadata={
+                "variant": observer,
+                "builder": builder,
+                "structure": structure,
+                "alpha_structure": episode_data["alpha_structure"],
+                "bravo_structure": episode_data["bravo_structure"],
+                "alpha_builds": episode_data["alpha_builds"],
+                "bravo_builds": episode_data["bravo_builds"],
+                "frame1": frame1_idx,
+                "frame2": frame2_idx,
+                "episode": video_pair.episode_num,
+                "instance": video_pair.instance_num
+            }
+        ))
+
+        return queries

@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""
+Handler for turn_to_look (formerly co_observation) dataset.
+
+Compares perspectives from both bots at a later timestamp to check if they
+appear to be from nearby perspectives.
+"""
+
+import json
+import sys
+from pathlib import Path
+from typing import List, Optional
+
+# Add the parent directory to the path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
+
+
+class MinecraftTurnToLookHandler(EpisodeTypeHandler):
+    """
+    Handler for Minecraft "turn to look" evaluation.
+
+    Both bots' perspectives are compared at a later timestamp to determine
+    if they appear to be from nearby perspectives.
+    """
+
+    DATASET_NAMES = ["turnToLookEval"]
+
+    def get_prompt(self) -> str:
+        return (
+            "You will be shown two Minecraft screenshots. "
+            "Do these two screenshots look like they're taken from a nearby perspective? "
+            "Answer with a single word: \"yes\", \"no\"."
+        )
+
+    def extract_keyframes(self, video_pair: VideoPair) -> List[KeyframeQuery]:
+        """
+        Extract keyframes based on the last sneak from any bot.
+
+        Creates a single query per video pair that compares frames from both
+        alpha and bravo perspectives at frame2_idx.
+        """
+        queries = []
+
+        # Load JSON data
+        with open(video_pair.alpha_json) as f:
+            alpha_data = json.load(f)
+        with open(video_pair.bravo_json) as f:
+            bravo_data = json.load(f)
+
+        # Find the last sneak frame from both bots
+        alpha_sneak_frame = self._find_last_sneak_frame(alpha_data)
+        bravo_sneak_frame = self._find_last_sneak_frame(bravo_data)
+
+        # Ensure at least one bot has a sneak frame
+        if alpha_sneak_frame is None and bravo_sneak_frame is None:
+            return queries
+
+        # Use the LATEST sneak frame as the starting point
+        sneak_frames = [f for f in [alpha_sneak_frame, bravo_sneak_frame] if f is not None]
+        latest_sneak_frame = max(sneak_frames)
+
+        # Calculate keyframe indices
+        frame1_idx = latest_sneak_frame
+        frame2_idx = frame1_idx + 200
+
+        # Validate that frame2_idx exists in both videos
+        if frame2_idx >= len(alpha_data) or frame2_idx >= len(bravo_data):
+            print(f"  ⚠ Skipping episode {video_pair.episode_num} instance {video_pair.instance_num}: "
+                  f"frame2_idx {frame2_idx} exceeds video length")
+            return queries
+
+        # For co-observation, we expect both bots to be at nearby perspectives
+        # This is the default assumption - they should look similar
+        expected_answer = "yes"
+
+        # Create a single query that will compare both perspectives
+        # We use alpha_video as the primary video_path, but metadata contains both
+        queries.append(KeyframeQuery(
+            video_path=video_pair.alpha_video,
+            frame_index=frame2_idx,
+            expected_answer=expected_answer,
+            metadata={
+                "variant": "turn_to_look",  # Special marker
+                "is_turn_to_look": True,  # Flag for special handling
+                "alpha_video": str(video_pair.alpha_video),
+                "bravo_video": str(video_pair.bravo_video),
+                "alpha_frame": frame2_idx,
+                "bravo_frame": frame2_idx,
+                "alpha_sneak_frame": alpha_sneak_frame,
+                "bravo_sneak_frame": bravo_sneak_frame,
+                "latest_sneak_frame": latest_sneak_frame,
+                "frame1": frame1_idx,
+                "frame2": frame2_idx,
+                "episode": video_pair.episode_num,
+                "instance": video_pair.instance_num
+            }
+        ))
+
+        return queries
+
+    def _find_last_sneak_frame(self, data: List[dict]) -> Optional[int]:
+        """Find the last frame where sneak is true."""
+        last_sneak = None
+        for i, frame in enumerate(data):
+            if frame.get("action", {}).get("sneak", False):
+                last_sneak = i
+        return last_sneak
