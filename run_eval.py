@@ -571,15 +571,11 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
                 variant = meta['variant']
 
                 # Check query type for looks_away/both_look_away handlers
-                if query_type == "player_position" or query_type == "player_position_final":
-                    # Player position query: only frame2
+                if query_type in ("player_position_during_turn", "player_position_turned_back",
+                                  "player_visible_looked_away"):
+                    # All looks_away queries use only frame2
                     image_bytes = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
                     vlm_response = query_vlm(prompt, image_bytes)
-                elif query_type == "player_visible":
-                    # Player visibility query: both frames
-                    image_bytes_1 = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
-                    image_bytes_2 = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
-                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2)
                 elif "LooksAway" in handler_name or "BothLookAway" in handler_name:
                     # looks_away and both_look_away (fallback for no query_type): both frames (to compare if they look the same)
                     # Use frame1_idx + 1 as first frame since generated video starts there
@@ -599,18 +595,12 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
             else:
                 # Use ground-truth videos
                 # Check query type for looks_away/both_look_away handlers
-                if query_type == "player_position" or query_type == "player_position_final":
-                    # Player position query: only frame2
+                if query_type in ("player_position_during_turn", "player_position_turned_back",
+                                  "player_visible_looked_away"):
+                    # All looks_away queries use only frame2
                     frame2_idx = meta['frame2']
                     image_bytes = extract_frame(query.video_path, frame2_idx)
                     vlm_response = query_vlm(prompt, image_bytes)
-                elif query_type == "player_visible":
-                    # Player visibility query: both frames
-                    frame1_idx = meta['frame1']
-                    frame2_idx = meta['frame2']
-                    image_bytes_1 = extract_frame(query.video_path, frame1_idx)
-                    image_bytes_2 = extract_frame(query.video_path, frame2_idx)
-                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2)
                 elif "LooksAway" in handler_name or "BothLookAway" in handler_name:
                     # looks_away and both_look_away (fallback for no query_type): both frames (to compare if they look the same)
                     frame1_idx = meta['frame1']

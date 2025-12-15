@@ -12,6 +12,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
+from handlers.camera_utils import find_last_sneak_frame
 
 
 class MinecraftTranslationHandler(EpisodeTypeHandler):
@@ -22,7 +23,7 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
     motion of another player between two frames.
     """
 
-    DATASET_NAMES = ["mc_multiplayer_eval_translation"]
+    DATASET_NAMES = ["translationEval"]
 
     def get_prompt(self) -> str:
         return (
@@ -59,8 +60,8 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
             bravo_data = json.load(f)
 
         # Determine which bot is moving (has sneak)
-        alpha_sneak_frame = self._find_last_sneak_frame(alpha_data)
-        bravo_sneak_frame = self._find_last_sneak_frame(bravo_data)
+        alpha_sneak_frame = find_last_sneak_frame(alpha_data)
+        bravo_sneak_frame = find_last_sneak_frame(bravo_data)
 
         if alpha_sneak_frame is not None:
             moving_data = alpha_data
@@ -116,14 +117,6 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
             ))
 
         return queries
-
-    def _find_last_sneak_frame(self, data: List[dict]) -> Optional[int]:
-        """Find the last frame where sneak is true."""
-        last_sneak = None
-        for i, frame in enumerate(data):
-            if frame.get("action", {}).get("sneak", False):
-                last_sneak = i
-        return last_sneak
 
     def _find_movement_frame(
         self, data: List[dict], start_frame: int

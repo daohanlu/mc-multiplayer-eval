@@ -15,6 +15,7 @@ from typing import List, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
+from handlers.camera_utils import find_last_sneak_frame
 
 
 class MinecraftTurnToLookHandler(EpisodeTypeHandler):
@@ -50,8 +51,8 @@ class MinecraftTurnToLookHandler(EpisodeTypeHandler):
             bravo_data = json.load(f)
 
         # Find the last sneak frame from both bots
-        alpha_sneak_frame = self._find_last_sneak_frame(alpha_data)
-        bravo_sneak_frame = self._find_last_sneak_frame(bravo_data)
+        alpha_sneak_frame = find_last_sneak_frame(alpha_data)
+        bravo_sneak_frame = find_last_sneak_frame(bravo_data)
 
         # Ensure at least one bot has a sneak frame
         if alpha_sneak_frame is None and bravo_sneak_frame is None:
@@ -99,11 +100,3 @@ class MinecraftTurnToLookHandler(EpisodeTypeHandler):
         ))
 
         return queries
-
-    def _find_last_sneak_frame(self, data: List[dict]) -> Optional[int]:
-        """Find the last frame where sneak is true."""
-        last_sneak = None
-        for i, frame in enumerate(data):
-            if frame.get("action", {}).get("sneak", False):
-                last_sneak = i
-        return last_sneak

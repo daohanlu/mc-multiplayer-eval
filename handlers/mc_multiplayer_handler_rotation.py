@@ -5,13 +5,14 @@ Handler for mc_multiplayer_eval_rotation dataset (camera rotation task).
 
 import json
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List
 import sys
 
 # Add the parent directory to the path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
+from handlers.camera_utils import find_last_sneak_frame, find_camera_rotation_frame, calculate_position_answer
 
 
 class MinecraftRotationHandler(EpisodeTypeHandler):
@@ -22,7 +23,7 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
     directional movement.
     """
 
-    DATASET_NAMES = ["mc_multiplayer_eval_rotation"]
+    DATASET_NAMES = ["rotationEval"]
 
     def get_prompt(self) -> str:
         return (
@@ -48,8 +49,8 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
             bravo_data = json.load(f)
 
         # Determine which bot is rotating (has sneak)
-        alpha_sneak_frame = self._find_last_sneak_frame(alpha_data)
-        bravo_sneak_frame = self._find_last_sneak_frame(bravo_data)
+        alpha_sneak_frame = find_last_sneak_frame(alpha_data)
+        bravo_sneak_frame = find_last_sneak_frame(bravo_data)
 
         if alpha_sneak_frame is not None:
             rotating_data = alpha_data
@@ -66,7 +67,7 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
             return queries
 
         # Find the camera rotation frame (first frame after sneak with camera movement)
-        rotation_frame, rotation_direction = self._find_camera_rotation_frame(
+        rotation_frame, rotation_direction = find_camera_rotation_frame(
             rotating_data, sneak_frame
         )
 
@@ -80,7 +81,7 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
 
         # Calculate expected answer based on yaw difference
         try:
-            expected_answer = self._calculate_expected_answer(
+            expected_answer = calculate_position_answer(
                 rotating_data, frame1_idx, frame2_idx
             )
         except ValueError as e:
@@ -113,98 +114,6 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
             ))
 
         return queries
-
-    def _find_last_sneak_frame(self, data: List[dict]) -> Optional[int]:
-        """Find the last frame where sneak is true."""
-        last_sneak = None
-        for i, frame in enumerate(data):
-            if frame.get("action", {}).get("sneak", False):
-                last_sneak = i
-        return last_sneak
-
-    def _calculate_expected_answer(
-        self, data: List[dict], frame1_idx: int, frame2_idx: int
-    ) -> str:
-        """
-        Calculate expected answer based on yaw difference between two frames.
-
-        Args:
-            data: JSON data containing frame information
-            frame1_idx: Index of first frame
-            frame2_idx: Index of second frame
-
-        Returns:
-            Expected answer: "left", "right", or "no player"
-
-        Raises:
-            ValueError: If yaw difference doesn't match expected patterns
-        """
-        import math
-
-        # Get yaw values
-        yaw1 = data[frame1_idx].get("yaw", 0)
-        yaw2 = data[frame2_idx].get("yaw", 0)
-
-        # Calculate yaw difference
-        yaw_diff = yaw2 - yaw1
-
-        # Normalize to [-180, 180] range
-        while yaw_diff > math.pi:
-            yaw_diff -= 2 * math.pi
-        while yaw_diff < -math.pi:
-            yaw_diff += 2 * math.pi
-
-        # Convert to degrees
-        yaw_diff_deg = math.degrees(yaw_diff)
-
-        # Check if it's a ~40 degree rotation (+/- 5 degrees)
-        if 35 <= abs(yaw_diff_deg) <= 45:
-            # Positive = turned left (camera moved left, player appears right)
-            # Negative = turned right (camera moved right, player appears left)
-            if yaw_diff_deg > 0:
-                return "right"
-            else:
-                return "left"
-
-        # Check if it's a ~180 degree rotation (+/- 5 degrees)
-        elif 175 <= abs(yaw_diff_deg) <= 185:
-            return "no player"
-
-        # Unexpected yaw difference
-        else:
-            raise ValueError(
-                f"Unexpected yaw difference: {yaw_diff_deg:.2f} degrees "
-                f"(frame {frame1_idx}: {math.degrees(yaw1):.2f}° -> "
-                f"frame {frame2_idx}: {math.degrees(yaw2):.2f}°)"
-            )
-
-    def _find_camera_rotation_frame(
-        self, data: List[dict], start_frame: int, threshold: float = 0.0001
-    ) -> Tuple[Optional[int], Optional[str]]:
-        """
-        Find the first frame after start_frame with camera rotation.
-
-        Returns:
-            Tuple of (frame_index, direction) where direction describes the
-            camera rotation (e.g., "left", "right", "up", "down")
-        """
-        for i in range(start_frame, len(data)):
-            action = data[i].get("action", {})
-            camera = action.get("camera", [0, 0])
-
-            # Check if there's significant camera movement
-            if abs(camera[0]) > threshold or abs(camera[1]) > threshold:
-                # Determine direction based on which axis has more movement
-                if abs(camera[0]) > abs(camera[1]):
-                    # Horizontal rotation (yaw)
-                    direction = "left" if camera[0] < 0 else "right"
-                else:
-                    # Vertical rotation (pitch)
-                    direction = "down" if camera[1] < 0 else "up"
-
-                return i, direction
-
-        return None, None
 
 
 # Reuse the test functions from mc_multiplayer_handler but with new handler
@@ -258,7 +167,7 @@ if __name__ == "__main__":
         import cv2
 
         test_path = Path(test_folder)
-        handler = MinecraftCameraRotationHandler()
+        handler = MinecraftRotationHandler()
 
         video_pairs = find_mc_video_pairs(test_path)
         video_pairs = video_pairs[:num_episodes]
