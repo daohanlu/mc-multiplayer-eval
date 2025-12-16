@@ -305,14 +305,35 @@ def save_results(results: List[EvalResult], output_path: str):
         results: List of EvalResult objects
         output_path: Path to save the JSON file
     """
-    # Calculate statistics
+    # Calculate overall statistics
     total = len(results)
     unclear_count = sum(1 for r in results if r.is_unclear)
     evaluable = total - unclear_count
     correct = sum(1 for r in results if r.is_correct and not r.is_unclear)
     accuracy_excluding_unclear = (correct / evaluable * 100) if evaluable > 0 else 0
     accuracy_total = (correct / total * 100) if total > 0 else 0  # Treats unclear as incorrect
-    
+
+    # Calculate breakdown by query type
+    query_types = set(r.metadata.get('query_type', 'default') for r in results if r.metadata)
+    breakdown_by_query_type = {}
+
+    for qtype in sorted(query_types):
+        type_results = [r for r in results if r.metadata and r.metadata.get('query_type', 'default') == qtype]
+        type_total = len(type_results)
+        type_unclear = sum(1 for r in type_results if r.is_unclear)
+        type_evaluable = type_total - type_unclear
+        type_correct = sum(1 for r in type_results if r.is_correct and not r.is_unclear)
+
+        breakdown_by_query_type[qtype] = {
+            "total": type_total,
+            "unclear_count": type_unclear,
+            "unclear_percentage": (type_unclear / type_total * 100) if type_total > 0 else 0,
+            "evaluable": type_evaluable,
+            "correct": type_correct,
+            "accuracy_excluding_unclear": (type_correct / type_evaluable * 100) if type_evaluable > 0 else 0,
+            "accuracy_total": (type_correct / type_total * 100) if type_total > 0 else 0
+        }
+
     output_data = {
         "total_queries": total,
         "unclear_count": unclear_count,
@@ -321,6 +342,7 @@ def save_results(results: List[EvalResult], output_path: str):
         "correct": correct,
         "accuracy_excluding_unclear": accuracy_excluding_unclear,
         "accuracy_total": accuracy_total,
+        "breakdown_by_query_type": breakdown_by_query_type,
         "results": [
             {
                 "video": str(r.query.video_path.name),
