@@ -41,9 +41,9 @@ class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
 
     def get_prompt(self) -> str:
         return (
-            "Here is a Minecraft screenshot potentially showing stone structures. "
-            "Can you tell me what if there is a structure built close to the player, about 6 blocks away? "
-            "Answer with a single word from \"yes\", \"no\", or \"unclear\"."
+            "Here is a Minecraft screenshot. "
+            "Can you tell me whether there is a visible structure built about 6 blocks away from the player? "
+            "Answer with a single word from \"yes\", \"no\"."
         )
 
     def validate_response(self, response: str, expected: str) -> bool:
@@ -65,7 +65,7 @@ class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
         # Map JSON structure names to prompt answer format
         structure_mapping = {
             "wall_4x1": "yes",
-            "tower_2": "yes",
+            "tower_2x1": "yes",
             "wall_2x2": "yes"
         }
         

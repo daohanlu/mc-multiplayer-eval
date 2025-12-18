@@ -27,7 +27,8 @@ from vlm_utils import (
     EvalResult,
     extract_quadrant,
     find_generated_video_subdir,
-    extract_frame_from_generated
+    extract_frame_from_generated,
+    VLM_MODEL_NAME
 )
 
 
@@ -125,7 +126,11 @@ def identify_handler(folder_name: str, summary_json_path: str = None):
     for handler_class in structure_handler_classes:
         if folder_name in handler_class.DATASET_NAMES:
             if not summary_json_path:
-                summary_json_path = str(Path(__file__).parent / "structure_building_summary.json")
+                # Use correct default summary JSON based on handler type
+                if handler_class == MinecraftStructureNoPlaceHandler:
+                    summary_json_path = str(Path(__file__).parent / "structure_building_no_place_summary.json")
+                else:
+                    summary_json_path = str(Path(__file__).parent / "structure_building_summary.json")
             return handler_class(summary_json_path)
 
     # No exact match found
@@ -414,7 +419,7 @@ def extract_frames_mode(handler, video_pairs: List[VideoPair], output_dir: str, 
     print(f"{'='*80}")
 
 
-def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limit: Optional[int] = None, generated_path: Optional[Path] = None, dataset_name: Optional[str] = None):
+def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limit: Optional[int] = None, generated_path: Optional[Path] = None, dataset_name: Optional[str] = None, model_name: str = "ground_truth"):
     """
     Run full VLM evaluation.
 
@@ -425,6 +430,7 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
         limit: Optional limit on number of queries
         generated_path: Optional path to generated videos directory
         dataset_name: Dataset name (needed when using generated videos)
+        model_name: Name of our video generation model being evaluated, or "ground_truth" for GT videos
     """
     # Check API key
     api_key = os.getenv("GEMINI_API_KEY")
@@ -436,7 +442,7 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
     print(f"\n{'='*80}")
     print(f"VLM EVALUATION")
     print(f"Handler: {handler.__class__.__name__}")
-    print(f"Model: gemini-2.5-flash (thinking disabled)")
+    print(f"Model: {VLM_MODEL_NAME} (thinking disabled)")
     print(f"Output: {output_file}")
     if generated_path:
         print(f"Using generated videos from: {generated_path}")
@@ -661,7 +667,7 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
     print(f"\n{'='*80}")
     print("SAVING RESULTS")
     print(f"{'='*80}")
-    save_results(results, output_file)
+    save_results(results, output_file, VLM_MODEL_NAME, model_name)
 
     # Print summary
     total = len(results)
@@ -828,7 +834,7 @@ Examples:
 
     # Parse generated path if provided
     generated_path = None
-    model_name = None
+    model_name = "ground_truth"
     if args.generated:
         generated_path = Path(args.generated)
         if not generated_path.exists():
@@ -870,7 +876,8 @@ Examples:
     else:
         # Run full evaluation
         run_evaluation(handler, video_pairs, output_file, limit=args.limit,
-                      generated_path=generated_path, dataset_name=dataset_name)
+                      generated_path=generated_path, dataset_name=dataset_name,
+                      model_name=model_name)
 
     return 0
 

@@ -11,10 +11,14 @@ This module provides utility functions and data structures for VLM evaluation:
 
 import json
 import os
+import warnings
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
+
+# Model configuration
+VLM_MODEL_NAME = "gemini-3-flash-preview"
 
 
 @dataclass
@@ -286,24 +290,33 @@ def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = 
     content_parts.append(prompt)
 
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model=VLM_MODEL_NAME,
         contents=content_parts,
         config=types.GenerateContentConfig(
-            system_instruction='You are a helpful assistant that evaluates on-screen motion of Minecraft characters between two screenshots.',
+            system_instruction='You are a helpful assistant that evaluates Minecraft screenshots.',
             thinking_config=types.ThinkingConfig(thinking_budget=0)  # Disables thinking
         ),
     )
 
-    return response.text.strip().lower()
+    # Explicitly extract text parts to avoid warning about non-text parts (e.g., thought_signature)
+    text_parts = [part.text for part in response.candidates[0].content.parts if hasattr(part, 'text')]
+    if not text_parts:
+        warnings.warn(f"No text parts found in VLM response: {response}")
+        return ""
+    if len(text_parts) > 1:                                                            
+        warnings.warn(f"Multiple text parts in VLM response: {text_parts}") 
+    return ''.join(text_parts).strip().lower()
 
 
-def save_results(results: List[EvalResult], output_path: str):
+def save_results(results: List[EvalResult], output_path: str, vlm_model_name: str, our_model_name: str):
     """
     Save evaluation results to a JSON file.
 
     Args:
         results: List of EvalResult objects
         output_path: Path to save the JSON file
+        vlm_model_name: the VLM judge used for the evaluation
+        our_model_name: the name of our video generation model being evaluated, or "ground_truth" for GT videos
     """
     # Calculate overall statistics
     total = len(results)
@@ -335,6 +348,8 @@ def save_results(results: List[EvalResult], output_path: str):
         }
 
     output_data = {
+        "vlm_model_name": vlm_model_name,
+        "our_model_name": our_model_name,
         "total_queries": total,
         "unclear_count": unclear_count,
         "unclear_percentage": (unclear_count / total * 100) if total > 0 else 0,

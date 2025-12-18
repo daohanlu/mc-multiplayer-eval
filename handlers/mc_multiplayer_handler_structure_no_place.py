@@ -44,9 +44,9 @@ class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
 
     def get_prompt(self) -> str:
         return (
-            "Here is a Minecraft screenshot potentially showing stone structures. "
-            "Can you tell me what if there is a structure built close to the player, about 6 blocks away? "
-            "Answer with a single word from \"yes\", \"no\", or \"unclear\"."
+            "Here is a Minecraft screenshot. "
+            "Can you tell me whether there is a visible structure built about 6 blocks away from the player? "
+            "Answer with a single word from \"yes\", \"no\"."
         )
 
     def validate_response(self, response: str, expected: str) -> bool:
@@ -66,7 +66,7 @@ class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
         # For no-place evaluation, we expect "no" for all structure types
         structure_mapping = {
             "wall_4x1": "no",
-            "tower_2": "no",
+            "tower_2x1": "no",
             "wall_2x2": "no"
         }
 
