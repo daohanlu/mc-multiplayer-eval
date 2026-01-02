@@ -439,10 +439,14 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
         print("Please set it with: export GEMINI_API_KEY='your-api-key'")
         return []
 
+    # Use handler's enable_vlm_thinking property
+    enable_thinking = handler.enable_vlm_thinking
+    thinking_status = "default" if enable_thinking else "disabled"
+
     print(f"\n{'='*80}")
     print(f"VLM EVALUATION")
     print(f"Handler: {handler.__class__.__name__}")
-    print(f"Model: {VLM_MODEL_NAME} (thinking disabled)")
+    print(f"Model: {VLM_MODEL_NAME} (thinking {thinking_status})")
     print(f"Output: {output_file}")
     if generated_path:
         print(f"Using generated videos from: {generated_path}")
@@ -550,12 +554,12 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
                     # Extract frames from both alpha and bravo quadrants
                     image_bytes_alpha = extract_frame_from_generated(generated_video, alpha_frame, frame1_idx, "alpha")
                     image_bytes_bravo = extract_frame_from_generated(generated_video, bravo_frame, frame1_idx, "bravo")
-                    vlm_response = query_vlm(prompt, image_bytes_alpha, image_bytes_bravo)
+                    vlm_response = query_vlm(prompt, image_bytes_alpha, image_bytes_bravo, enable_thinking=enable_thinking)
                 else:
                     # Use ground-truth videos
                     image_bytes_alpha = extract_frame(alpha_video, alpha_frame)
                     image_bytes_bravo = extract_frame(bravo_video, bravo_frame)
-                    vlm_response = query_vlm(prompt, image_bytes_alpha, image_bytes_bravo)
+                    vlm_response = query_vlm(prompt, image_bytes_alpha, image_bytes_bravo, enable_thinking=enable_thinking)
 
             elif generated_path and generated_subdir:
                 # Use generated videos
@@ -581,23 +585,23 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
                                   "player_visible_looked_away"):
                     # All looks_away queries use only frame2
                     image_bytes = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
-                    vlm_response = query_vlm(prompt, image_bytes)
+                    vlm_response = query_vlm(prompt, image_bytes, enable_thinking=enable_thinking)
                 elif "LooksAway" in handler_name or "BothLookAway" in handler_name:
                     # looks_away and both_look_away (fallback for no query_type): both frames (to compare if they look the same)
                     # Use frame1_idx + 1 as first frame since generated video starts there
                     image_bytes_1 = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
                     image_bytes_2 = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
-                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2)
+                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2, enable_thinking=enable_thinking)
                 elif "Rotation" in handler_name or "Structure" in handler_name:
                     # Rotation and structure: only frame2
                     image_bytes = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
-                    vlm_response = query_vlm(prompt, image_bytes)
+                    vlm_response = query_vlm(prompt, image_bytes, enable_thinking=enable_thinking)
                 else:
                     # Translation: both frames
                     # Use frame1_idx + 1 as first frame since generated video starts there
                     image_bytes_1 = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
                     image_bytes_2 = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
-                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2)
+                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2, enable_thinking=enable_thinking)
             else:
                 # Use ground-truth videos
                 # Check query type for looks_away/both_look_away handlers
@@ -606,26 +610,26 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
                     # All looks_away queries use only frame2
                     frame2_idx = meta['frame2']
                     image_bytes = extract_frame(query.video_path, frame2_idx)
-                    vlm_response = query_vlm(prompt, image_bytes)
+                    vlm_response = query_vlm(prompt, image_bytes, enable_thinking=enable_thinking)
                 elif "LooksAway" in handler_name or "BothLookAway" in handler_name:
                     # looks_away and both_look_away (fallback for no query_type): both frames (to compare if they look the same)
                     frame1_idx = meta['frame1']
                     frame2_idx = meta['frame2']
                     image_bytes_1 = extract_frame(query.video_path, frame1_idx)
                     image_bytes_2 = extract_frame(query.video_path, frame2_idx)
-                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2)
+                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2, enable_thinking=enable_thinking)
                 elif "Rotation" in handler_name or "Structure" in handler_name:
                     # Rotation and structure: only frame2
                     frame2_idx = meta['frame2']
                     image_bytes = extract_frame(query.video_path, frame2_idx)
-                    vlm_response = query_vlm(prompt, image_bytes)
+                    vlm_response = query_vlm(prompt, image_bytes, enable_thinking=enable_thinking)
                 else:
                     # Translation: both frames
                     frame1_idx = meta['frame1']
                     frame2_idx = meta['frame2']
                     image_bytes_1 = extract_frame(query.video_path, frame1_idx)
                     image_bytes_2 = extract_frame(query.video_path, frame2_idx)
-                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2)
+                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2, enable_thinking=enable_thinking)
 
             # Check if response is "unclear"
             is_unclear = vlm_response.strip().lower() == "unclear"
@@ -667,7 +671,7 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
     print(f"\n{'='*80}")
     print("SAVING RESULTS")
     print(f"{'='*80}")
-    save_results(results, output_file, VLM_MODEL_NAME, model_name)
+    save_results(results, output_file, VLM_MODEL_NAME, model_name, thinking_enabled=enable_thinking)
 
     # Print summary
     total = len(results)

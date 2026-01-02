@@ -71,6 +71,10 @@ class EpisodeTypeHandler(ABC):
     # Subclasses should override this with their specific dataset names
     DATASET_NAMES: List[str] = []
 
+    # Whether to enable VLM thinking mode for this handler
+    # Subclasses can override this to True if thinking improves accuracy
+    enable_vlm_thinking: bool = False
+
     @abstractmethod
     def get_prompt(self) -> str:
         """
@@ -248,7 +252,7 @@ def extract_frame_from_generated(
     return buffer.tobytes()
 
 
-def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = None) -> str:
+def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = None, enable_thinking: bool = False) -> str:
     """
     Query the VLM (e.g., Gemini) with a prompt and image(s).
 
@@ -256,6 +260,7 @@ def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = 
         prompt: The text prompt for the VLM
         image_bytes: First image data as bytes
         image_bytes_2: Optional second image data as bytes
+        enable_thinking: Whether to enable thinking mode (default: False)
 
     Returns:
         VLM response as string
@@ -289,13 +294,23 @@ def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = 
     # Add the prompt
     content_parts.append(prompt)
 
+    # Configure thinking based on parameter
+    if enable_thinking:
+        # Use default thinking config (thinking enabled)
+        config = types.GenerateContentConfig(
+            system_instruction='You are a helpful assistant that evaluates Minecraft screenshots.',
+        )
+    else:
+        # Disable thinking
+        config = types.GenerateContentConfig(
+            system_instruction='You are a helpful assistant that evaluates Minecraft screenshots.',
+            thinking_config=types.ThinkingConfig(thinking_budget=0)
+        )
+
     response = client.models.generate_content(
         model=VLM_MODEL_NAME,
         contents=content_parts,
-        config=types.GenerateContentConfig(
-            system_instruction='You are a helpful assistant that evaluates Minecraft screenshots.',
-            thinking_config=types.ThinkingConfig(thinking_budget=0)  # Disables thinking
-        ),
+        config=config,
     )
 
     # Explicitly extract text parts to avoid warning about non-text parts (e.g., thought_signature)
@@ -308,7 +323,7 @@ def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = 
     return ''.join(text_parts).strip().lower()
 
 
-def save_results(results: List[EvalResult], output_path: str, vlm_model_name: str, our_model_name: str):
+def save_results(results: List[EvalResult], output_path: str, vlm_model_name: str, our_model_name: str, thinking_enabled: bool = False):
     """
     Save evaluation results to a JSON file.
 
@@ -317,6 +332,7 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
         output_path: Path to save the JSON file
         vlm_model_name: the VLM judge used for the evaluation
         our_model_name: the name of our video generation model being evaluated, or "ground_truth" for GT videos
+        thinking_enabled: Whether thinking mode was enabled for VLM queries
     """
     # Calculate overall statistics
     total = len(results)
@@ -350,6 +366,7 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
     output_data = {
         "vlm_model_name": vlm_model_name,
         "our_model_name": our_model_name,
+        "thinking_enabled": thinking_enabled,
         "total_queries": total,
         "unclear_count": unclear_count,
         "unclear_percentage": (unclear_count / total * 100) if total > 0 else 0,

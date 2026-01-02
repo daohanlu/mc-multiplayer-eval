@@ -28,11 +28,12 @@ class MinecraftTurnToLookOppositeHandler(EpisodeTypeHandler):
     """
 
     DATASET_NAMES = ["turnToLookOppositeEval"]
+    enable_vlm_thinking = True
 
     def get_prompt(self) -> str:
         return (
             "You will be shown two Minecraft screenshots. "
-            "Do these two screenshots look like they're taken from a nearby perspective? "
+            "Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles."
             "Answer with a single word: \"yes\", \"no\"."
         )
 
