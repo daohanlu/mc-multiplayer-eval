@@ -177,27 +177,34 @@ def find_generated_video_subdir(generated_base_path: Path, dataset_name: str) ->
 
     Args:
         generated_base_path: Base path to generated videos
-        dataset_name: Dataset name (e.g., "mc_multiplayer_eval_translation")
+        dataset_name: Dataset name (e.g., "rotationEval", "bothLookAwayEval")
 
     Returns:
         Path to the subdirectory containing generated videos, or None if not found
     """
-    # Extract the key part of the dataset name (e.g., "translation", "rotation")
-    dataset_key = None
-    for key in ["translation", "rotation", "both_look_away", "one_looks_away", "looks_away", "structure", "turn_to_look", "turnToLook"]:
-        if key in dataset_name:
-            dataset_key = key
-            break
+    # Map dataset names to the key used in generated video subdirectory names
+    # Generated dirs are like: step_0002000_multiplayer_v2_eval_{key}
+    dataset_to_subdir_key = {
+        "translationEval": "translation",
+        "rotationEval": "rotation",
+        "bothLookAwayEval": "both_look_away",
+        "oneLooksAwayEval": "one_looks_away",
+        "turnToLookEval": "turn_to_look",
+        "turnToLookOppositeEval": "turn_to_look_opposite",  # Uses same generated videos as turnToLookEval
+        "structureEval": "structure",
+        "structureNoPlaceEval": "structure_no_place",  # Uses same generated videos as structureEval
+    }
 
-    if not dataset_key:
-        return None
+    subdir_key = dataset_to_subdir_key.get(dataset_name)
+    if not subdir_key:
+        raise ValueError(f"Unknown dataset name: {dataset_name}")
 
-    # Look for subdirectories matching the pattern
+    # Look for subdirectories matching the pattern (e.g., *_eval_translation, *_eval_rotation)
     for subdir in generated_base_path.iterdir():
-        if subdir.is_dir() and dataset_key in subdir.name:
+        if subdir.is_dir() and subdir.name.split('eval_')[1] == subdir_key:
             return subdir
 
-    return None
+    raise ValueError(f"Could not find generated video subdirectory for dataset '{dataset_name}'")
 
 
 def extract_frame_from_generated(
