@@ -73,6 +73,8 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
             moving_video = video_pair.bravo_video
             sneak_frame = bravo_sneak_frame
             variant = "bravo"
+        elif alpha_sneak_frame is not None and bravo_sneak_frame is not None:
+            raise ValueError(f"Both bots have sneak frames in episode {video_pair.episode_num} instance {video_pair.instance_num}")
         else:
             # No movement found
             return queries
