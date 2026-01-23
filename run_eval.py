@@ -128,9 +128,9 @@ def identify_handler(folder_name: str, summary_json_path: str = None):
             if not summary_json_path:
                 # Use correct default summary JSON based on handler type
                 if handler_class == MinecraftStructureNoPlaceHandler:
-                    summary_json_path = str(Path(__file__).parent / "structure_building_no_place_summary.json")
+                    summary_json_path = str(Path(__file__).parent / "assets" / "hard_coded_gt" / "structure_building_no_place_summary.json")
                 else:
-                    summary_json_path = str(Path(__file__).parent / "structure_building_summary.json")
+                    summary_json_path = str(Path(__file__).parent / "assets" / "hard_coded_gt" / "structure_building_summary.json")
             return handler_class(summary_json_path)
 
     # No exact match found

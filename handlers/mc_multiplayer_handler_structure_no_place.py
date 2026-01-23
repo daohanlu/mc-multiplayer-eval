@@ -32,7 +32,7 @@ class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
         Initialize handler with path to structure building summary JSON.
 
         Args:
-            summary_json_path: Path to structure_building_summary.json
+            summary_json_path: Path to structure_building_no_place_summary.json
         """
         self.summary_json_path = summary_json_path
         self.summary_data = self._load_summary()

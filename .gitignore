@@ -36,7 +36,8 @@ env/
 # Data files - videos, images, outputs
 mc_multiplayer_v1_eval/
 mc_multiplayer_v2_eval/
-generations/
+generations/*
+!generations/EXAMPLE_MODEL/
 logs/
 frame_extraction/
 sanity_check_visualizations/

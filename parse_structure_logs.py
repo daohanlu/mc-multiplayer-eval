@@ -357,7 +357,10 @@ def main():
     else:
         output_filename = "structure_building_summary.json"
 
-    output_file = input_dir / output_filename
+    # Output to assets/hard_coded_gt/ directory (relative to this script)
+    output_dir = Path(__file__).parent / "assets" / "hard_coded_gt"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir / output_filename
     with open(output_file, 'w') as f:
         json.dump(output_data, f, indent=2)
 

@@ -1,96 +1,162 @@
 #!/usr/bin/env python3
 """Run evaluations for all models and datasets."""
 
-import os
+import argparse
 import subprocess
 import re
 from pathlib import Path
 
 # Base directories
-generations_dir = Path("./generations")
+GENERATIONS_DIR = Path("./generations")
+DATASET_BASE = Path("./mc_multiplayer_v2_eval")
 
-# Mapping from generation folder patterns to dataset names
-# The generation folders have format: step_XXXXX_multiplayer_eval_TYPE_ema_length_256
-# The dataset names have format: mc_multiplayer_eval_TYPE
-eval_type_mapping = {
-    "translation": "mc_multiplayer_eval_translation",
-    "structure": "mc_multiplayer_eval_structure",
-    # Uncomment to include additional eval types:
-    # "rotation": "mc_multiplayer_eval_rotation",
-    # "one_looks_away": "mc_multiplayer_eval_one_looks_away",
-    # "both_look_away": "mc_multiplayer_eval_both_look_away",
+# Mapping from generated video subdirectory key (e.g., "translation" from "*_eval_translation")
+# to the dataset folder name (e.g., "translationEval")
+#
+# Model folders: generations/{model_name}/  (e.g., SF_CONCAT_FINAL_2)
+# Eval subdirs:  step_{N}_multiplayer_v2_eval_{key}  (e.g., step_0002000_multiplayer_v2_eval_translation)
+# Dataset folders: mc_multiplayer_v2_eval/{datasetName}  (e.g., mc_multiplayer_v2_eval/translationEval)
+EVAL_TYPE_MAPPING = {
+    "translation": "translationEval",
+    "rotation": "rotationEval",
+    "structure": "structureEval",
+    "structure_no_place": "structureNoPlaceEval",
+    "turn_to_look": "turnToLookEval",
+    "turn_to_look_opposite": "turnToLookOppositeEval",
+    "one_looks_away": "oneLooksAwayEval",
+    "both_look_away": "bothLookAwayEval",
 }
 
-def extract_eval_type(folder_name):
-    """Extract evaluation type from folder name.
+# Which eval types to actually run (comment out to skip)
+ENABLED_EVAL_TYPES = [
+    "translation",
+    "rotation",
+    "structure",
+    # "structure_no_place"  # enable for diagnostics
+    "turn_to_look",
+    "turn_to_look_opposite",
+    "one_looks_away",
+    "both_look_away",
+]
 
-    Example: step_0080000_multiplayer_eval_translation_ema_length_256 -> translation
+
+def extract_eval_type(folder_name: str) -> str | None:
+    """Extract evaluation type from generated folder name.
+
+    Examples:
+        step_0080000_multiplayer_v2_eval_translation_ema_length_256 -> translation
+        step_0002000_multiplayer_v2_eval_both_look_away -> both_look_away
     """
-    # Pattern: multiplayer_eval_<TYPE>_ema or multiplayer_eval_<TYPE> at end
-    match = re.search(r'multiplayer_eval_(\w+?)(?:_ema|$)', folder_name)
+    # Pattern: eval_{TYPE}_ema or eval_{TYPE} at end
+    # TYPE can be multi-word like "both_look_away" or "turn_to_look"
+    match = re.search(r'eval_([a-z_]+?)(?:_ema|$)', folder_name)
     if match:
-        eval_type = match.group(1)
-        # Handle multi-word eval types
-        return eval_type
+        return match.group(1)
     return None
 
-def main():
-    # Get all model directories
-    model_dirs = [d for d in generations_dir.iterdir() if d.is_dir()]
 
-    print(f"Found {len(model_dirs)} models to evaluate\n")
+def main():
+    parser = argparse.ArgumentParser(description="Run evaluations for all models and datasets")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be run without executing")
+    args = parser.parse_args()
+
+    if not GENERATIONS_DIR.exists():
+        print(f"Error: Generations directory not found: {GENERATIONS_DIR}")
+        return 1
+
+    # Get all model directories
+    model_dirs = [d for d in GENERATIONS_DIR.iterdir() if d.is_dir()]
+
+    if not model_dirs:
+        print(f"No model directories found in {GENERATIONS_DIR}")
+        return 1
+
+    print(f"Found {len(model_dirs)} model(s) to evaluate")
+    print(f"Enabled eval types: {ENABLED_EVAL_TYPES}")
+    if args.dry_run:
+        print("DRY RUN - commands will not be executed")
+    print()
 
     for model_dir in sorted(model_dirs):
         model_name = model_dir.name
-        print(f"=" * 80)
+        print(f"{'=' * 80}")
         print(f"Model: {model_name}")
-        print(f"=" * 80)
+        print(f"{'=' * 80}")
 
-        # Check which evaluation types this model has
-        eval_dirs = [d for d in model_dir.iterdir() if d.is_dir()]
-        available_eval_types = set()
+        # Check which evaluation types this model has generated videos for
+        eval_subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
+        available_eval_types = {}
 
-        for eval_dir in eval_dirs:
-            eval_type = extract_eval_type(eval_dir.name)
+        for eval_subdir in eval_subdirs:
+            eval_type = extract_eval_type(eval_subdir.name)
             if eval_type:
-                available_eval_types.add(eval_type)
+                available_eval_types[eval_type] = eval_subdir
 
-        # Run evaluation for each dataset type we want to evaluate
-        for eval_type, dataset_name in sorted(eval_type_mapping.items()):
-            if eval_type in available_eval_types:
-                # Construct the command - point to model directory, not specific eval folder
-                cmd = [
-                    "python",
-                    "run_eval.py",
-                    f"{dataset_name}/test",
-                    "--generated",
-                    str(model_dir)
-                ]
+        print(f"Available eval types: {list(available_eval_types.keys())}")
 
-                print(f"\nRunning: {' '.join(cmd)}")
+        # Run evaluation for each enabled eval type
+        for eval_type in ENABLED_EVAL_TYPES:
+            if eval_type not in EVAL_TYPE_MAPPING:
+                print(f"⚠ Unknown eval type in ENABLED_EVAL_TYPES: {eval_type}")
+                continue
 
-                # Run the command
-                try:
-                    result = subprocess.run(
-                        cmd,
-                        check=True,
-                        capture_output=True,
-                        text=True
-                    )
-                    print(f"✓ Success for {eval_type}")
-                    if result.stdout:
-                        print(result.stdout)
-                except subprocess.CalledProcessError as e:
-                    print(f"✗ Error for {eval_type}")
-                    print(f"Return code: {e.returncode}")
-                    if e.stdout:
-                        print("STDOUT:", e.stdout)
-                    if e.stderr:
-                        print("STDERR:", e.stderr)
-            else:
-                print(f"⊘ Skipping {eval_type} - not available for this model")
+            dataset_name = EVAL_TYPE_MAPPING[eval_type]
+            dataset_path = DATASET_BASE / dataset_name
+
+            if not dataset_path.exists():
+                print(f"⊘ Skipping {eval_type} - dataset not found: {dataset_path}")
+                continue
+
+            if eval_type not in available_eval_types:
+                print(f"⊘ Skipping {eval_type} - no generated videos for this model")
+                continue
+
+            # Construct the command
+            cmd = [
+                "python",
+                "run_eval.py",
+                str(dataset_path),
+                "--generated",
+                str(model_dir)
+            ]
+
+            print(f"\n{'[DRY RUN] Would run' if args.dry_run else 'Running'}: {' '.join(cmd)}")
+
+            if args.dry_run:
+                print(f"  → Dataset: {dataset_path}")
+                print(f"  → Generated subdir: {available_eval_types[eval_type].name}")
+                continue
+
+            # Run the command
+            try:
+                result = subprocess.run(
+                    cmd,
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                print(f"✓ Success for {eval_type}")
+                if result.stdout:
+                    # Print just the summary section
+                    lines = result.stdout.split('\n')
+                    in_summary = False
+                    for line in lines:
+                        if 'EVALUATION SUMMARY' in line:
+                            in_summary = True
+                        if in_summary:
+                            print(line)
+            except subprocess.CalledProcessError as e:
+                print(f"✗ Error for {eval_type}")
+                print(f"Return code: {e.returncode}")
+                if e.stdout:
+                    print("STDOUT:", e.stdout[-1000:])  # Last 1000 chars
+                if e.stderr:
+                    print("STDERR:", e.stderr[-1000:])
 
         print()
 
+    return 0
+
+
 if __name__ == "__main__":
-    main()
+    exit(main())

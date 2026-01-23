@@ -316,7 +316,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--summary-json",
-        default="/home/dl3957/Documents/mp_eval_datasets/structure_building_summary.json",
+        default="/home/dl3957/Documents/mp_eval_datasets/assets/hard_coded_gt/structure_building_summary.json",
         help="Path to structure building summary JSON"
     )
     parser.add_argument(
