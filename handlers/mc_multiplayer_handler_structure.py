@@ -12,6 +12,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
+from handlers.camera_utils import find_end_of_first_sneak_chunk
+from constants import SNEAK_FRAME_START_DELAY
 
 
 class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
@@ -111,23 +113,35 @@ class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
         builder = episode_data["builder"]
         structure = episode_data["structure"]
         
-        # Determine which bot is observing (not building)
+        # Determine which bot is observing (not building) and which is building
         if builder == "alpha":
             observer = "bravo"
             observer_video = video_pair.bravo_video
             observer_json = video_pair.bravo_json
+            builder_json = video_pair.alpha_json
         else:
             observer = "alpha"
             observer_video = video_pair.alpha_video
             observer_json = video_pair.alpha_json
+            builder_json = video_pair.bravo_json
+
+        # Load builder JSON to find sneak frame (sneak is only present in builder's data)
+        with open(builder_json) as f:
+            builder_data = json.load(f)
 
         # Load observer JSON to verify it has enough frames
         with open(observer_json) as f:
             observer_data = json.load(f)
 
+        # Find the end of the first sneak chunk from builder's data to determine episode start
+        sneak_frame = find_end_of_first_sneak_chunk(builder_data)
+        if sneak_frame is None:
+            print(f"  ⚠ Episode {video_pair.episode_num} instance {video_pair.instance_num}: "
+                  f"No sneak frame found in builder data")
+            return queries
+
         # Calculate keyframe indices
-        # Start from frame 20 to allow scene to stabilize
-        frame1_idx = 20
+        frame1_idx = sneak_frame + SNEAK_FRAME_START_DELAY
         frame2_idx = frame1_idx + 240
 
         # Check if we have enough frames
@@ -149,6 +163,7 @@ class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
                 "bravo_structure": episode_data["bravo_structure"],
                 "alpha_builds": episode_data["alpha_builds"],
                 "bravo_builds": episode_data["bravo_builds"],
+                "sneak_frame": sneak_frame,
                 "frame1": frame1_idx,
                 "frame2": frame2_idx,
                 "episode": video_pair.episode_num,
@@ -157,187 +172,3 @@ class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
         ))
 
         return queries
-
-
-# Test functions
-if __name__ == "__main__":
-    import argparse
-    import re
-    # VideoPair already imported at top of file
-
-    def find_mc_video_pairs(folder: Path):
-        """Find video pairs in mc_multiplayer format."""
-        pattern = re.compile(r'(\d+)_(Alpha|Bravo)_instance_(\d+)_camera\.mp4')
-
-        files = {}
-        for file in folder.iterdir():
-            match = pattern.match(file.name)
-            if match:
-                episode_num, variant, instance_num = match.groups()
-                key = (episode_num, instance_num)
-
-                if key not in files:
-                    files[key] = {}
-
-                if variant == "Alpha":
-                    files[key]["alpha_video"] = file
-                    json_file = folder / f"{episode_num}_Alpha_instance_{instance_num}.json"
-                    if json_file.exists():
-                        files[key]["alpha_json"] = json_file
-                else:
-                    files[key]["bravo_video"] = file
-                    json_file = folder / f"{episode_num}_Bravo_instance_{instance_num}.json"
-                    if json_file.exists():
-                        files[key]["bravo_json"] = json_file
-
-        pairs = []
-        for (episode_num, instance_num), file_dict in files.items():
-            required_keys = ["alpha_video", "bravo_video", "alpha_json", "bravo_json"]
-            if all(key in file_dict for key in required_keys):
-                pairs.append(VideoPair(
-                    episode_num=episode_num,
-                    instance_num=instance_num,
-                    alpha_video=file_dict["alpha_video"],
-                    bravo_video=file_dict["bravo_video"],
-                    alpha_json=file_dict["alpha_json"],
-                    bravo_json=file_dict["bravo_json"]
-                ))
-
-        return sorted(pairs, key=lambda p: (p.episode_num, p.instance_num))
-
-    def test_and_extract(test_folder: str, summary_json: str, num_episodes: int, 
-                        extract_frames: bool, output_dir: str):
-        """Test keyframe extraction and optionally extract frames."""
-        import cv2
-
-        test_path = Path(test_folder)
-        handler = MinecraftStructureBuildingHandler(summary_json)
-
-        video_pairs = find_mc_video_pairs(test_path)
-        
-        if num_episodes > 0:
-            video_pairs = video_pairs[:num_episodes]
-
-        print(f"Testing keyframe extraction on {len(video_pairs)} episodes")
-        print("=" * 80)
-
-        results = []
-        for i, pair in enumerate(video_pairs, 1):
-            print(f"\nEpisode {i}: {pair.episode_num} (instance {pair.instance_num})")
-            print("-" * 80)
-
-            queries = handler.extract_keyframes(pair)
-
-            if not queries:
-                print("  ⚠ No valid keyframes found in this episode")
-                continue
-
-            query = queries[0]
-            meta = query.metadata
-            print(f"  Builder: {meta['builder'].upper()}")
-            print(f"  Observer: {meta['variant'].upper()}")
-            print(f"  Structure: {meta['structure']}")
-            print(f"  Alpha structure: {meta['alpha_structure']} (builds: {meta['alpha_builds']})")
-            print(f"  Bravo structure: {meta['bravo_structure']} (builds: {meta['bravo_builds']})")
-            print(f"  Keyframe 1: frame {meta['frame1']}")
-            print(f"  Keyframe 2: frame {meta['frame2']}")
-            print(f"  Expected answer: {query.expected_answer}")
-            print(f"  Extracting from: {meta['variant'].upper()} perspective (observer)")
-
-            results.append({
-                "episode": pair.episode_num,
-                "instance": pair.instance_num,
-                "variant": meta['variant'],
-                "builder": meta['builder'],
-                "frame1": meta['frame1'],
-                "frame2": meta['frame2'],
-                "structure": meta['structure'],
-                "expected": query.expected_answer,
-                "video_path": str(query.video_path)
-            })
-
-        # Extract frames if requested
-        if extract_frames and results:
-            output_path = Path(output_dir)
-            output_path.mkdir(parents=True, exist_ok=True)
-
-            print(f"\n{'=' * 80}")
-            print(f"Extracting frames to: {output_path}")
-            print("=" * 80)
-
-            for i, result in enumerate(results, 1):
-                video_path = result['video_path']
-                frame1_idx = result['frame1']
-                frame2_idx = result['frame2']
-                episode = result['episode']
-                instance = result['instance']
-                variant = result['variant']
-                structure = result['structure']
-
-                print(f"\nEpisode {i}: {episode} (instance {instance}) - {variant} observing")
-
-                cap = cv2.VideoCapture(video_path)
-
-                # Extract frame 1
-                cap.set(cv2.CAP_PROP_POS_FRAMES, frame1_idx)
-                ret1, frame1 = cap.read()
-
-                # Extract frame 2
-                cap.set(cv2.CAP_PROP_POS_FRAMES, frame2_idx)
-                ret2, frame2 = cap.read()
-
-                cap.release()
-
-                if ret1 and ret2:
-                    frame1_path = output_path / f"ep{episode}_inst{instance}_{variant}_frame1.png"
-                    frame2_path = output_path / f"ep{episode}_inst{instance}_{variant}_frame2.png"
-
-                    cv2.imwrite(str(frame1_path), frame1)
-                    cv2.imwrite(str(frame2_path), frame2)
-
-                    print(f"  ✓ Saved frame 1 (idx {frame1_idx}): {frame1_path.name}")
-                    print(f"  ✓ Saved frame 2 (idx {frame2_idx}): {frame2_path.name}")
-                    print(f"  Structure: {structure}")
-                    print(f"  Expected answer: {result['expected']}")
-                else:
-                    print(f"  ✗ Failed to extract frames")
-
-            print(f"\n{'=' * 80}")
-            print(f"Frames saved to: {output_path.absolute()}")
-            print("=" * 80)
-
-    parser = argparse.ArgumentParser(
-        description="Test Minecraft structure building keyframe extraction"
-    )
-    parser.add_argument(
-        "--test-folder",
-        default="/home/dl3957/Documents/mp_eval_datasets/mc_multiplayer_eval_structure/test",
-        help="Path to test folder"
-    )
-    parser.add_argument(
-        "--summary-json",
-        default="/home/dl3957/Documents/mp_eval_datasets/assets/hard_coded_gt/structure_building_summary.json",
-        help="Path to structure building summary JSON"
-    )
-    parser.add_argument(
-        "--num-episodes",
-        type=int,
-        default=0,
-        help="Number of episodes to test (0 = all)"
-    )
-    parser.add_argument(
-        "--extract-frames",
-        action="store_true",
-        help="Extract and save actual frames for visual inspection"
-    )
-    parser.add_argument(
-        "--output-dir",
-        default="frame_extraction/mc_multiplayer_eval_structure",
-        help="Output directory for extracted frames"
-    )
-
-    args = parser.parse_args()
-
-    test_and_extract(args.test_folder, args.summary_json, args.num_episodes, 
-                    args.extract_frames, args.output_dir)
-

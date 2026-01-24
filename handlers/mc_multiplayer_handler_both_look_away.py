@@ -26,12 +26,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
 from handlers.camera_utils import (
     get_accumulated_yaw,
-    find_last_sneak_frame,
+    find_end_of_first_sneak_chunk,
     find_camera_rotation_frame,
     find_stop_turning_frame,
     find_frame_at_yaw_delta,
     get_yaw_diff_degrees,
 )
+from constants import SNEAK_FRAME_START_DELAY
 
 
 class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
@@ -82,8 +83,8 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
             bravo_data = json.load(f)
 
         # Check both bots for sneak frames
-        alpha_sneak_frame = find_last_sneak_frame(alpha_data)
-        bravo_sneak_frame = find_last_sneak_frame(bravo_data)
+        alpha_sneak_frame = find_end_of_first_sneak_chunk(alpha_data)
+        bravo_sneak_frame = find_end_of_first_sneak_chunk(bravo_data)
 
         # Ensure both bots have sneak frames
         if alpha_sneak_frame is None or bravo_sneak_frame is None:
@@ -106,7 +107,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
                 continue
 
             # Calculate keyframe indices using the LATEST sneak frame
-            frame1_idx = latest_sneak_frame + 5  # Reference frame (before turning)
+            frame1_idx = latest_sneak_frame + SNEAK_FRAME_START_DELAY  # Reference frame (before turning)
             
             # Frame during turn: find a frame where yaw delta is ~40 degrees
             during_turn_frame_idx = find_frame_at_yaw_delta(

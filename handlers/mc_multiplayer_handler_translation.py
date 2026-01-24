@@ -12,7 +12,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
-from handlers.camera_utils import find_last_sneak_frame
+from handlers.camera_utils import find_end_of_first_sneak_chunk
+from constants import SNEAK_FRAME_START_DELAY
 
 
 class MinecraftTranslationHandler(EpisodeTypeHandler):
@@ -43,7 +44,7 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
         2. Find the first frame with "sneak": true (sneak_frame)
         3. Find the first frame after sneak with a directional movement (movement_frame)
         4. Extract two keyframes:
-           - Frame 1: sneak_frame + 5
+           - Frame 1: sneak_frame + SNEAK_FRAME_START_DELAY
            - Frame 2: movement_frame + 40
         5. Determine expected answer based on movement direction:
            - "left" → "right" (player moves left, appears to go right on screen)
@@ -60,8 +61,8 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
             bravo_data = json.load(f)
 
         # Determine which bot is moving (has sneak)
-        alpha_sneak_frame = find_last_sneak_frame(alpha_data)
-        bravo_sneak_frame = find_last_sneak_frame(bravo_data)
+        alpha_sneak_frame = find_end_of_first_sneak_chunk(alpha_data)
+        bravo_sneak_frame = find_end_of_first_sneak_chunk(bravo_data)
 
         if alpha_sneak_frame is not None:
             moving_data = alpha_data
@@ -89,7 +90,7 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
             return queries
 
         # Calculate keyframe indices
-        frame1_idx = sneak_frame + 5
+        frame1_idx = sneak_frame + SNEAK_FRAME_START_DELAY
         frame2_idx = movement_frame + 40
 
         # Determine expected answer based on movement direction

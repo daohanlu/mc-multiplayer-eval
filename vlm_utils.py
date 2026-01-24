@@ -238,7 +238,7 @@ def extract_frame_from_generated(
     Args:
         generated_video_path: Path to the generated video_X_side_by_side.mp4
         frame_index_gt: Ground-truth frame index to extract
-        frame1_idx_gt: Ground-truth frame1_idx (sneak_frame + 5) - this is frame 0 in generated video
+        frame1_idx_gt: Ground-truth frame1_idx (sneak_frame + SNEAK_FRAME_START_DELAY) - this is frame 0 in generated video
         variant: "alpha" or "bravo" to determine which quadrant to extract
 
     Returns:

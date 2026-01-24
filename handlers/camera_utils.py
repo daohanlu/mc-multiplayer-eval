@@ -125,21 +125,35 @@ def get_yaw_difference(data: List[dict], frame1_idx: int, frame2_idx: int) -> fl
     return sign * yaw_diff
 
 
-def find_last_sneak_frame(data: List[dict]) -> Optional[int]:
+def find_end_of_first_sneak_chunk(data: List[dict]) -> Optional[int]:
     """
-    Find the last frame where sneak is true.
+    Find the last frame of the first contiguous sneak chunk.
+    
+    Episodes may have multiple sneak chunks, but we only want the end of the
+    first one, which marks when the episode actually begins.
     
     Args:
         data: List of frame dictionaries containing action data
         
     Returns:
-        Index of the last frame with sneak=True, or None if not found
+        Index of the last frame in the first contiguous sneak=True chunk,
+        or None if no sneak frames found
     """
-    last_sneak = None
+    in_sneak_chunk = False
+    last_sneak_in_chunk = None
+    
     for i, frame in enumerate(data):
-        if frame.get("action", {}).get("sneak", False):
-            last_sneak = i
-    return last_sneak
+        is_sneaking = frame.get("action", {})["sneak"]
+        
+        if is_sneaking:
+            in_sneak_chunk = True
+            last_sneak_in_chunk = i
+        elif in_sneak_chunk:
+            # We were in a sneak chunk but now sneak is False
+            # This means the first chunk has ended
+            break
+    
+    return last_sneak_in_chunk
 
 
 def find_camera_rotation_frame(

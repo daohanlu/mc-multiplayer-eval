@@ -12,7 +12,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
-from handlers.camera_utils import find_last_sneak_frame, find_camera_rotation_frame, calculate_position_answer
+from handlers.camera_utils import find_end_of_first_sneak_chunk, find_camera_rotation_frame, calculate_position_answer
+from constants import SNEAK_FRAME_START_DELAY
 
 
 class MinecraftRotationHandler(EpisodeTypeHandler):
@@ -49,8 +50,8 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
             bravo_data = json.load(f)
 
         # Determine which bot is rotating (has sneak)
-        alpha_sneak_frame = find_last_sneak_frame(alpha_data)
-        bravo_sneak_frame = find_last_sneak_frame(bravo_data)
+        alpha_sneak_frame = find_end_of_first_sneak_chunk(alpha_data)
+        bravo_sneak_frame = find_end_of_first_sneak_chunk(bravo_data)
 
         if alpha_sneak_frame is not None:
             rotating_data = alpha_data
@@ -76,7 +77,7 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
             return queries
 
         # Calculate keyframe indices
-        frame1_idx = sneak_frame + 5
+        frame1_idx = sneak_frame + SNEAK_FRAME_START_DELAY
         frame2_idx = rotation_frame + 140
 
         # Calculate expected answer based on yaw difference

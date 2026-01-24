@@ -67,6 +67,11 @@ def main():
     parser = argparse.ArgumentParser(description="Run evaluations for all models and datasets")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be run without executing")
     parser.add_argument(
+        "--extract-frames",
+        action="store_true",
+        help="Extract frames from ground-truth videos (no --generated, for sanity checks)",
+    )
+    parser.add_argument(
         "--generations-dir",
         type=Path,
         default=GENERATIONS_DIR,
@@ -78,11 +83,74 @@ def main():
         default=DATASET_BASE,
         help="Path to base dataset directory containing eval datasets (e.g., translationEval, rotationEval, ...)",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help="Limit number of episodes/queries to process (passed to run_eval.py)",
+    )
     args = parser.parse_args()
 
     generations_dir: Path = args.generations_dir
     dataset_base: Path = args.dataset_base
 
+    print(f"Enabled eval types: {ENABLED_EVAL_TYPES}")
+    print(f"Dataset base: {dataset_base}")
+    if args.dry_run:
+        print("DRY RUN - commands will not be executed")
+    if args.extract_frames:
+        print("EXTRACT FRAMES MODE - extracting from ground-truth videos (no --generated)")
+    print()
+
+    # --extract-frames mode: run on ground-truth videos without --generated
+    if args.extract_frames:
+        print(f"{'=' * 80}")
+        print("Extracting frames from ground-truth videos")
+        print(f"{'=' * 80}")
+
+        for eval_type in ENABLED_EVAL_TYPES:
+            if eval_type not in EVAL_TYPE_MAPPING:
+                print(f"⚠ Unknown eval type in ENABLED_EVAL_TYPES: {eval_type}")
+                continue
+
+            dataset_name = EVAL_TYPE_MAPPING[eval_type]
+            dataset_path = dataset_base / dataset_name
+
+            if not dataset_path.exists():
+                print(f"⊘ Skipping {eval_type} - dataset not found: {dataset_path}")
+                continue
+
+            # Construct the command (no --generated, add --extract-frames)
+            cmd = [
+                "python",
+                "run_eval.py",
+                str(dataset_path),
+                "--extract-frames",
+            ]
+            if args.limit:
+                cmd.extend(["--limit", str(args.limit)])
+
+            print(f"\n{'[DRY RUN] Would run' if args.dry_run else 'Running'}: {' '.join(cmd)}")
+
+            if args.dry_run:
+                print(f"  → Dataset: {dataset_path}")
+                continue
+
+            # Run the command
+            try:
+                result = subprocess.run(
+                    cmd,
+                    check=True,
+                    capture_output=False,  # Show output in real-time
+                    text=True
+                )
+                print(f"✓ Success for {eval_type}")
+            except subprocess.CalledProcessError as e:
+                print(f"✗ Error for {eval_type}")
+                print(f"Return code: {e.returncode}")
+
+        return 0
+
+    # Normal mode: evaluate generated videos
     if not generations_dir.exists():
         print(f"Error: Generations directory not found: {generations_dir}")
         return 1
@@ -95,12 +163,7 @@ def main():
         return 1
 
     print(f"Found {len(model_dirs)} model(s) to evaluate")
-    print(f"Enabled eval types: {ENABLED_EVAL_TYPES}")
     print(f"Generations dir: {generations_dir}")
-    print(f"Dataset base: {dataset_base}")
-    if args.dry_run:
-        print("DRY RUN - commands will not be executed")
-    print()
 
     for model_dir in sorted(model_dirs):
         model_name = model_dir.name
@@ -144,6 +207,8 @@ def main():
                 "--generated",
                 str(model_dir)
             ]
+            if args.limit:
+                cmd.extend(["--limit", str(args.limit)])
 
             print(f"\n{'[DRY RUN] Would run' if args.dry_run else 'Running'}: {' '.join(cmd)}")
 

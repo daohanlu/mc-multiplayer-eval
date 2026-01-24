@@ -15,7 +15,7 @@ from typing import List, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
-from handlers.camera_utils import find_last_sneak_frame
+from handlers.camera_utils import find_end_of_first_sneak_chunk
 
 
 class MinecraftTurnToLookOppositeHandler(EpisodeTypeHandler):
@@ -52,9 +52,9 @@ class MinecraftTurnToLookOppositeHandler(EpisodeTypeHandler):
         with open(video_pair.bravo_json) as f:
             bravo_data = json.load(f)
 
-        # Find the last sneak frame from both bots
-        alpha_sneak_frame = find_last_sneak_frame(alpha_data)
-        bravo_sneak_frame = find_last_sneak_frame(bravo_data)
+        # Find the end of first sneak chunk from both bots
+        alpha_sneak_frame = find_end_of_first_sneak_chunk(alpha_data)
+        bravo_sneak_frame = find_end_of_first_sneak_chunk(bravo_data)
 
         # Ensure at least one bot has a sneak frame
         if alpha_sneak_frame is None and bravo_sneak_frame is None:

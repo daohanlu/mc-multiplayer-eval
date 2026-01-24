@@ -15,6 +15,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
+from handlers.camera_utils import find_end_of_first_sneak_chunk
+from constants import SNEAK_FRAME_START_DELAY
 
 
 class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
@@ -112,23 +114,35 @@ class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
         builder = episode_data["builder"]
         structure = episode_data["structure"]
 
-        # Determine which bot is observing (not building)
+        # Determine which bot is observing (not building) and which is building
         if builder == "alpha":
             observer = "bravo"
             observer_video = video_pair.bravo_video
             observer_json = video_pair.bravo_json
+            builder_json = video_pair.alpha_json
         else:
             observer = "alpha"
             observer_video = video_pair.alpha_video
             observer_json = video_pair.alpha_json
+            builder_json = video_pair.bravo_json
+
+        # Load builder JSON to find sneak frame (sneak is only present in builder's data)
+        with open(builder_json) as f:
+            builder_data = json.load(f)
 
         # Load observer JSON to verify it has enough frames
         with open(observer_json) as f:
             observer_data = json.load(f)
 
+        # Find the end of the first sneak chunk from builder's data to determine episode start
+        sneak_frame = find_end_of_first_sneak_chunk(builder_data)
+        if sneak_frame is None:
+            print(f"  ⚠ Episode {video_pair.episode_num} instance {video_pair.instance_num}: "
+                  f"No sneak frame found in builder data")
+            return queries
+
         # Calculate keyframe indices
-        # Start from frame 20 to allow scene to stabilize
-        frame1_idx = 20
+        frame1_idx = sneak_frame + SNEAK_FRAME_START_DELAY
         frame2_idx = frame1_idx + 240
 
         # Check if we have enough frames
@@ -150,6 +164,7 @@ class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
                 "bravo_structure": episode_data["bravo_structure"],
                 "alpha_builds": episode_data["alpha_builds"],
                 "bravo_builds": episode_data["bravo_builds"],
+                "sneak_frame": sneak_frame,
                 "frame1": frame1_idx,
                 "frame2": frame2_idx,
                 "episode": video_pair.episode_num,
