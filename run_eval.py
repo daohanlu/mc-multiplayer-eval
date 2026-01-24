@@ -277,8 +277,14 @@ def extract_frames_mode(handler, video_pairs: List[VideoPair], output_dir: str, 
         variant = meta['variant']
         frame1_idx = meta['frame1']
         frame2_idx = meta['frame2']
+        query_type = meta.get('query_type', 'default')
 
-        print(f"[{i}/{len(all_queries)}] Episode {episode} instance {instance} - {variant}", end="... ")
+        # Create subfolder for query type
+        query_output_path = output_path / query_type
+        query_output_path.mkdir(parents=True, exist_ok=True)
+
+        query_type_display = f" ({query_type})" if query_type != 'default' else ""
+        print(f"[{i}/{len(all_queries)}] Episode {episode} instance {instance} - {variant}{query_type_display}", end="... ")
 
         try:
             # Check if this is a co-observation query (needs frames from both videos)
@@ -309,9 +315,9 @@ def extract_frames_mode(handler, video_pairs: List[VideoPair], output_dir: str, 
                     alpha_bytes = extract_frame_from_generated(generated_video, alpha_frame, frame1_idx, "alpha")
                     bravo_bytes = extract_frame_from_generated(generated_video, bravo_frame, frame1_idx, "bravo")
 
-                    # Save frames
-                    alpha_path = output_path / f"ep{episode}_inst{instance}_alpha_frame2.png"
-                    bravo_path = output_path / f"ep{episode}_inst{instance}_bravo_frame2.png"
+                    # Save frames to query_type subfolder
+                    alpha_path = query_output_path / f"ep{episode}_inst{instance}_alpha_frame2.png"
+                    bravo_path = query_output_path / f"ep{episode}_inst{instance}_bravo_frame2.png"
 
                     with open(alpha_path, 'wb') as f:
                         f.write(alpha_bytes)
@@ -338,8 +344,9 @@ def extract_frames_mode(handler, video_pairs: List[VideoPair], output_dir: str, 
                         frame_alpha_resized = cv2.resize(frame_alpha, (640, 360))
                         frame_bravo_resized = cv2.resize(frame_bravo, (640, 360))
 
-                        alpha_path = output_path / f"ep{episode}_inst{instance}_alpha_frame2.png"
-                        bravo_path = output_path / f"ep{episode}_inst{instance}_bravo_frame2.png"
+                        # Save frames to query_type subfolder
+                        alpha_path = query_output_path / f"ep{episode}_inst{instance}_alpha_frame2.png"
+                        bravo_path = query_output_path / f"ep{episode}_inst{instance}_bravo_frame2.png"
 
                         cv2.imwrite(str(alpha_path), frame_alpha_resized)
                         cv2.imwrite(str(bravo_path), frame_bravo_resized)
@@ -373,9 +380,9 @@ def extract_frames_mode(handler, video_pairs: List[VideoPair], output_dir: str, 
                     frame1_bytes = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
                     frame2_bytes = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
 
-                    # Save frames
-                    frame1_path = output_path / f"ep{episode}_inst{instance}_{variant}_frame1.png"
-                    frame2_path = output_path / f"ep{episode}_inst{instance}_{variant}_frame2.png"
+                    # Save frames to query_type subfolder
+                    frame1_path = query_output_path / f"ep{episode}_inst{instance}_{variant}_frame1.png"
+                    frame2_path = query_output_path / f"ep{episode}_inst{instance}_{variant}_frame2.png"
 
                     with open(frame1_path, 'wb') as f:
                         f.write(frame1_bytes)
@@ -402,8 +409,9 @@ def extract_frames_mode(handler, video_pairs: List[VideoPair], output_dir: str, 
                         frame1_resized = cv2.resize(frame1, (640, 360))
                         frame2_resized = cv2.resize(frame2, (640, 360))
 
-                        frame1_path = output_path / f"ep{episode}_inst{instance}_{variant}_frame1.png"
-                        frame2_path = output_path / f"ep{episode}_inst{instance}_{variant}_frame2.png"
+                        # Save frames to query_type subfolder
+                        frame1_path = query_output_path / f"ep{episode}_inst{instance}_{variant}_frame1.png"
+                        frame2_path = query_output_path / f"ep{episode}_inst{instance}_{variant}_frame2.png"
 
                         cv2.imwrite(str(frame1_path), frame1_resized)
                         cv2.imwrite(str(frame2_path), frame2_resized)
