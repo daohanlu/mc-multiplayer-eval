@@ -46,33 +46,58 @@ def extract_eval_type(folder_name: str) -> str | None:
     Examples:
         step_0080000_multiplayer_v2_eval_translation_ema_length_256 -> translation
         step_0002000_multiplayer_v2_eval_both_look_away -> both_look_away
+        step_0001200_multiplayer_v2_eval_both_look_away_max_speed -> both_look_away
     """
-    # Pattern: eval_{TYPE}_ema or eval_{TYPE} at end
-    # TYPE can be multi-word like "both_look_away" or "turn_to_look"
-    match = re.search(r'eval_([a-z_]+?)(?:_ema|$)', folder_name)
-    if match:
-        return match.group(1)
+    # Extract whatever comes after "eval_" and map it back to a canonical eval type key.
+    #
+    # We intentionally allow extra suffixes (e.g. "_ema_length_256", "_max_speed") and
+    # match by prefix against known keys in EVAL_TYPE_MAPPING.
+    _, _, suffix = folder_name.partition("eval_")
+    if not suffix:
+        return None
+
+    for key in sorted(EVAL_TYPE_MAPPING.keys(), key=len, reverse=True):
+        if suffix == key or suffix.startswith(f"{key}_"):
+            return key
+
     return None
 
 
 def main():
     parser = argparse.ArgumentParser(description="Run evaluations for all models and datasets")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be run without executing")
+    parser.add_argument(
+        "--generations-dir",
+        type=Path,
+        default=GENERATIONS_DIR,
+        help="Path to generations/ directory containing model folders",
+    )
+    parser.add_argument(
+        "--dataset-base",
+        type=Path,
+        default=DATASET_BASE,
+        help="Path to base dataset directory containing eval datasets (e.g., translationEval, rotationEval, ...)",
+    )
     args = parser.parse_args()
 
-    if not GENERATIONS_DIR.exists():
-        print(f"Error: Generations directory not found: {GENERATIONS_DIR}")
+    generations_dir: Path = args.generations_dir
+    dataset_base: Path = args.dataset_base
+
+    if not generations_dir.exists():
+        print(f"Error: Generations directory not found: {generations_dir}")
         return 1
 
     # Get all model directories
-    model_dirs = [d for d in GENERATIONS_DIR.iterdir() if d.is_dir()]
+    model_dirs = [d for d in generations_dir.iterdir() if d.is_dir()]
 
     if not model_dirs:
-        print(f"No model directories found in {GENERATIONS_DIR}")
+        print(f"No model directories found in {generations_dir}")
         return 1
 
     print(f"Found {len(model_dirs)} model(s) to evaluate")
     print(f"Enabled eval types: {ENABLED_EVAL_TYPES}")
+    print(f"Generations dir: {generations_dir}")
+    print(f"Dataset base: {dataset_base}")
     if args.dry_run:
         print("DRY RUN - commands will not be executed")
     print()
@@ -101,7 +126,7 @@ def main():
                 continue
 
             dataset_name = EVAL_TYPE_MAPPING[eval_type]
-            dataset_path = DATASET_BASE / dataset_name
+            dataset_path = dataset_base / dataset_name
 
             if not dataset_path.exists():
                 print(f"⊘ Skipping {eval_type} - dataset not found: {dataset_path}")

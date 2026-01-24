@@ -39,6 +39,7 @@ mc_multiplayer_v2_eval*/
 generations/*
 !generations/EXAMPLE_MODEL/
 logs/
+*.log
 frame_extraction/
 sanity_check_visualizations/
 sanity_check_detailed/

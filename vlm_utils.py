@@ -199,12 +199,31 @@ def find_generated_video_subdir(generated_base_path: Path, dataset_name: str) ->
     if not subdir_key:
         raise ValueError(f"Unknown dataset name: {dataset_name}")
 
-    # Look for subdirectories matching the pattern (e.g., *_eval_translation, *_eval_rotation)
+    # Look for subdirectories matching the pattern (e.g., *_eval_translation, *_eval_rotation).
+    # Allow extra suffixes after the key (e.g., both_look_away_max_speed, translation_ema_length_256).
+    candidates: List[Path] = []
     for subdir in generated_base_path.iterdir():
-        if subdir.is_dir() and subdir.name.split('eval_')[1] == subdir_key:
-            return subdir
+        if not subdir.is_dir():
+            continue
+        _, _, suffix = subdir.name.partition("eval_")
+        if not suffix:
+            continue
+        if suffix == subdir_key or suffix.startswith(f"{subdir_key}_"):
+            candidates.append(subdir)
 
-    raise ValueError(f"Could not find generated video subdirectory for dataset '{dataset_name}'")
+    if not candidates:
+        raise ValueError(
+            f"Could not find generated video subdirectory for dataset '{dataset_name}' "
+            f"(expected key '{subdir_key}')"
+        )
+
+    # If multiple candidates exist, prefer the latest step_XXXX in the directory name.
+    def _step_num(p: Path) -> int:
+        import re
+        m = re.search(r"step_(\d+)", p.name)
+        return int(m.group(1)) if m else -1
+
+    return max(candidates, key=lambda p: (_step_num(p), p.name))
 
 
 def extract_frame_from_generated(

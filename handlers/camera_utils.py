@@ -257,3 +257,46 @@ def calculate_position_answer(
             f"Unexpected yaw difference for position query: {yaw_diff_deg:.2f} degrees "
             f"(frame {frame1_idx} -> frame {frame2_idx})"
         )
+
+
+def get_yaw_diff_degrees(data: List[dict], frame1_idx: int, frame2_idx: int) -> float:
+    """
+    Get normalized yaw difference in degrees between two frames.
+
+    Returns a value in [-180, 180].
+    """
+    yaw_diff_rad = get_yaw_difference(data, frame1_idx, frame2_idx)
+    yaw_diff_rad = normalize_radians(yaw_diff_rad)
+    return math.degrees(yaw_diff_rad)
+
+
+def find_frame_at_yaw_delta(
+    data: List[dict],
+    frame1_idx: int,
+    start_frame: int,
+    *,
+    target_abs_degrees: float = 40.0,
+    tolerance_degrees: float = 10.0,
+    max_search_frames: int = 80,
+) -> Optional[int]:
+    """
+    Find a frame index (>= start_frame) where the yaw delta from frame1_idx
+    is close to a target magnitude.
+
+    This is useful for datasets where turn speed varies, so fixed offsets like
+    +27 frames are brittle.
+    """
+    best_idx: Optional[int] = None
+    best_score: float = float("inf")
+
+    end_frame = min(len(data) - 1, start_frame + max_search_frames)
+    for i in range(max(0, start_frame), end_frame + 1):
+        yaw_deg = get_yaw_diff_degrees(data, frame1_idx, i)
+        score = abs(abs(yaw_deg) - target_abs_degrees)
+        if score < best_score:
+            best_score = score
+            best_idx = i
+        if score <= tolerance_degrees:
+            return i
+
+    return best_idx if best_score <= (tolerance_degrees * 2) else None
