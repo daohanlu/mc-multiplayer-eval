@@ -48,7 +48,7 @@ Options:
   --dry-run                 View keyframe info without VLM queries (no cost)
   --extract-frames          Extract frames to frame_extraction/ folder for inspection
   --generated PATH          Path to generated videos directory
-  --limit N                 Limit number of episodes/queries (default: 32 video pairs)
+  --limit N                 Limit number of episodes to process (default: 32 video pairs)
   --api-key KEY             Gemini API key (or use GEMINI_API_KEY env var)
   --summary-json PATH       Custom path to structure summary JSON (structure datasets only)
   -o, --output PATH         Custom output path (default: auto-organized)
@@ -56,16 +56,18 @@ Options:
 
 ## Available Datasets
 
-| Dataset | Description | Expected Answer |
-|---------|-------------|-----------------|
-| `turnToLookEval` | Both players turn to look at each other | yes |
-| `turnToLookOppositeEval` | Players do NOT look at each other | no |
-| `translationEval` | Detects player movement direction | forward/backward/left/right |
-| `rotationEval` | Detects camera rotation direction | left/right |
-| `oneLooksAwayEval` | One player looks away and back | yes |
-| `bothLookAwayEval` | Both players look away and back | yes |
-| `structureEval` | Structure is built and visible | yes |
-| `structureNoPlaceEval` | Structure NOT built - should not be visible | no |
+| Dataset | Description | Queries/Episode | Expected Answer |
+|---------|-------------|-----------------|-----------------|
+| `turnToLookEval` | Both players turn to look at each other | 1 | yes |
+| `turnToLookOppositeEval` | Players do NOT look at each other | 1 | no |
+| `translationEval` | Detects player movement direction | 2 (both perspectives) | forward/backward/left/right |
+| `rotationEval` | Detects camera rotation direction | 1 | left/right |
+| `oneLooksAwayEval` | One player looks away and back | 3 (query types) | left/right/center/no |
+| `bothLookAwayEval` | Both players look away and back | 6 (3 types × 2 players) | left/right/center/no |
+| `structureEval` | Structure is built and visible | 1 | yes |
+| `structureNoPlaceEval` | Structure NOT built - should not be visible | 1 | no |
+
+**Note**: For datasets with multiple queries per episode, the `episode_level_accuracy` metric in results shows what percentage of episodes have ALL queries correct.
 
 ## Common Usage Examples
 
@@ -118,9 +120,51 @@ Results are automatically organized:
   "accuracy_excluding_unclear": 93.55,
   "accuracy_total": 90.62,
   "breakdown_by_query_type": {...},
+  "episode_level_accuracy": {...},
   "results": [...]
 }
 ```
+
+### Episode-Level Accuracy
+
+The `episode_level_accuracy` field measures whether ALL queries for each episode are correct (rather than individual query accuracy). This is particularly useful for multi-query datasets.
+
+**For single-player datasets** (e.g., `oneLooksAwayEval` with 3 query types per episode):
+```json
+"episode_level_accuracy": {
+  "total_episodes": 32,
+  "fully_correct_episodes": 28,
+  "episode_accuracy": 87.5,
+  "is_both_players_dataset": false
+}
+```
+
+**For both-players datasets** (e.g., `bothLookAwayEval` with 3 query types × 2 players = 6 queries per episode):
+```json
+"episode_level_accuracy": {
+  "total_episodes": 32,
+  "fully_correct_episodes": 24,
+  "episode_accuracy": 75.0,
+  "is_both_players_dataset": true,
+  "per_player_episode_accuracy": {
+    "alpha": {
+      "total_episodes": 32,
+      "fully_correct_episodes": 28,
+      "episode_accuracy": 87.5
+    },
+    "bravo": {
+      "total_episodes": 32,
+      "fully_correct_episodes": 26,
+      "episode_accuracy": 81.25
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `episode_accuracy` | % of episodes where ALL queries are correct |
+| `per_player_episode_accuracy` | (Both-players only) % of episodes where all queries for that player are correct |
 
 ---
 
@@ -191,6 +235,8 @@ For each keyframe query:
 - Saves comprehensive JSON with:
   - Overall statistics (accuracy, unclear count, etc.)
   - Per-query breakdown (query type if applicable)
+  - Episode-level accuracy (% of episodes where ALL queries are correct)
+  - Per-player episode accuracy for both-players datasets
   - Individual result details
 - Auto-organized output paths:
   - Ground-truth: `results_json/real/{dataset_name}.json`
