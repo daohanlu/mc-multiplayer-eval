@@ -8,7 +8,7 @@ in chronological order (all single-frame queries):
 1. player_position_during_turn: Bot is mid-turn, other player should be visible
    to the left or right of the screen
    
-2. player_visible_looked_away: Bot has fully turned away, other player should
+2. player_invisible_looked_away: Bot has fully turned away, other player should
    NOT be visible on screen
    
 3. player_position_turned_back: Bot has turned back to original orientation,
@@ -46,7 +46,7 @@ class MinecraftLooksAwayHandler(EpisodeTypeHandler):
     DATASET_NAMES = ["oneLooksAwayEval"]
 
     def get_prompt(self, query_type: str = "player_position_during_turn") -> str:
-        if query_type == "player_visible_looked_away":
+        if query_type == "player_invisible_looked_away":
             # Single frame query: bot has turned away, other player should NOT be visible
             return (
                 "Here is a Minecraft screenshot. "
@@ -68,7 +68,7 @@ class MinecraftLooksAwayHandler(EpisodeTypeHandler):
 
         Creates three queries in chronological order:
         1. player_position_during_turn: While bot is turning, other player should be visible left/right
-        2. player_visible_looked_away: When bot has fully turned away, other player should NOT be visible
+        2. player_invisible_looked_away: When bot has fully turned away, other player should NOT be visible
         3. player_position_turned_back: When bot turns back, other player should be at center again
         """
         queries = []
@@ -138,7 +138,7 @@ class MinecraftLooksAwayHandler(EpisodeTypeHandler):
         # Shows single frame at during_turn_frame_idx
         queries.append(KeyframeQuery(
             video_path=rotating_video,
-            frame_index=frame1_idx,
+            frame_index=during_turn_frame_idx,
             expected_answer=during_turn_answer,
             metadata={
                 "variant": variant,
@@ -160,12 +160,12 @@ class MinecraftLooksAwayHandler(EpisodeTypeHandler):
         # Query 2 (chronological): Fully looked away - player NOT visible
         queries.append(KeyframeQuery(
             video_path=rotating_video,
-            frame_index=frame1_idx,
+            frame_index=looked_away_frame_idx,
             expected_answer="no",
             metadata={
                 "variant": variant,
                 "rotating_bot": variant,
-                "query_type": "player_visible_looked_away",
+                "query_type": "player_invisible_looked_away",
                 "sneak_frame": sneak_frame,
                 "latest_sneak_frame": sneak_frame,
                 "rotation_frame": rotation_frame,
@@ -183,7 +183,7 @@ class MinecraftLooksAwayHandler(EpisodeTypeHandler):
         # Shows single frame at turned_back_frame_idx
         queries.append(KeyframeQuery(
             video_path=rotating_video,
-            frame_index=frame1_idx,
+            frame_index=turned_back_frame_idx,
             expected_answer="center",
             metadata={
                 "variant": variant,

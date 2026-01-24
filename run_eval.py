@@ -582,7 +582,7 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
 
                 # Check query type for looks_away/both_look_away handlers
                 if query_type in ("player_position_during_turn", "player_position_turned_back",
-                                  "player_visible_looked_away"):
+                                  "player_invisible_looked_away"):
                     # All looks_away queries use only frame2
                     image_bytes = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
                     vlm_response = query_vlm(prompt, image_bytes, enable_thinking=enable_thinking)
@@ -606,7 +606,7 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
                 # Use ground-truth videos
                 # Check query type for looks_away/both_look_away handlers
                 if query_type in ("player_position_during_turn", "player_position_turned_back",
-                                  "player_visible_looked_away"):
+                                  "player_invisible_looked_away"):
                     # All looks_away queries use only frame2
                     frame2_idx = meta['frame2']
                     image_bytes = extract_frame(query.video_path, frame2_idx)

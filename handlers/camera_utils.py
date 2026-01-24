@@ -197,8 +197,8 @@ def find_stop_turning_frame(
     """
     Find the frame where the bot stops turning.
 
-    Starts searching 40 frames after frame1_idx, finds the first frame
-    with no camera movement, and adds 10.
+    Starts at frame1_idx, waits for camera to start turning, then returns
+    the first frame where turning stops + 10 (+0.5s).
 
     Args:
         data: List of frame dictionaries containing action data
@@ -208,15 +208,21 @@ def find_stop_turning_frame(
     Returns:
         Frame index where bot has stopped turning, or None if not found
     """
-    search_start = frame1_idx + 40
-
-    for i in range(search_start, len(data)):
+    # First, find when the camera starts turning
+    turning_started = False
+    for i in range(frame1_idx, len(data)):
         action = data[i].get("action", {})
         camera = action.get("camera", [0, 0])
 
-        # Check if there's no significant camera movement
-        if abs(camera[0]) <= threshold and abs(camera[1]) <= threshold:
-            return i + 10
+        is_turning = abs(camera[0]) > threshold or abs(camera[1]) > threshold
+
+        if not turning_started:
+            if is_turning:
+                turning_started = True
+        else:
+            # We were turning, check if we've stopped
+            if not is_turning:
+                return i + 10  #Wait 0.5s for the camera to stabilize
 
     return None
 

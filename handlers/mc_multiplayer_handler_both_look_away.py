@@ -8,7 +8,7 @@ per bot (6 total) in chronological order:
 1. player_position_during_turn: Bot is mid-turn, other player should be visible
    to the left or right of the screen (single frame query)
    
-2. player_visible_looked_away: Bot has fully turned away, other player should
+2. player_invisible_looked_away: Bot has fully turned away, other player should
    NOT be visible on screen (both bots turn away from each other) (single frame query)
    
 3. player_position_turned_back: Bot has turned back to original orientation,
@@ -45,7 +45,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
     DATASET_NAMES = ["bothLookAwayEval"]
 
     def get_prompt(self, query_type: str = "player_position_during_turn") -> str:
-        if query_type == "player_visible_looked_away":
+        if query_type == "player_invisible_looked_away":
             # Single frame query: bot has turned away but other player should still be visible
             # (because both bots turn away, they still face each other)
             return (
@@ -68,7 +68,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
 
         Creates three queries per bot in chronological order:
         1. player_position_during_turn: While bot is turning, other player visible left/right
-        2. player_visible_looked_away: When bot has turned away, other player NOT visible
+        2. player_invisible_looked_away: When bot has turned away, other player NOT visible
         3. player_position_turned_back: When bot turns back, other player at center again
 
         Since both bots look away, we extract keyframes from both perspectives.
@@ -140,7 +140,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
             # Query 1 (chronological): During turn - player visible to left or right
             queries.append(KeyframeQuery(
                 video_path=video_path,
-                frame_index=frame1_idx,
+                frame_index=during_turn_frame_idx,
                 expected_answer=during_turn_answer,
                 metadata={
                     "variant": variant,
@@ -162,12 +162,12 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
             # Query 2 (chronological): Fully looked away - player NOT visible
             queries.append(KeyframeQuery(
                 video_path=video_path,
-                frame_index=frame1_idx,
+                frame_index=looked_away_frame_idx,
                 expected_answer="no",
                 metadata={
                     "variant": variant,
                     "rotating_bot": variant,
-                    "query_type": "player_visible_looked_away",
+                    "query_type": "player_invisible_looked_away",
                     "sneak_frame": bot_sneak_frame,
                     "latest_sneak_frame": latest_sneak_frame,
                     "rotation_frame": rotation_frame,
@@ -184,7 +184,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
             # Query 3 (chronological): Turned back - player should be back at center
             queries.append(KeyframeQuery(
                 video_path=video_path,
-                frame_index=frame1_idx,
+                frame_index=turned_back_frame_idx,
                 expected_answer="center",
                 metadata={
                     "variant": variant,
