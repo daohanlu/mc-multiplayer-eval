@@ -437,7 +437,7 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
     if not api_key:
         print("\n⚠ ERROR: GEMINI_API_KEY environment variable not set!")
         print("Please set it with: export GEMINI_API_KEY='your-api-key'")
-        return []
+        raise ValueError("GEMINI_API_KEY environment variable not set")
 
     # Use handler's enable_vlm_thinking property
     enable_thinking = handler.enable_vlm_thinking
