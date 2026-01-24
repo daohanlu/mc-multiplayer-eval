@@ -349,6 +349,96 @@ def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = 
     return ''.join(text_parts).strip().lower()
 
 
+def _compute_episode_level_accuracy(results: List[EvalResult]) -> Dict:
+    """
+    Compute episode-level accuracy metrics.
+    
+    An episode is considered correct only if ALL queries for that episode are correct.
+    
+    For datasets with both players (bothLookAwayEval), also computes:
+    - Per-player episode accuracy (all 3 queries correct for that player)
+    - Full episode accuracy (all 6 queries correct for both players)
+    
+    Returns:
+        Dictionary with episode-level accuracy metrics
+    """
+    from collections import defaultdict
+    
+    # Group results by (episode, instance)
+    episodes = defaultdict(list)
+    for r in results:
+        if r.metadata:
+            key = (r.metadata.get('episode'), r.metadata.get('instance'))
+            episodes[key].append(r)
+    
+    if not episodes:
+        return {}
+    
+    # Check if this is a "both players" dataset by looking for both alpha and bravo variants
+    all_variants = set()
+    for r in results:
+        if r.metadata and 'variant' in r.metadata:
+            all_variants.add(r.metadata['variant'])
+    
+    is_both_players = 'alpha' in all_variants and 'bravo' in all_variants
+    
+    # Calculate episode-level accuracy
+    total_episodes = len(episodes)
+    fully_correct_episodes = 0
+    
+    # For both-players datasets, also track per-player episode accuracy
+    alpha_correct_episodes = 0
+    bravo_correct_episodes = 0
+    alpha_episode_count = 0
+    bravo_episode_count = 0
+    
+    for (episode, instance), episode_results in episodes.items():
+        # Check if all queries in this episode are correct (treating unclear as incorrect)
+        all_correct = all(r.is_correct and not r.is_unclear for r in episode_results)
+        if all_correct:
+            fully_correct_episodes += 1
+        
+        if is_both_players:
+            # Group by variant within this episode
+            alpha_results = [r for r in episode_results if r.metadata and r.metadata.get('variant') == 'alpha']
+            bravo_results = [r for r in episode_results if r.metadata and r.metadata.get('variant') == 'bravo']
+            
+            if alpha_results:
+                alpha_episode_count += 1
+                if all(r.is_correct and not r.is_unclear for r in alpha_results):
+                    alpha_correct_episodes += 1
+            
+            if bravo_results:
+                bravo_episode_count += 1
+                if all(r.is_correct and not r.is_unclear for r in bravo_results):
+                    bravo_correct_episodes += 1
+    
+    episode_metrics = {
+        "total_episodes": total_episodes,
+        "fully_correct_episodes": fully_correct_episodes,
+        "episode_accuracy": (fully_correct_episodes / total_episodes * 100) if total_episodes > 0 else 0,
+    }
+    
+    if is_both_players:
+        episode_metrics["is_both_players_dataset"] = True
+        episode_metrics["per_player_episode_accuracy"] = {
+            "alpha": {
+                "total_episodes": alpha_episode_count,
+                "fully_correct_episodes": alpha_correct_episodes,
+                "episode_accuracy": (alpha_correct_episodes / alpha_episode_count * 100) if alpha_episode_count > 0 else 0,
+            },
+            "bravo": {
+                "total_episodes": bravo_episode_count,
+                "fully_correct_episodes": bravo_correct_episodes,
+                "episode_accuracy": (bravo_correct_episodes / bravo_episode_count * 100) if bravo_episode_count > 0 else 0,
+            }
+        }
+    else:
+        episode_metrics["is_both_players_dataset"] = False
+    
+    return episode_metrics
+
+
 def save_results(results: List[EvalResult], output_path: str, vlm_model_name: str, our_model_name: str, thinking_enabled: bool = False):
     """
     Save evaluation results to a JSON file.
@@ -389,6 +479,9 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
             "accuracy_total": (type_correct / type_total * 100) if type_total > 0 else 0
         }
 
+    # Calculate episode-level accuracy metrics
+    episode_level_accuracy = _compute_episode_level_accuracy(results)
+
     output_data = {
         "vlm_model_name": vlm_model_name,
         "our_model_name": our_model_name,
@@ -401,6 +494,7 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
         "accuracy_excluding_unclear": accuracy_excluding_unclear,
         "accuracy_total": accuracy_total,
         "breakdown_by_query_type": breakdown_by_query_type,
+        "episode_level_accuracy": episode_level_accuracy,
         "results": [
             {
                 "video": str(r.query.video_path.name),

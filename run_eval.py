@@ -435,11 +435,16 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
         handler: Episode type handler
         video_pairs: List of video pairs
         output_file: Path to save results JSON
-        limit: Optional limit on number of queries
+        limit: Optional limit on number of episodes
         generated_path: Optional path to generated videos directory
         dataset_name: Dataset name (needed when using generated videos)
         model_name: Name of our video generation model being evaluated, or "ground_truth" for GT videos
     """
+    # Apply episode limit first
+    original_count = len(video_pairs)
+    if limit:
+        video_pairs = video_pairs[:limit]
+
     # Check API key
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
@@ -456,6 +461,10 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
     print(f"Handler: {handler.__class__.__name__}")
     print(f"Model: {VLM_MODEL_NAME} (thinking {thinking_status})")
     print(f"Output: {output_file}")
+    if limit and len(video_pairs) < original_count:
+        print(f"Episodes: {len(video_pairs)} (limited from {original_count})")
+    else:
+        print(f"Episodes: {len(video_pairs)}")
     if generated_path:
         print(f"Using generated videos from: {generated_path}")
     print(f"{'='*80}\n")
@@ -502,10 +511,6 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
         all_queries.extend(queries)
 
     print(f"Total queries: {len(all_queries)}")
-
-    if limit:
-        all_queries = all_queries[:limit]
-        print(f"Limiting to: {limit} queries")
 
     # Query VLM
     print(f"\n{'='*80}")
@@ -789,7 +794,7 @@ Examples:
     parser.add_argument(
         "--limit",
         type=int,
-        help="Limit number of episodes/queries to process"
+        help="Limit number of episodes to process"
     )
     parser.add_argument(
         "--api-key",
