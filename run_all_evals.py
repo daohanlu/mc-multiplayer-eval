@@ -8,14 +8,14 @@ from pathlib import Path
 
 # Base directories
 GENERATIONS_DIR = Path("./generations")
-DATASET_BASE = Path("./mc_multiplayer_v2_eval")
+DATASET_BASE = Path("./mc_multiplayer_v2_eval_max_speed")
 
 # Mapping from generated video subdirectory key (e.g., "translation" from "*_eval_translation")
 # to the dataset folder name (e.g., "translationEval")
 #
 # Model folders: generations/{model_name}/  (e.g., SF_CONCAT_FINAL_2)
 # Eval subdirs:  step_{N}_multiplayer_v2_eval_{key}  (e.g., step_0002000_multiplayer_v2_eval_translation)
-# Dataset folders: mc_multiplayer_v2_eval/{datasetName}  (e.g., mc_multiplayer_v2_eval/translationEval)
+# Dataset folders: mc_multiplayer_v2_eval_max_speed/{datasetName}  (e.g., mc_multiplayer_v2_eval_max_speed/translationEval)
 EVAL_TYPE_MAPPING = {
     "translation": "translationEval",
     "rotation": "rotationEval",

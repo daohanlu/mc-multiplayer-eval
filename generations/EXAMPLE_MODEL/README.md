@@ -41,7 +41,7 @@ The video index N corresponds to the sorted video pair index from the ground-tru
 2. Run evaluations:
    ```bash
    # Single model/dataset
-   python run_eval.py mc_multiplayer_v2_eval/translationEval --generated generations/YOUR_MODEL_NAME
+   python run_eval.py mc_multiplayer_v2_eval_max_speed/translationEval --generated generations/YOUR_MODEL_NAME
    
    # All models and datasets
    python run_all_evals.py

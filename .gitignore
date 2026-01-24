@@ -35,7 +35,7 @@ env/
 
 # Data files - videos, images, outputs
 mc_multiplayer_v1_eval/
-mc_multiplayer_v2_eval/
+mc_multiplayer_v2_eval*/
 generations/*
 !generations/EXAMPLE_MODEL/
 logs/

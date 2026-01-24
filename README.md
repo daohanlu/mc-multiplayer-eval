@@ -12,14 +12,17 @@ A framework for evaluating video generation models on Minecraft multiplayer scen
 # Set your Gemini API key
 export GEMINI_API_KEY="your-api-key"
 
+# Download the eval dataset from GCloud Bucket
+gsutil -m cp -r gs://YOUR_BUCKET_NAME/.../mc_multiplayer_v2_eval_max_speed_new_sneak_max_speed mc_multiplayer_v2_eval_max_speed_max_speed
+
 # Run evaluation on ground-truth videos
-python run_eval.py ./mc_multiplayer_v2_eval/turnToLookEval
+python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval
 
 # Run evaluation on generated videos
-python run_eval.py ./mc_multiplayer_v2_eval/turnToLookEval --generated generations/flagship_final
+python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final
 
 # Run structure evaluation
-python run_eval.py ./mc_multiplayer_v2_eval/structureEval --generated generations/flagship_final
+python run_eval.py ./mc_multiplayer_v2_eval_max_speed/structureEval --generated generations/flagship_final
 ```
 
 ## Environment Setup
@@ -38,7 +41,7 @@ pip install google-genai opencv-python
 python run_eval.py <folder> [options]
 
 Arguments:
-  folder                    Path to dataset folder (e.g., mc_multiplayer_v2_eval/turnToLookEval)
+  folder                    Path to dataset folder (e.g., mc_multiplayer_v2_eval_max_speed/turnToLookEval)
                             The /test subdirectory is automatically appended.
 
 Options:
@@ -69,22 +72,22 @@ Options:
 ### Dry Run (Inspect Without VLM Queries)
 ```bash
 # View keyframe detection info for first 10 episodes (no API cost)
-python run_eval.py ./mc_multiplayer_v2_eval/turnToLookEval --dry-run --limit 10
+python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --dry-run --limit 10
 ```
 
 ### Extract Frames for Visual Inspection
 ```bash
 # Extract frames to frame_extraction/ folder
-python run_eval.py ./mc_multiplayer_v2_eval/turnToLookEval --extract-frames --limit 5
+python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --extract-frames --limit 5
 ```
 
 ### Run Full Evaluation
 ```bash
 # Evaluate ground-truth videos (sanity check)
-python run_eval.py ./mc_multiplayer_v2_eval/turnToLookEval
+python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval
 
 # Evaluate generated videos
-python run_eval.py ./mc_multiplayer_v2_eval/turnToLookEval --generated generations/flagship_final
+python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final
 ```
 
 ### Batch Evaluation (All Models)
@@ -127,7 +130,7 @@ Results are automatically organized:
 
 When you run:
 ```bash
-python run_eval.py ./mc_multiplayer_v2_eval/turnToLookEval --generated generations/flagship_final --limit 10
+python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final --limit 10
 ```
 
 The execution flows through these steps:
@@ -317,7 +320,7 @@ Layout:
 │       ├── structure_building_summary.json
 │       └── structure_building_no_place_summary.json
 │
-├── mc_multiplayer_v2_eval_*/    # Ground-truth video datasets
+├── mc_multiplayer_v2_eval_max_speed_*/    # Ground-truth video datasets
 │   └── {evalType}/
 │       └── test/
 │           ├── {episode}_{Alpha|Bravo}_instance_{instance}_camera.mp4

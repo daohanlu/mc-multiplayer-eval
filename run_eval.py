@@ -733,18 +733,18 @@ def main():
         epilog="""
 Examples:
   # Dry run (view keyframe info for first 10 episodes)
-  python run_eval.py mc_multiplayer_v2_eval/turnToLookEval --dry-run --limit 10
+  python run_eval.py mc_multiplayer_v2_eval_max_speed/turnToLookEval --dry-run --limit 10
 
   # Extract frames for visual inspection
-  python run_eval.py mc_multiplayer_v2_eval/turnToLookOppositeEval --extract-frames --limit 5
+  python run_eval.py mc_multiplayer_v2_eval_max_speed/turnToLookOppositeEval --extract-frames --limit 5
 
   # Run full evaluation on ground-truth videos
   # (auto-saves to results_json/real/turnToLookEval.json)
-  python run_eval.py mc_multiplayer_v2_eval/turnToLookEval
+  python run_eval.py mc_multiplayer_v2_eval_max_speed/turnToLookEval
 
   # Run evaluation on generated videos
   # (auto-saves to results_json/generated/{model_name}_turnToLookEval.json)
-  python run_eval.py mc_multiplayer_v2_eval/turnToLookEval --generated generations/flagship_final_v2_1B_multiplayer_final
+  python run_eval.py mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final_v2_1B_multiplayer_final
 
   # Run evaluation for structure dataset
   python run_eval.py mc_multiplayer_eval_structure
@@ -756,7 +756,7 @@ Examples:
 
     parser.add_argument(
         "folder",
-        help="Path to dataset folder (e.g., mc_multiplayer_v2_eval/turnToLookEval). The /test subdirectory is automatically appended."
+        help="Path to dataset folder (e.g., mc_multiplayer_v2_eval_max_speed/turnToLookEval). The /test subdirectory is automatically appended."
     )
 
     # Mode selection (mutually exclusive)
