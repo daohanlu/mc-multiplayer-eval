@@ -29,7 +29,8 @@ from handlers.camera_utils import (
     find_last_sneak_frame,
     find_camera_rotation_frame,
     find_stop_turning_frame,
-    calculate_position_answer,
+    find_frame_at_yaw_delta,
+    get_yaw_diff_degrees,
 )
 
 
@@ -107,8 +108,21 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
             # Calculate keyframe indices using the LATEST sneak frame
             frame1_idx = latest_sneak_frame + 5  # Reference frame (before turning)
             
-            # Frame during turn: rotation_frame + 27 (bot is mid-turn, player visible left/right)
-            during_turn_frame_idx = rotation_frame + 27
+            # Frame during turn: find a frame where yaw delta is ~40 degrees
+            during_turn_frame_idx = find_frame_at_yaw_delta(
+                data,
+                frame1_idx,
+                rotation_frame,
+                target_abs_degrees=40.0,
+                tolerance_degrees=10.0,
+                max_search_frames=80,
+            )
+            if during_turn_frame_idx is None:
+                print(
+                    f"  ⚠ Skipping {variant} for episode {video_pair.episode_num} "
+                    f"instance {video_pair.instance_num}: could not find ~40° mid-turn frame"
+                )
+                continue
             
             # Frame when fully turned away: find when camera stops moving
             looked_away_frame_idx = find_stop_turning_frame(data, frame1_idx)
@@ -118,15 +132,9 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
             # Frame when turned back: rotation_frame + 200 (bot has returned to original orientation)
             turned_back_frame_idx = rotation_frame + 200
 
-            # Calculate expected answer for during-turn query (player should be left or right)
-            try:
-                during_turn_answer = calculate_position_answer(
-                    data, frame1_idx, during_turn_frame_idx
-                )
-                assert during_turn_answer in ["left", "right"]
-            except (ValueError, AssertionError) as e:
-                print(f"  ⚠ Skipping {variant} for episode {video_pair.episode_num} instance {video_pair.instance_num}: {e}")
-                continue
+            # Expected answer for during-turn query (player should be left or right)
+            yaw_diff_deg = get_yaw_diff_degrees(data, frame1_idx, during_turn_frame_idx)
+            during_turn_answer = "left" if yaw_diff_deg < 0 else "right"
 
             # Query 1 (chronological): During turn - player visible to left or right
             queries.append(KeyframeQuery(
