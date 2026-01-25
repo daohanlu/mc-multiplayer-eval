@@ -40,6 +40,40 @@ ENABLED_EVAL_TYPES = [
 ]
 
 
+def _normalize_eval_types_arg(values: list[str] | None) -> list[str] | None:
+    """Normalize --eval-types input.
+
+    Supports:
+    - space-separated values: --eval-types translation rotation
+    - comma-separated values: --eval-types translation,rotation
+    - mixed: --eval-types translation,rotation structure
+    - special: --eval-types all
+    """
+    if not values:
+        return None
+
+    normalized: list[str] = []
+    for v in values:
+        parts = [p.strip() for p in v.split(",") if p.strip()]
+        normalized.extend(parts)
+
+    if not normalized:
+        return None
+
+    if any(v.lower() == "all" for v in normalized):
+        return sorted(EVAL_TYPE_MAPPING.keys())
+
+    # De-duplicate while preserving order
+    seen: set[str] = set()
+    out: list[str] = []
+    for v in normalized:
+        if v not in seen:
+            out.append(v)
+            seen.add(v)
+
+    return out
+
+
 def extract_eval_type(folder_name: str) -> str | None:
     """Extract evaluation type from generated folder name.
 
@@ -88,12 +122,27 @@ def main():
         type=int,
         help="Limit number of episodes/queries to process (passed to run_eval.py)",
     )
+    parser.add_argument(
+        "--eval-types",
+        nargs="+",
+        help=(
+            "Override which eval types to run. "
+            "Examples: --eval-types translation rotation | --eval-types translation,rotation | --eval-types all. "
+            f"Valid keys: {', '.join(sorted(EVAL_TYPE_MAPPING.keys()))}"
+        ),
+    )
     args = parser.parse_args()
 
     generations_dir: Path = args.generations_dir
     dataset_base: Path = args.dataset_base
 
-    print(f"Enabled eval types: {ENABLED_EVAL_TYPES}")
+    enabled_eval_types = _normalize_eval_types_arg(args.eval_types) or ENABLED_EVAL_TYPES
+    unknown = [t for t in enabled_eval_types if t not in EVAL_TYPE_MAPPING]
+    if unknown:
+        valid = ", ".join(sorted(EVAL_TYPE_MAPPING.keys()))
+        raise SystemExit(f"Unknown eval type(s): {unknown}. Valid keys: {valid}")
+
+    print(f"Enabled eval types: {enabled_eval_types}")
     print(f"Dataset base: {dataset_base}")
     if args.dry_run:
         print("DRY RUN - commands will not be executed")
@@ -107,11 +156,7 @@ def main():
         print("Extracting frames from ground-truth videos")
         print(f"{'=' * 80}")
 
-        for eval_type in ENABLED_EVAL_TYPES:
-            if eval_type not in EVAL_TYPE_MAPPING:
-                print(f"⚠ Unknown eval type in ENABLED_EVAL_TYPES: {eval_type}")
-                continue
-
+        for eval_type in enabled_eval_types:
             dataset_name = EVAL_TYPE_MAPPING[eval_type]
             dataset_path = dataset_base / dataset_name
 
@@ -183,11 +228,7 @@ def main():
         print(f"Available eval types: {list(available_eval_types.keys())}")
 
         # Run evaluation for each enabled eval type
-        for eval_type in ENABLED_EVAL_TYPES:
-            if eval_type not in EVAL_TYPE_MAPPING:
-                print(f"⚠ Unknown eval type in ENABLED_EVAL_TYPES: {eval_type}")
-                continue
-
+        for eval_type in enabled_eval_types:
             dataset_name = EVAL_TYPE_MAPPING[eval_type]
             dataset_path = dataset_base / dataset_name
 
