@@ -15,6 +15,8 @@ import re
 import sys
 from pathlib import Path
 from typing import List, Optional
+import json
+import statistics
 
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -737,6 +739,77 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
     return results
 
 
+def _resolve_output_dir(
+    output_arg: str,
+    dataset_name: str,
+    generated_path: Optional[Path],
+    model_name: str,
+) -> Path:
+    """Resolve output directory path for per-trial outputs.
+
+    Behavior:
+    - If output_arg is the default "eval_results.json", we auto-organize into:
+      - results_json/generated/{model_name}_{dataset_name}/
+      - results_json/real/{dataset_name}/
+    - If output_arg ends with ".json", we treat it as a legacy file path and convert it to a
+      directory path by stripping the suffix (e.g., "foo.json" -> "foo/").
+    - Otherwise, we treat output_arg as a directory path.
+    """
+    if output_arg == "eval_results.json":
+        if generated_path:
+            return Path("results_json/generated") / f"{model_name}_{dataset_name}"
+        return Path("results_json/real") / dataset_name
+
+    p = Path(output_arg)
+    if p.suffix.lower() == ".json":
+        return p.with_suffix("")
+    return p
+
+
+def _read_episode_accuracy(output_json_path: Path) -> float:
+    """Read episode_level_accuracy.episode_accuracy from a saved trial JSON."""
+    with open(output_json_path, "r") as f:
+        data = json.load(f)
+
+    try:
+        return float(data["episode_level_accuracy"]["episode_accuracy"])
+    except Exception as e:
+        raise KeyError(
+            f"Missing episode_level_accuracy.episode_accuracy in {output_json_path}"
+        ) from e
+
+
+def _write_stats_json(output_dir: Path, accuracies: list[float]) -> None:
+    """Write aggregate stats for episode-level accuracy across trials."""
+    if not accuracies:
+        stats = {
+            "metric": "episode_level_accuracy.episode_accuracy",
+            "num_trials": 0,
+            "trials": [],
+            "mean": None,
+            "median": None,
+            "std": None,
+        }
+    else:
+        stats = {
+            "metric": "episode_level_accuracy.episode_accuracy",
+            "num_trials": len(accuracies),
+            "trials": [
+                {"trial": i + 1, "episode_accuracy": acc} for i, acc in enumerate(accuracies)
+            ],
+            "mean": statistics.mean(accuracies),
+            "median": statistics.median(accuracies),
+            # Use population stddev so num_trials=1 yields 0.0
+            "std": statistics.pstdev(accuracies),
+        }
+
+    stats_path = output_dir / "stats.json"
+    with open(stats_path, "w") as f:
+        json.dump(stats, f, indent=2)
+
+    print(f"Stats saved to: {stats_path}")
+
+
 def main():
     import argparse
 
@@ -752,11 +825,11 @@ Examples:
   python run_eval.py mc_multiplayer_v2_eval_max_speed/turnToLookOppositeEval --extract-frames --limit 5
 
   # Run full evaluation on ground-truth videos
-  # (auto-saves to results_json/real/turnToLookEval.json)
+  # (auto-saves to results_json/real/turnToLookEval/trial_1.json plus stats.json)
   python run_eval.py mc_multiplayer_v2_eval_max_speed/turnToLookEval
 
   # Run evaluation on generated videos
-  # (auto-saves to results_json/generated/{model_name}_turnToLookEval.json)
+  # (auto-saves to results_json/generated/{model_name}_turnToLookEval/trial_1.json plus stats.json)
   python run_eval.py mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final_v2_1B_multiplayer_final
 
   # Run evaluation for structure dataset
@@ -789,12 +862,22 @@ Examples:
     parser.add_argument(
         "--output", "-o",
         default="eval_results.json",
-        help="Output JSON file (auto-organized: results_json/generated/{model}_{dataset}.json or results_json/real/{dataset}.json)"
+        help=(
+            "Output path. If omitted, auto-organized into "
+            "results_json/generated/{model}_{dataset}/ or results_json/real/{dataset}/. "
+            "If a .json file path is provided, it will be converted into a directory by stripping the suffix."
+        )
     )
     parser.add_argument(
         "--limit",
         type=int,
         help="Limit number of episodes to process"
+    )
+    parser.add_argument(
+        "--num-trials",
+        type=int,
+        default=1,
+        help="Number of evaluation trials to run (default: 1). Produces trial_*.json plus stats.json.",
     )
     parser.add_argument(
         "--api-key",
@@ -810,6 +893,10 @@ Examples:
     )
 
     args = parser.parse_args()
+
+    if args.num_trials < 1:
+        print("Error: --num-trials must be >= 1")
+        return 1
 
     # Set API key if provided
     if args.api_key:
@@ -860,22 +947,17 @@ Examples:
         # Extract model name from path (e.g., "flagship_final_v2_1B_multiplayer_final")
         model_name = generated_path.name
 
-    # Determine output file path for evaluation
-    output_file = args.output
+    # Determine output directory for evaluation trials
+    output_dir: Optional[Path] = None
     if not args.dry_run and not args.extract_frames:
-        # Only auto-generate output path if using the default value
-        if args.output == "eval_results.json":
-            if generated_path:
-                # Save to results_json/generated/{model_name}_{dataset_name}.json
-                output_dir = Path("results_json/generated")
-                output_dir.mkdir(parents=True, exist_ok=True)
-                output_file = str(output_dir / f"{model_name}_{dataset_name}.json")
-            else:
-                # Save to results_json/real/{dataset_name}.json
-                output_dir = Path("results_json/real")
-                output_dir.mkdir(parents=True, exist_ok=True)
-                output_file = str(output_dir / f"{dataset_name}.json")
-        print(f"Output file: {output_file}")
+        output_dir = _resolve_output_dir(
+            output_arg=args.output,
+            dataset_name=dataset_name,
+            generated_path=generated_path,
+            model_name=model_name,
+        )
+        output_dir.mkdir(parents=True, exist_ok=True)
+        print(f"Output dir: {output_dir}")
 
     # Execute based on mode
     if args.dry_run:
@@ -891,10 +973,33 @@ Examples:
                           generated_path=generated_path, dataset_name=dataset_name)
 
     else:
-        # Run full evaluation
-        run_evaluation(handler, video_pairs, output_file, limit=args.limit,
-                      generated_path=generated_path, dataset_name=dataset_name,
-                      model_name=model_name)
+        # Run full evaluation num_trials times, save per-trial JSON + aggregate stats.
+        assert output_dir is not None
+        trial_accuracies: list[float] = []
+
+        for trial_idx in range(1, args.num_trials + 1):
+            trial_output = output_dir / f"trial_{trial_idx}.json"
+            print(f"\n{'=' * 80}")
+            print(f"TRIAL {trial_idx}/{args.num_trials}")
+            print(f"Output: {trial_output}")
+            print(f"{'=' * 80}\n")
+
+            run_evaluation(
+                handler,
+                video_pairs,
+                str(trial_output),
+                limit=args.limit,
+                generated_path=generated_path,
+                dataset_name=dataset_name,
+                model_name=model_name,
+            )
+
+            if not trial_output.exists():
+                raise RuntimeError(f"Expected trial output not found: {trial_output}")
+
+            trial_accuracies.append(_read_episode_accuracy(trial_output))
+
+        _write_stats_json(output_dir, trial_accuracies)
 
     return 0
 

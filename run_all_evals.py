@@ -123,6 +123,12 @@ def main():
         help="Limit number of episodes/queries to process (passed to run_eval.py)",
     )
     parser.add_argument(
+        "--num-trials",
+        type=int,
+        default=1,
+        help="Number of evaluation trials to run per (model, dataset) pair (passed to run_eval.py).",
+    )
+    parser.add_argument(
         "--eval-types",
         nargs="+",
         help=(
@@ -132,6 +138,8 @@ def main():
         ),
     )
     args = parser.parse_args()
+    if args.num_trials < 1:
+        raise SystemExit("--num-trials must be >= 1")
 
     generations_dir: Path = args.generations_dir
     dataset_base: Path = args.dataset_base
@@ -173,6 +181,8 @@ def main():
             ]
             if args.limit:
                 cmd.extend(["--limit", str(args.limit)])
+            if args.num_trials != 1:
+                cmd.extend(["--num-trials", str(args.num_trials)])
 
             print(f"\n{'[DRY RUN] Would run' if args.dry_run else 'Running'}: {' '.join(cmd)}")
 
@@ -250,6 +260,8 @@ def main():
             ]
             if args.limit:
                 cmd.extend(["--limit", str(args.limit)])
+            if args.num_trials != 1:
+                cmd.extend(["--num-trials", str(args.num_trials)])
 
             print(f"\n{'[DRY RUN] Would run' if args.dry_run else 'Running'}: {' '.join(cmd)}")
 
