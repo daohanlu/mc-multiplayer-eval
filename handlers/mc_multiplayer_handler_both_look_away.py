@@ -45,7 +45,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
     DATASET_NAMES = ["bothLookAwayEval"]
 
     def get_prompt(self, query_type: str = "player_position_during_turn") -> str:
-        if query_type == "player_invisible_looked_away":
+        if query_type == "player_invisible_looked_away" or query_type == "player_position_turned_back":
             # Single frame query: bot has turned away but other player should still be visible
             # (because both bots turn away, they still face each other)
             return (
@@ -53,7 +53,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
                 "Is there another player visible on-screen? "
                 "Answer with a single word: \"yes\", \"no\"."
             )
-        else:  # player_position_during_turn or player_position_turned_back
+        else:  # player_position_during_turn 
             # Single frame queries for player position
             return (
                 "Here is a Minecraft screenshot potentially showing another player on the screen. "
@@ -185,7 +185,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
             queries.append(KeyframeQuery(
                 video_path=video_path,
                 frame_index=turned_back_frame_idx,
-                expected_answer="center",
+                expected_answer="yes",
                 metadata={
                     "variant": variant,
                     "rotating_bot": variant,
