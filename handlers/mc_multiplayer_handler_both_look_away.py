@@ -138,6 +138,8 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
             during_turn_answer = "left" if yaw_diff_deg < 0 else "right"
 
             # Query 1 (chronological): During turn - player visible to left or right
+            # Note: Single-frame query, only frame_index is sent to VLM
+            # frame1 is kept as reference for generated video offset calculation
             queries.append(KeyframeQuery(
                 video_path=video_path,
                 frame_index=during_turn_frame_idx,
@@ -151,7 +153,6 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
                     "rotation_frame": rotation_frame,
                     "rotation_direction": rotation_direction,
                     "frame1": frame1_idx,
-                    "frame2": during_turn_frame_idx,
                     "yaw1": get_accumulated_yaw(data, frame1_idx),
                     "yaw2": get_accumulated_yaw(data, during_turn_frame_idx),
                     "episode": video_pair.episode_num,
@@ -160,6 +161,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
             ))
 
             # Query 2 (chronological): Fully looked away - player NOT visible
+            # Note: Single-frame query, only frame_index is sent to VLM
             queries.append(KeyframeQuery(
                 video_path=video_path,
                 frame_index=looked_away_frame_idx,
@@ -173,7 +175,6 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
                     "rotation_frame": rotation_frame,
                     "rotation_direction": rotation_direction,
                     "frame1": frame1_idx,
-                    "frame2": looked_away_frame_idx,
                     "yaw1": get_accumulated_yaw(data, frame1_idx),
                     "yaw2": get_accumulated_yaw(data, looked_away_frame_idx),
                     "episode": video_pair.episode_num,
@@ -182,6 +183,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
             ))
 
             # Query 3 (chronological): Turned back - player should be back at center
+            # Note: Single-frame query, only frame_index is sent to VLM
             queries.append(KeyframeQuery(
                 video_path=video_path,
                 frame_index=turned_back_frame_idx,
@@ -195,7 +197,6 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
                     "rotation_frame": rotation_frame,
                     "rotation_direction": rotation_direction,
                     "frame1": frame1_idx,
-                    "frame2": turned_back_frame_idx,
                     "yaw1": get_accumulated_yaw(data, frame1_idx),
                     "yaw2": get_accumulated_yaw(data, turned_back_frame_idx),
                     "episode": video_pair.episode_num,

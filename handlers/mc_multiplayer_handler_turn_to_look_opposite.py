@@ -79,6 +79,9 @@ class MinecraftTurnToLookOppositeHandler(EpisodeTypeHandler):
 
         # Create a single query that will compare both perspectives
         # We use alpha_video as the primary video_path, but metadata contains both
+        # Note: Two-frame query comparing alpha and bravo perspectives at the same timestamp
+        # alpha_frame and bravo_frame specify which frames to extract from each video
+        # frame1 is kept as reference for generated video offset calculation
         queries.append(KeyframeQuery(
             video_path=video_pair.alpha_video,
             frame_index=frame2_idx,
@@ -94,7 +97,6 @@ class MinecraftTurnToLookOppositeHandler(EpisodeTypeHandler):
                 "bravo_sneak_frame": bravo_sneak_frame,
                 "latest_sneak_frame": latest_sneak_frame,
                 "frame1": frame1_idx,
-                "frame2": frame2_idx,
                 "episode": video_pair.episode_num,
                 "instance": video_pair.instance_num
             }

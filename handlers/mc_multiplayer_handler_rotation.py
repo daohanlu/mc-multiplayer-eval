@@ -91,13 +91,15 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
             return queries
 
         # Create keyframe queries for BOTH bot perspectives
+        # Note: Only frame2 is used for the VLM query (single-frame query)
+        # frame1 is kept as reference for generated video offset calculation
         for video_path, video_variant in [
             (video_pair.alpha_video, "alpha"),
             (video_pair.bravo_video, "bravo")
         ]:
             queries.append(KeyframeQuery(
                 video_path=video_path,
-                frame_index=frame1_idx,
+                frame_index=frame2_idx,
                 expected_answer=expected_answer,
                 metadata={
                     "variant": video_variant,
@@ -106,7 +108,6 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
                     "rotation_frame": rotation_frame,
                     "rotation_direction": rotation_direction,
                     "frame1": frame1_idx,
-                    "frame2": frame2_idx,
                     "yaw1": rotating_data[frame1_idx].get("yaw", 0),
                     "yaw2": rotating_data[frame2_idx].get("yaw", 0),
                     "episode": video_pair.episode_num,

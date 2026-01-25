@@ -152,6 +152,8 @@ class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
             return queries
 
         # Create keyframe query only for the observer (non-building bot)
+        # Note: Single-frame query, only frame_index is sent to VLM
+        # frame1 is kept as reference for generated video offset calculation
         queries.append(KeyframeQuery(
             video_path=observer_video,
             frame_index=frame2_idx,
@@ -166,7 +168,6 @@ class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
                 "bravo_builds": episode_data["bravo_builds"],
                 "sneak_frame": sneak_frame,
                 "frame1": frame1_idx,
-                "frame2": frame2_idx,
                 "episode": video_pair.episode_num,
                 "instance": video_pair.instance_num
             }

@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from vlm_utils import (
     VideoPair,
+    KeyframeQuery,
     extract_frame,
     query_vlm,
     save_results,
@@ -32,6 +33,105 @@ from vlm_utils import (
     extract_frame_from_generated,
     VLM_MODEL_NAME
 )
+from visualization_helper import (
+    get_side_by_side_output_dir,
+    create_side_by_side_comparison,
+)
+
+
+def get_frame_output_dir(dataset_name: str, model_name: str, query_type: Optional[str]) -> Path:
+    """
+    Get the output directory for extracted frames.
+    
+    Structure: frame_extraction/TASK/[_real | MODEL_VARIANT]/[QUERY_TYPE | default]/
+    
+    Args:
+        dataset_name: Name of the dataset (e.g., "rotationEval")
+        model_name: Model name, or "ground_truth" for real videos
+        query_type: Query type from metadata, or None for default
+        
+    Returns:
+        Path to the output directory
+    """
+    variant = "_real" if model_name == "ground_truth" else model_name
+    query_folder = query_type if query_type and query_type != "default" else "default"
+    return Path("frame_extraction") / dataset_name / variant / query_folder
+
+
+def extract_query_frames(
+    query: KeyframeQuery,
+    generated_subdir: Optional[Path],
+    current_video_id: int,
+    frame1_idx: int,
+) -> dict:
+    """
+    Extract frames for a query and return frame bytes with filename suffixes.
+    
+    This is the single source of truth for frame extraction, ensuring that
+    the exact same frames are saved to disk and sent to the VLM.
+    
+    Args:
+        query: The KeyframeQuery object
+        generated_subdir: Path to generated video subdirectory, or None for GT videos
+        current_video_id: Current video ID for generated videos
+        frame1_idx: Reference frame index for generated video offset calculation
+        
+    Returns:
+        Dict mapping suffix to frame bytes: {"frame": bytes} for single-frame,
+        {"frame1": bytes, "frame2": bytes} for two-frame,
+        {"alpha_frame": bytes, "bravo_frame": bytes} for turn_to_look
+    """
+    meta = query.metadata
+    is_turn_to_look = meta.get('is_turn_to_look', False)
+    
+    frames = {}
+    
+    if is_turn_to_look:
+        # Turn to look: extract from both alpha and bravo perspectives
+        alpha_video = Path(meta['alpha_video'])
+        bravo_video = Path(meta['bravo_video'])
+        alpha_frame_idx = meta['alpha_frame']
+        bravo_frame_idx = meta['bravo_frame']
+        
+        if generated_subdir:
+            generated_video = generated_subdir / f"video_{current_video_id}_side_by_side.mp4"
+            if not generated_video.exists():
+                raise FileNotFoundError(f"Generated video not found: {generated_video.name}")
+            frames["alpha_frame"] = extract_frame_from_generated(generated_video, alpha_frame_idx, frame1_idx, "alpha")
+            frames["bravo_frame"] = extract_frame_from_generated(generated_video, bravo_frame_idx, frame1_idx, "bravo")
+        else:
+            frames["alpha_frame"] = extract_frame(alpha_video, alpha_frame_idx)
+            frames["bravo_frame"] = extract_frame(bravo_video, bravo_frame_idx)
+    
+    elif 'frame2' in meta:
+        # Translation: needs both frames
+        frame2_idx = meta['frame2']
+        variant = meta['variant']
+        
+        if generated_subdir:
+            generated_video = generated_subdir / f"video_{current_video_id}_side_by_side.mp4"
+            if not generated_video.exists():
+                raise FileNotFoundError(f"Generated video not found: {generated_video.name}")
+            # Use frame1_idx + 1 as first frame since generated video starts there
+            frames["frame1"] = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
+            frames["frame2"] = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
+        else:
+            frames["frame1"] = extract_frame(query.video_path, frame1_idx)
+            frames["frame2"] = extract_frame(query.video_path, frame2_idx)
+    
+    else:
+        # Single-frame handlers: use query.frame_index
+        variant = meta['variant']
+        
+        if generated_subdir:
+            generated_video = generated_subdir / f"video_{current_video_id}_side_by_side.mp4"
+            if not generated_video.exists():
+                raise FileNotFoundError(f"Generated video not found: {generated_video.name}")
+            frames["frame"] = extract_frame_from_generated(generated_video, query.frame_index, frame1_idx, variant)
+        else:
+            frames["frame"] = extract_frame(query.video_path, query.frame_index)
+    
+    return frames
 
 
 def find_mc_video_pairs(folder: Path) -> List[VideoPair]:
@@ -204,271 +304,62 @@ def dry_run(handler, video_pairs: List[VideoPair], limit: Optional[int] = None):
                 print(f"  Yaw difference: {yaw_diff:.2f}°")
 
         print(f"  Frame 1: {meta['frame1']}")
-        print(f"  Frame 2: {meta['frame2']}")
+        if 'frame2' in meta:
+            print(f"  Frame 2: {meta['frame2']}")
+        print(f"  Query frame: {queries[0].frame_index}")
         print(f"  Expected answer: {queries[0].expected_answer}")
         print(f"  Perspectives: {len(queries)} (both Alpha and Bravo)\n")
 
 
-def extract_frames_mode(handler, video_pairs: List[VideoPair], output_dir: str, limit: Optional[int] = None, generated_path: Optional[Path] = None, dataset_name: Optional[str] = None):
+def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[str] = None, limit: Optional[int] = None, generated_path: Optional[Path] = None, dataset_name: Optional[str] = None, model_name: str = "ground_truth", extract_only: bool = False):
     """
-    Extract frames for visual inspection.
+    Run VLM evaluation with frame extraction.
+    
+    Frames are always extracted and saved to disk. If extract_only=True, 
+    VLM queries are skipped (useful for visual inspection of frames).
 
     Args:
         handler: Episode type handler
         video_pairs: List of video pairs
-        output_dir: Directory to save frames
+        output_file: Path to save results JSON (not used if extract_only=True)
         limit: Optional limit on number of episodes
         generated_path: Optional path to generated videos directory
-        dataset_name: Dataset name (needed when using generated videos)
-    """
-    import cv2
-
-    if limit:
-        video_pairs = video_pairs[:limit]
-
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
-
-    print(f"\n{'='*80}")
-    print(f"EXTRACTING FRAMES")
-    print(f"Handler: {handler.__class__.__name__}")
-    print(f"Output: {output_path}")
-    print(f"Episodes: {len(video_pairs)}")
-    if generated_path:
-        print(f"Using generated videos from: {generated_path}")
-    print(f"{'='*80}\n")
-
-    # Find generated video subdirectory if using generated videos
-    generated_subdir = None
-    if generated_path:
-        generated_subdir = find_generated_video_subdir(generated_path, dataset_name)
-        if not generated_subdir:
-            print(f"Error: Could not find generated video subdirectory for dataset '{dataset_name}'")
-            return
-        print(f"Found generated video subdirectory: {generated_subdir.name}")
-
-        # Count available generated videos
-        generated_videos = list(generated_subdir.glob("video_*_side_by_side.mp4"))
-        num_generated = len(generated_videos)
-        print(f"Found {num_generated} generated videos")
-
-        # Limit video pairs to number of generated videos available
-        if num_generated < len(video_pairs):
-            print(f"Limiting extraction to first {num_generated} video pairs (fewer generated videos than GT)\n")
-            video_pairs = video_pairs[:num_generated]
-        else:
-            print()
-
-    # Extract keyframes
-    all_queries = []
-    for pair in video_pairs:
-        queries = handler.extract_keyframes(pair)
-        all_queries.extend(queries)
-
-    print(f"Total frames to extract: {len(all_queries) * 2}")  # frame1 and frame2
-
-    # Extract frames
-    # Track which video pair we're currently processing
-    current_video_id = -1
-    last_episode_instance = None
-
-    for i, query in enumerate(all_queries, 1):
-        meta = query.metadata
-        episode = meta['episode']
-        instance = meta['instance']
-        variant = meta['variant']
-        frame1_idx = meta['frame1']
-        frame2_idx = meta['frame2']
-        query_type = meta.get('query_type', 'default')
-
-        # Create subfolder for query type
-        query_output_path = output_path / query_type
-        query_output_path.mkdir(parents=True, exist_ok=True)
-
-        query_type_display = f" ({query_type})" if query_type != 'default' else ""
-        print(f"[{i}/{len(all_queries)}] Episode {episode} instance {instance} - {variant}{query_type_display}", end="... ")
-
-        try:
-            # Check if this is a co-observation query (needs frames from both videos)
-            is_turn_to_look = meta.get('is_turn_to_look', False)
-
-            if is_turn_to_look:
-                # For co-observation, extract frame2 from both alpha and bravo
-                alpha_video = Path(meta['alpha_video'])
-                bravo_video = Path(meta['bravo_video'])
-                alpha_frame = meta['alpha_frame']
-                bravo_frame = meta['bravo_frame']
-
-                if generated_path and generated_subdir:
-                    # Use generated videos
-                    episode_instance = (episode, instance)
-                    if episode_instance != last_episode_instance:
-                        current_video_id += 1
-                        last_episode_instance = episode_instance
-
-                    video_id = current_video_id
-                    generated_video = generated_subdir / f"video_{video_id}_side_by_side.mp4"
-
-                    if not generated_video.exists():
-                        print(f"✗ Generated video not found: {generated_video.name}")
-                        continue
-
-                    # Extract frames from both alpha and bravo quadrants
-                    alpha_bytes = extract_frame_from_generated(generated_video, alpha_frame, frame1_idx, "alpha")
-                    bravo_bytes = extract_frame_from_generated(generated_video, bravo_frame, frame1_idx, "bravo")
-
-                    # Save frames to query_type subfolder
-                    alpha_path = query_output_path / f"ep{episode}_inst{instance}_alpha_frame2.png"
-                    bravo_path = query_output_path / f"ep{episode}_inst{instance}_bravo_frame2.png"
-
-                    with open(alpha_path, 'wb') as f:
-                        f.write(alpha_bytes)
-                    with open(bravo_path, 'wb') as f:
-                        f.write(bravo_bytes)
-
-                    print("✓")
-                else:
-                    # Use ground-truth videos
-                    # Extract from alpha video
-                    cap_alpha = cv2.VideoCapture(str(alpha_video))
-                    cap_alpha.set(cv2.CAP_PROP_POS_FRAMES, alpha_frame)
-                    ret_alpha, frame_alpha = cap_alpha.read()
-                    cap_alpha.release()
-
-                    # Extract from bravo video
-                    cap_bravo = cv2.VideoCapture(str(bravo_video))
-                    cap_bravo.set(cv2.CAP_PROP_POS_FRAMES, bravo_frame)
-                    ret_bravo, frame_bravo = cap_bravo.read()
-                    cap_bravo.release()
-
-                    if ret_alpha and ret_bravo:
-                        # Resize to 640x360 to match generated video resolution
-                        frame_alpha_resized = cv2.resize(frame_alpha, (640, 360))
-                        frame_bravo_resized = cv2.resize(frame_bravo, (640, 360))
-
-                        # Save frames to query_type subfolder
-                        alpha_path = query_output_path / f"ep{episode}_inst{instance}_alpha_frame2.png"
-                        bravo_path = query_output_path / f"ep{episode}_inst{instance}_bravo_frame2.png"
-
-                        cv2.imwrite(str(alpha_path), frame_alpha_resized)
-                        cv2.imwrite(str(bravo_path), frame_bravo_resized)
-
-                        print("✓")
-                    else:
-                        print("✗ Failed to read frames")
-            else:
-                # Standard handling for other query types
-                if generated_path and generated_subdir:
-                    # Use generated videos
-                    # Track which video pair we're on by watching for new (episode, instance) combinations
-                    episode_instance = (episode, instance)
-                    if episode_instance != last_episode_instance:
-                        current_video_id += 1
-                        last_episode_instance = episode_instance
-
-                    # The video pair index corresponds to the video_X in video_X_side_by_side.mp4
-                    video_id = current_video_id
-                    generated_video = generated_subdir / f"video_{video_id}_side_by_side.mp4"
-
-                    if not generated_video.exists():
-                        print(f"✗ Generated video not found: {generated_video.name}")
-                        continue
-
-                    # Extract frames from generated video with proper quadrant and offset
-                    import io
-                    from PIL import Image
-
-                    # For generated videos, use frame1_idx + 1 as first frame (since gen video starts there)
-                    frame1_bytes = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
-                    frame2_bytes = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
-
-                    # Save frames to query_type subfolder
-                    frame1_path = query_output_path / f"ep{episode}_inst{instance}_{variant}_frame1.png"
-                    frame2_path = query_output_path / f"ep{episode}_inst{instance}_{variant}_frame2.png"
-
-                    with open(frame1_path, 'wb') as f:
-                        f.write(frame1_bytes)
-                    with open(frame2_path, 'wb') as f:
-                        f.write(frame2_bytes)
-
-                    print("✓")
-                else:
-                    # Use ground-truth videos
-                    cap = cv2.VideoCapture(str(query.video_path))
-
-                    # Extract frame 1
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, frame1_idx)
-                    ret1, frame1 = cap.read()
-
-                    # Extract frame 2
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, frame2_idx)
-                    ret2, frame2 = cap.read()
-
-                    cap.release()
-
-                    if ret1 and ret2:
-                        # Resize to 640x360 to match generated video resolution
-                        frame1_resized = cv2.resize(frame1, (640, 360))
-                        frame2_resized = cv2.resize(frame2, (640, 360))
-
-                        # Save frames to query_type subfolder
-                        frame1_path = query_output_path / f"ep{episode}_inst{instance}_{variant}_frame1.png"
-                        frame2_path = query_output_path / f"ep{episode}_inst{instance}_{variant}_frame2.png"
-
-                        cv2.imwrite(str(frame1_path), frame1_resized)
-                        cv2.imwrite(str(frame2_path), frame2_resized)
-
-                        print("✓")
-                    else:
-                        print("✗ Failed to read frames")
-        except Exception as e:
-            print(f"✗ Error: {e}")
-
-    print(f"\n{'='*80}")
-    print(f"Frames saved to: {output_path.absolute()}")
-    print(f"{'='*80}")
-
-
-def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limit: Optional[int] = None, generated_path: Optional[Path] = None, dataset_name: Optional[str] = None, model_name: str = "ground_truth"):
-    """
-    Run full VLM evaluation.
-
-    Args:
-        handler: Episode type handler
-        video_pairs: List of video pairs
-        output_file: Path to save results JSON
-        limit: Optional limit on number of episodes
-        generated_path: Optional path to generated videos directory
-        dataset_name: Dataset name (needed when using generated videos)
+        dataset_name: Dataset name (required)
         model_name: Name of our video generation model being evaluated, or "ground_truth" for GT videos
+        extract_only: If True, only extract frames without VLM queries
     """
     # Apply episode limit first
     original_count = len(video_pairs)
     if limit:
         video_pairs = video_pairs[:limit]
 
-    # Check API key
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("\n⚠ ERROR: GEMINI_API_KEY environment variable not set!")
-        print("Please set it with: export GEMINI_API_KEY='your-api-key'")
-        raise ValueError("GEMINI_API_KEY environment variable not set")
+    # Check API key (only needed if not extract_only)
+    enable_thinking = False
+    if not extract_only:
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            print("\n⚠ ERROR: GEMINI_API_KEY environment variable not set!")
+            print("Please set it with: export GEMINI_API_KEY='your-api-key'")
+            raise ValueError("GEMINI_API_KEY environment variable not set")
+        # Use handler's enable_vlm_thinking property
+        enable_thinking = handler.enable_vlm_thinking
 
-    # Use handler's enable_vlm_thinking property
-    enable_thinking = handler.enable_vlm_thinking
     thinking_status = "default" if enable_thinking else "disabled"
+    mode_str = "FRAME EXTRACTION ONLY" if extract_only else "VLM EVALUATION"
 
     print(f"\n{'='*80}")
-    print(f"VLM EVALUATION")
+    print(f"{mode_str}")
     print(f"Handler: {handler.__class__.__name__}")
-    print(f"Model: {VLM_MODEL_NAME} (thinking {thinking_status})")
-    print(f"Output: {output_file}")
+    if not extract_only:
+        print(f"Model: {VLM_MODEL_NAME} (thinking {thinking_status})")
+        print(f"Output: {output_file}")
     if limit and len(video_pairs) < original_count:
         print(f"Episodes: {len(video_pairs)} (limited from {original_count})")
     else:
         print(f"Episodes: {len(video_pairs)}")
     if generated_path:
         print(f"Using generated videos from: {generated_path}")
+    print(f"Frame output: frame_extraction/{dataset_name}/{('_real' if model_name == 'ground_truth' else model_name)}/")
     print(f"{'='*80}\n")
 
     # Find generated video subdirectory if using generated videos
@@ -514,10 +405,15 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
 
     print(f"Total queries: {len(all_queries)}")
 
-    # Query VLM
-    print(f"\n{'='*80}")
-    print("QUERYING VLM")
-    print(f"{'='*80}\n")
+    # Print section header
+    if extract_only:
+        print(f"\n{'='*80}")
+        print("EXTRACTING FRAMES")
+        print(f"{'='*80}\n")
+    else:
+        print(f"\n{'='*80}")
+        print("QUERYING VLM")
+        print(f"{'='*80}\n")
 
     results = []
 
@@ -538,141 +434,116 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
 
         query_type_display = f" ({query_type})" if query_type != 'default' else ""
         print(f"[{i}/{len(all_queries)}] Episode {meta['episode']}, Instance {meta['instance']}, {meta['variant'].upper()}{query_type_display}")
-        print(f"  Expected: {query.expected_answer}", end="... ")
+        if not extract_only:
+            print(f"  Expected: {query.expected_answer}", end="... ")
 
-        try:
-            # Determine which frames to extract based on handler type
-            handler_name = handler.__class__.__name__
-            is_turn_to_look = meta.get('is_turn_to_look', False)
+        # Track video ID for generated videos
+        episode_instance = (meta['episode'], meta['instance'])
+        if episode_instance != last_episode_instance:
+            current_video_id += 1
+            last_episode_instance = episode_instance
 
-            if is_turn_to_look:
-                # Co-observation: extract frame2 from both alpha and bravo videos
-                alpha_video = Path(meta['alpha_video'])
-                bravo_video = Path(meta['bravo_video'])
-                alpha_frame = meta['alpha_frame']
-                bravo_frame = meta['bravo_frame']
-                frame1_idx = meta['frame1']
+        frame1_idx = meta['frame1']
 
-                if generated_path and generated_subdir:
-                    # Use generated videos
-                    episode_instance = (meta['episode'], meta['instance'])
-                    if episode_instance != last_episode_instance:
-                        current_video_id += 1
-                        last_episode_instance = episode_instance
+        # Extract frames using the unified helper
+        frames = extract_query_frames(
+            query=query,
+            generated_subdir=generated_subdir,
+            current_video_id=current_video_id,
+            frame1_idx=frame1_idx,
+        )
 
-                    video_id = current_video_id
-                    generated_video = generated_subdir / f"video_{video_id}_side_by_side.mp4"
+        # Save frames to disk
+        output_dir = get_frame_output_dir(dataset_name, model_name, query_type)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        episode = meta['episode']
+        instance = meta['instance']
+        variant = meta['variant']
+        
+        for suffix, frame_bytes in frames.items():
+            frame_path = output_dir / f"ep{episode}_inst{instance}_{variant}_{suffix}.png"
+            with open(frame_path, 'wb') as f:
+                f.write(frame_bytes)
 
-                    if not generated_video.exists():
-                        raise FileNotFoundError(f"Generated video not found: {generated_video.name}")
-
-                    # Extract frames from both alpha and bravo quadrants
-                    image_bytes_alpha = extract_frame_from_generated(generated_video, alpha_frame, frame1_idx, "alpha")
-                    image_bytes_bravo = extract_frame_from_generated(generated_video, bravo_frame, frame1_idx, "bravo")
-                    vlm_response = query_vlm(prompt, image_bytes_alpha, image_bytes_bravo, enable_thinking=enable_thinking)
-                else:
-                    # Use ground-truth videos
-                    image_bytes_alpha = extract_frame(alpha_video, alpha_frame)
-                    image_bytes_bravo = extract_frame(bravo_video, bravo_frame)
-                    vlm_response = query_vlm(prompt, image_bytes_alpha, image_bytes_bravo, enable_thinking=enable_thinking)
-
-            elif generated_path and generated_subdir:
-                # Use generated videos
-                # Track which video pair we're on by watching for new (episode, instance) combinations
-                episode_instance = (meta['episode'], meta['instance'])
-                if episode_instance != last_episode_instance:
-                    current_video_id += 1
-                    last_episode_instance = episode_instance
-
-                # The video pair index corresponds to the video_X in video_X_side_by_side.mp4
-                video_id = current_video_id
-                generated_video = generated_subdir / f"video_{video_id}_side_by_side.mp4"
-
-                if not generated_video.exists():
-                    raise FileNotFoundError(f"Generated video not found: {generated_video.name}")
-
-                frame1_idx = meta['frame1']
-                frame2_idx = meta['frame2']
-                variant = meta['variant']
-
-                # Check query type for looks_away/both_look_away handlers
-                if query_type in ("player_position_during_turn", "player_position_turned_back",
-                                  "player_invisible_looked_away"):
-                    # All looks_away queries use only frame2
-                    image_bytes = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
-                    vlm_response = query_vlm(prompt, image_bytes, enable_thinking=enable_thinking)
-                elif "LooksAway" in handler_name or "BothLookAway" in handler_name:
-                    # looks_away and both_look_away (fallback for no query_type): both frames (to compare if they look the same)
-                    # Use frame1_idx + 1 as first frame since generated video starts there
-                    image_bytes_1 = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
-                    image_bytes_2 = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
-                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2, enable_thinking=enable_thinking)
-                elif "Rotation" in handler_name or "Structure" in handler_name:
-                    # Rotation and structure: only frame2
-                    image_bytes = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
-                    vlm_response = query_vlm(prompt, image_bytes, enable_thinking=enable_thinking)
-                else:
-                    # Translation: both frames
-                    # Use frame1_idx + 1 as first frame since generated video starts there
-                    image_bytes_1 = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
-                    image_bytes_2 = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
-                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2, enable_thinking=enable_thinking)
-            else:
-                # Use ground-truth videos
-                # Check query type for looks_away/both_look_away handlers
-                if query_type in ("player_position_during_turn", "player_position_turned_back",
-                                  "player_invisible_looked_away"):
-                    # All looks_away queries use only frame2
-                    frame2_idx = meta['frame2']
-                    image_bytes = extract_frame(query.video_path, frame2_idx)
-                    vlm_response = query_vlm(prompt, image_bytes, enable_thinking=enable_thinking)
-                elif "LooksAway" in handler_name or "BothLookAway" in handler_name:
-                    # looks_away and both_look_away (fallback for no query_type): both frames (to compare if they look the same)
-                    frame1_idx = meta['frame1']
-                    frame2_idx = meta['frame2']
-                    image_bytes_1 = extract_frame(query.video_path, frame1_idx)
-                    image_bytes_2 = extract_frame(query.video_path, frame2_idx)
-                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2, enable_thinking=enable_thinking)
-                elif "Rotation" in handler_name or "Structure" in handler_name:
-                    # Rotation and structure: only frame2
-                    frame2_idx = meta['frame2']
-                    image_bytes = extract_frame(query.video_path, frame2_idx)
-                    vlm_response = query_vlm(prompt, image_bytes, enable_thinking=enable_thinking)
-                else:
-                    # Translation: both frames
-                    frame1_idx = meta['frame1']
-                    frame2_idx = meta['frame2']
-                    image_bytes_1 = extract_frame(query.video_path, frame1_idx)
-                    image_bytes_2 = extract_frame(query.video_path, frame2_idx)
-                    vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2, enable_thinking=enable_thinking)
-
-            # Validate response
-            is_correct = handler.validate_response(vlm_response, query.expected_answer)
-
-            result = EvalResult(
+        # If using generated videos, also create side-by-side comparison with GT
+        if generated_subdir is not None:
+            # Extract GT frames (same query but without generated_subdir)
+            gt_frames = extract_query_frames(
                 query=query,
-                vlm_response=vlm_response,
-                is_correct=is_correct,
-                metadata={
-                    "prompt": prompt,
-                    "handler": handler.__class__.__name__,
-                    "using_generated": generated_path is not None,
-                    **meta
-                }
+                generated_subdir=None,
+                current_video_id=current_video_id,
+                frame1_idx=frame1_idx,
             )
-            results.append(result)
+            
+            # Create side-by-side comparison
+            sbs_output_dir = get_side_by_side_output_dir(dataset_name, model_name, query_type)
+            create_side_by_side_comparison(
+                gt_frames=gt_frames,
+                gen_frames=frames,
+                query=query,
+                output_path=sbs_output_dir,
+                episode=episode,
+                instance=instance,
+                variant=variant,
+            )
 
-            status = "CORRECT" if is_correct else "WRONG"
-            print(f"Got: '{vlm_response}' {status}")
+        if extract_only:
+            # Just report success and continue
+            if generated_subdir is not None:
+                print(f"  Saved {len(frames)} frame(s) + side-by-side comparison")
+            else:
+                print(f"  Saved {len(frames)} frame(s) to {output_dir}")
+            continue
 
+        # Query VLM with the extracted frames
+        # Only wrap VLM query in try/except since it can fail due to quota/rate limits
+        is_turn_to_look = meta.get('is_turn_to_look', False)
+        try:
+            if is_turn_to_look:
+                vlm_response = query_vlm(prompt, frames["alpha_frame"], frames["bravo_frame"], enable_thinking=enable_thinking)
+            elif "frame1" in frames and "frame2" in frames:
+                vlm_response = query_vlm(prompt, frames["frame1"], frames["frame2"], enable_thinking=enable_thinking)
+            else:
+                vlm_response = query_vlm(prompt, frames["frame"], enable_thinking=enable_thinking)
         except Exception as e:
-            print(f"✗ Error: {e}")
+            print(f"✗ VLM Error: {e}")
             results.append(EvalResult(
                 query=query,
                 vlm_response=f"ERROR: {e}",
                 is_correct=False,
                 metadata={"error": str(e), **meta}
             ))
+            continue
+
+        # Validate response
+        is_correct = handler.validate_response(vlm_response, query.expected_answer)
+
+        result = EvalResult(
+            query=query,
+            vlm_response=vlm_response,
+            is_correct=is_correct,
+            metadata={
+                "prompt": prompt,
+                "handler": handler.__class__.__name__,
+                "using_generated": generated_path is not None,
+                **meta
+            }
+        )
+        results.append(result)
+
+        status = "CORRECT" if is_correct else "WRONG"
+        print(f"Got: '{vlm_response}' {status}")
+
+    # For extract_only mode, just print summary and return
+    if extract_only:
+        print(f"\n{'='*80}")
+        print("FRAME EXTRACTION COMPLETE")
+        print(f"{'='*80}")
+        print(f"Total queries processed: {len(all_queries)}")
+        print(f"Frames saved to: frame_extraction/{dataset_name}/{('_real' if model_name == 'ground_truth' else model_name)}/")
+        print(f"{'='*80}")
+        return []
 
     # Save results
     print(f"\n{'='*80}")
@@ -834,7 +705,7 @@ Examples:
     mode_group.add_argument(
         "--extract-frames",
         action="store_true",
-        help="Extract frames to frame_extraction/ folder"
+        help="Extract frames only (no VLM queries). Frames saved to frame_extraction/TASK/[_real|MODEL]/[QUERY_TYPE]/"
     )
 
     # Common options
@@ -943,13 +814,17 @@ Examples:
         dry_run(handler, video_pairs, limit=args.limit)
 
     elif args.extract_frames:
-        # Determine output directory based on dataset
-        if generated_path:
-            output_dir = f"frame_extraction/{folder.parent.name}_generated"
-        else:
-            output_dir = f"frame_extraction/{folder.parent.name}"
-        extract_frames_mode(handler, video_pairs, output_dir, limit=args.limit,
-                          generated_path=generated_path, dataset_name=dataset_name)
+        # Extract frames only mode (no VLM queries)
+        run_evaluation(
+            handler,
+            video_pairs,
+            output_file=None,
+            limit=args.limit,
+            generated_path=generated_path,
+            dataset_name=dataset_name,
+            model_name=model_name,
+            extract_only=True,
+        )
 
     else:
         # Run full evaluation num_trials times, save per-trial JSON + aggregate stats.

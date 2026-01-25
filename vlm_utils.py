@@ -198,8 +198,12 @@ def find_generated_video_subdir(generated_base_path: Path, dataset_name: str) ->
     if not subdir_key:
         raise ValueError(f"Unknown dataset name: {dataset_name}")
 
+    # Known suffixes that can be safely stripped from generated directory names
+    # These are training/evaluation variants that don't affect which task the videos are for
+    strippable_suffixes = ["_max_speed"] # ["_max_speed", "_ema_length_256"] for legacy models
+    
     # Look for subdirectories matching the pattern (e.g., *_eval_translation, *_eval_rotation).
-    # Allow extra suffixes after the key (e.g., both_look_away_max_speed, translation_ema_length_256).
+    # Use exact matching to prevent bugs like "turn_to_look" matching "turn_to_look_opposite".
     candidates: List[Path] = []
     for subdir in generated_base_path.iterdir():
         if not subdir.is_dir():
@@ -207,7 +211,14 @@ def find_generated_video_subdir(generated_base_path: Path, dataset_name: str) ->
         _, _, suffix = subdir.name.partition("eval_")
         if not suffix:
             continue
-        if suffix == subdir_key or suffix.startswith(f"{subdir_key}_"):
+        # Strip known suffixes before matching
+        normalized_suffix = suffix
+        for strip_suffix in strippable_suffixes:
+            if normalized_suffix.endswith(strip_suffix):
+                normalized_suffix = normalized_suffix[:-len(strip_suffix)]
+                break
+        # Exact match only
+        if normalized_suffix == subdir_key:
             candidates.append(subdir)
 
     if not candidates:
