@@ -53,13 +53,13 @@ class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
         Validate the VLM response against the expected structure type.
         
         Maps structure types from JSON format to prompt format:
-        - wall_4x1 → strip (1x4 horizontal)
-        - tower_2 → tower (4x1 vertical) 
-        - wall_2x2 → square (2x2)
+        - wall_4x1 → yes
+        - tower_2x1 → yes
+        - wall_2x2 → yes
         
         Args:
-            response: VLM response (should be "strip", "tower", "square", or "unclear")
-            expected: Expected structure from JSON (e.g., "wall_4x1", "tower_2", "wall_2x2")
+            response: VLM response (should be "yes" or "no")
+            expected: Expected structure from JSON (e.g., "wall_4x1", "tower_2x1", "wall_2x2")
             
         Returns:
             True if response matches expected structure type, False otherwise
@@ -75,7 +75,7 @@ class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
         normalized_response = response.strip().lower()
         
         # Map expected structure to prompt format
-        expected_answer = structure_mapping.get(expected.strip().lower(), "unclear")
+        expected_answer = structure_mapping.get(expected.strip().lower(), "no")
         
         # Check if response matches expected answer
         return normalized_response == expected_answer

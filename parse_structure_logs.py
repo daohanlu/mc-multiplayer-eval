@@ -35,12 +35,12 @@ class EpisodeInfo:
                 f"Bravo({self.bravo_structure}, builds={self.bravo_builds})")
     
     def get_builder(self) -> Optional[str]:
-        """Returns which bot is building: 'alpha', 'bravo', or None if unclear"""
+        """Returns which bot is building: 'alpha', 'bravo', or raises an error if both bots are building"""
         if self.alpha_builds and not self.bravo_builds:
             return 'alpha'
         elif self.bravo_builds and not self.alpha_builds:
             return 'bravo'
-        return None
+        raise ValueError(f"Both bots are building in episode {self.episode_num}")
     
     def get_structure(self) -> Optional[str]:
         """Returns the structure that was actually built"""

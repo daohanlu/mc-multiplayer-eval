@@ -59,8 +59,8 @@ class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
         since the structure was NOT placed.
 
         Args:
-            response: VLM response (should be "yes", "no", or "unclear")
-            expected: Expected structure from JSON (e.g., "wall_4x1", "tower_2", "wall_2x2")
+            response: VLM response (should be "yes" or "no")
+            expected: Expected structure from JSON (e.g., "wall_4x1", "tower_2x1", "wall_2x2")
 
         Returns:
             True if response is "no", False otherwise
@@ -76,7 +76,7 @@ class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
         normalized_response = response.strip().lower()
 
         # Map expected structure to prompt format
-        expected_answer = structure_mapping.get(expected.strip().lower(), "unclear")
+        expected_answer = structure_mapping.get(expected.strip().lower(), "no")
 
         # Check if response matches expected answer
         return normalized_response == expected_answer

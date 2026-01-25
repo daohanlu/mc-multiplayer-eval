@@ -113,12 +113,8 @@ Results are automatically organized:
   "our_model_name": "flagship_final",
   "thinking_enabled": false,
   "total_queries": 64,
-  "unclear_count": 2,
-  "unclear_percentage": 3.12,
-  "evaluable_queries": 62,
   "correct": 58,
-  "accuracy_excluding_unclear": 93.55,
-  "accuracy_total": 90.62,
+  "accuracy": 90.62,
   "breakdown_by_query_type": {...},
   "episode_level_accuracy": {...},
   "results": [...]
@@ -233,14 +229,14 @@ For each keyframe query:
 
 ### 7. Result Saving (`save_results()`)
 - Saves comprehensive JSON with:
-  - Overall statistics (accuracy, unclear count, etc.)
+  - Overall statistics (total queries, correct count, accuracy)
   - Per-query breakdown (query type if applicable)
   - Episode-level accuracy (% of episodes where ALL queries are correct)
   - Per-player episode accuracy for both-players datasets
   - Individual result details
 - Auto-organized output paths:
-  - Ground-truth: `results_json/real/{dataset_name}.json`
-  - Generated: `results_json/generated/{model_name}_{dataset_name}.json`
+  - Ground-truth: `results_json/real/{dataset_name}/`
+  - Generated: `results_json/generated/{model_name}_{dataset_name}/`
 
 ## Handler Architecture
 

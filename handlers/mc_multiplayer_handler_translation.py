@@ -31,8 +31,7 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
             "Here are Minecraft screenshots showing another player on the screen. "
             "Between the first frame and the second frame, did the player being shown "
             "move closer, farther, to the left, or to the right on-screen? "
-            "Answer with a single word from \"closer\", \"farther\", \"left\", or \"right\". "
-            "If you cannot determine the motion, answer \"unclear\"."
+            "Answer with a single word from \"closer\", \"farther\", \"left\", \"right\", or \"no motion\"."
         )
 
     def extract_keyframes(self, video_pair: VideoPair) -> List[KeyframeQuery]:
@@ -151,14 +150,11 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
             "forward": "closer",  # Moving forward makes other player appear closer
             "back": "farther"    # Moving back makes other player appear farther
         }
-        return mapping.get(movement_direction, "unclear")
+        return mapping.get(movement_direction, "no motion")
 
     def validate_response(self, response: str, expected: str) -> bool:
         """
         Validate the VLM response against the expected answer.
-        
-        Note: "unclear" responses are handled specially in the evaluation loop
-        and should not be counted as correct or incorrect.
         """
         return response.strip().lower() == expected.strip().lower()
 

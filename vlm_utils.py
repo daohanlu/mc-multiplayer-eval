@@ -53,7 +53,6 @@ class EvalResult:
     query: KeyframeQuery
     vlm_response: str
     is_correct: bool
-    is_unclear: bool = False  # Whether the VLM response was "unclear"
     metadata: Optional[Dict] = None
 
 
@@ -393,8 +392,8 @@ def _compute_episode_level_accuracy(results: List[EvalResult]) -> Dict:
     bravo_episode_count = 0
     
     for (episode, instance), episode_results in episodes.items():
-        # Check if all queries in this episode are correct (treating unclear as incorrect)
-        all_correct = all(r.is_correct and not r.is_unclear for r in episode_results)
+        # Check if all queries in this episode are correct
+        all_correct = all(r.is_correct for r in episode_results)
         if all_correct:
             fully_correct_episodes += 1
         
@@ -405,12 +404,12 @@ def _compute_episode_level_accuracy(results: List[EvalResult]) -> Dict:
             
             if alpha_results:
                 alpha_episode_count += 1
-                if all(r.is_correct and not r.is_unclear for r in alpha_results):
+                if all(r.is_correct for r in alpha_results):
                     alpha_correct_episodes += 1
             
             if bravo_results:
                 bravo_episode_count += 1
-                if all(r.is_correct and not r.is_unclear for r in bravo_results):
+                if all(r.is_correct for r in bravo_results):
                     bravo_correct_episodes += 1
     
     episode_metrics = {
@@ -452,11 +451,8 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
     """
     # Calculate overall statistics
     total = len(results)
-    unclear_count = sum(1 for r in results if r.is_unclear)
-    evaluable = total - unclear_count
-    correct = sum(1 for r in results if r.is_correct and not r.is_unclear)
-    accuracy_excluding_unclear = (correct / evaluable * 100) if evaluable > 0 else 0
-    accuracy_total = (correct / total * 100) if total > 0 else 0  # Treats unclear as incorrect
+    correct = sum(1 for r in results if r.is_correct)
+    accuracy = (correct / total * 100) if total > 0 else 0
 
     # Calculate breakdown by query type
     query_types = set(r.metadata.get('query_type', 'default') for r in results if r.metadata)
@@ -465,18 +461,12 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
     for qtype in sorted(query_types):
         type_results = [r for r in results if r.metadata and r.metadata.get('query_type', 'default') == qtype]
         type_total = len(type_results)
-        type_unclear = sum(1 for r in type_results if r.is_unclear)
-        type_evaluable = type_total - type_unclear
-        type_correct = sum(1 for r in type_results if r.is_correct and not r.is_unclear)
+        type_correct = sum(1 for r in type_results if r.is_correct)
 
         breakdown_by_query_type[qtype] = {
             "total": type_total,
-            "unclear_count": type_unclear,
-            "unclear_percentage": (type_unclear / type_total * 100) if type_total > 0 else 0,
-            "evaluable": type_evaluable,
             "correct": type_correct,
-            "accuracy_excluding_unclear": (type_correct / type_evaluable * 100) if type_evaluable > 0 else 0,
-            "accuracy_total": (type_correct / type_total * 100) if type_total > 0 else 0
+            "accuracy": (type_correct / type_total * 100) if type_total > 0 else 0
         }
 
     # Calculate episode-level accuracy metrics
@@ -487,12 +477,8 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
         "our_model_name": our_model_name,
         "thinking_enabled": thinking_enabled,
         "total_queries": total,
-        "unclear_count": unclear_count,
-        "unclear_percentage": (unclear_count / total * 100) if total > 0 else 0,
-        "evaluable_queries": evaluable,
         "correct": correct,
-        "accuracy_excluding_unclear": accuracy_excluding_unclear,
-        "accuracy_total": accuracy_total,
+        "accuracy": accuracy,
         "breakdown_by_query_type": breakdown_by_query_type,
         "episode_level_accuracy": episode_level_accuracy,
         "results": [
@@ -502,7 +488,6 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
                 "expected": r.query.expected_answer,
                 "response": r.vlm_response,
                 "correct": r.is_correct,
-                "unclear": r.is_unclear,
                 "metadata": r.metadata
             }
             for r in results

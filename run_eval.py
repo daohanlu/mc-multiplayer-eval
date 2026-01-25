@@ -646,17 +646,13 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
                     image_bytes_2 = extract_frame(query.video_path, frame2_idx)
                     vlm_response = query_vlm(prompt, image_bytes_1, image_bytes_2, enable_thinking=enable_thinking)
 
-            # Check if response is "unclear"
-            is_unclear = vlm_response.strip().lower() == "unclear"
-            
-            # Validate response (only meaningful if not unclear)
-            is_correct = handler.validate_response(vlm_response, query.expected_answer) if not is_unclear else False
+            # Validate response
+            is_correct = handler.validate_response(vlm_response, query.expected_answer)
 
             result = EvalResult(
                 query=query,
                 vlm_response=vlm_response,
                 is_correct=is_correct,
-                is_unclear=is_unclear,
                 metadata={
                     "prompt": prompt,
                     "handler": handler.__class__.__name__,
@@ -666,11 +662,8 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
             )
             results.append(result)
 
-            if is_unclear:
-                print(f"Got: '{vlm_response}' UNCLEAR")
-            else:
-                status = "CORRECT" if is_correct else "WRONG"
-                print(f"Got: '{vlm_response}' {status}")
+            status = "CORRECT" if is_correct else "WRONG"
+            print(f"Got: '{vlm_response}' {status}")
 
         except Exception as e:
             print(f"✗ Error: {e}")
@@ -678,7 +671,6 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
                 query=query,
                 vlm_response=f"ERROR: {e}",
                 is_correct=False,
-                is_unclear=False,
                 metadata={"error": str(e), **meta}
             ))
 
@@ -690,24 +682,17 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
 
     # Print summary
     total = len(results)
-    unclear_count = sum(1 for r in results if r.is_unclear)
-    evaluable = total - unclear_count
-    correct = sum(1 for r in results if r.is_correct and not r.is_unclear)
-    incorrect = evaluable - correct
-    accuracy_excluding_unclear = correct / evaluable * 100 if evaluable > 0 else 0
-    accuracy_total = correct / total * 100 if total > 0 else 0  # Treats unclear as incorrect
-    unclear_percentage = unclear_count / total * 100 if total > 0 else 0
+    correct = sum(1 for r in results if r.is_correct)
+    incorrect = total - correct
+    accuracy = correct / total * 100 if total > 0 else 0
 
     print(f"\n{'='*80}")
     print("EVALUATION SUMMARY")
     print(f"{'='*80}")
     print(f"Total queries: {total}")
-    print(f"Unclear responses: {unclear_count} ({unclear_percentage:.2f}%)")
-    print(f"Evaluable queries: {evaluable}")
     print(f"Correct: {correct}")
     print(f"Incorrect: {incorrect}")
-    print(f"Accuracy (excluding unclear): {accuracy_excluding_unclear:.2f}%")
-    print(f"Accuracy (total, unclear=wrong): {accuracy_total:.2f}%")
+    print(f"Accuracy: {accuracy:.2f}%")
 
     # Break down by query type if multiple types exist
     query_types = set(r.metadata.get('query_type', 'default') for r in results)
@@ -718,21 +703,15 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: str, limi
         for qtype in sorted(query_types):
             type_results = [r for r in results if r.metadata.get('query_type', 'default') == qtype]
             type_total = len(type_results)
-            type_unclear = sum(1 for r in type_results if r.is_unclear)
-            type_evaluable = type_total - type_unclear
-            type_correct = sum(1 for r in type_results if r.is_correct and not r.is_unclear)
-            type_incorrect = type_evaluable - type_correct
-            type_acc_excl_unclear = type_correct / type_evaluable * 100 if type_evaluable > 0 else 0
-            type_acc_total = type_correct / type_total * 100 if type_total > 0 else 0
+            type_correct = sum(1 for r in type_results if r.is_correct)
+            type_incorrect = type_total - type_correct
+            type_accuracy = type_correct / type_total * 100 if type_total > 0 else 0
 
             print(f"\nQuery Type: {qtype}")
             print(f"  Total: {type_total}")
-            print(f"  Unclear: {type_unclear}")
-            print(f"  Evaluable: {type_evaluable}")
             print(f"  Correct: {type_correct}")
             print(f"  Incorrect: {type_incorrect}")
-            print(f"  Accuracy (excluding unclear): {type_acc_excl_unclear:.2f}%")
-            print(f"  Accuracy (total, unclear=wrong): {type_acc_total:.2f}%")
+            print(f"  Accuracy: {type_accuracy:.2f}%")
 
     print(f"{'='*80}")
 
