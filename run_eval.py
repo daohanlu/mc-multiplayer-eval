@@ -591,6 +591,7 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[
 
 def _resolve_output_dir(
     output_arg: str,
+    results_dir: Path,
     dataset_name: str,
     generated_path: Optional[Path],
     model_name: str,
@@ -599,16 +600,16 @@ def _resolve_output_dir(
 
     Behavior:
     - If output_arg is the default "eval_results.json", we auto-organize into:
-      - results_json/generated/{model_name}_{dataset_name}/
-      - results_json/real/{dataset_name}/
+      - {results_dir}/generated/{model_name}_{dataset_name}/
+      - {results_dir}/real/{dataset_name}/
     - If output_arg ends with ".json", we treat it as a legacy file path and convert it to a
       directory path by stripping the suffix (e.g., "foo.json" -> "foo/").
     - Otherwise, we treat output_arg as a directory path.
     """
     if output_arg == "eval_results.json":
         if generated_path:
-            return Path("results_json/generated") / f"{model_name}_{dataset_name}"
-        return Path("results_json/real") / dataset_name
+            return results_dir / "generated" / f"{model_name}_{dataset_name}"
+        return results_dir / "real" / dataset_name
 
     p = Path(output_arg)
     if p.suffix.lower() == ".json":
@@ -714,9 +715,19 @@ Examples:
         default="eval_results.json",
         help=(
             "Output path. If omitted, auto-organized into "
-            "results_json/generated/{model}_{dataset}/ or results_json/real/{dataset}/. "
+            "results_json/generated/{model}_{dataset}/ or results_json/real/{dataset}/ "
+            "(override the results_json root with --results-dir). "
             "If a .json file path is provided, it will be converted into a directory by stripping the suffix."
         )
+    )
+    parser.add_argument(
+        "--results-dir",
+        type=Path,
+        default=Path("results_json"),
+        help=(
+            "Root directory for auto-organized JSON outputs when --output is left as the default. "
+            "Example: --results-dir /tmp/mc_eval_results (writes to /tmp/mc_eval_results/{real,generated}/...)."
+        ),
     )
     parser.add_argument(
         "--limit",
@@ -802,6 +813,7 @@ Examples:
     if not args.dry_run and not args.extract_frames:
         output_dir = _resolve_output_dir(
             output_arg=args.output,
+            results_dir=args.results_dir,
             dataset_name=dataset_name,
             generated_path=generated_path,
             model_name=model_name,

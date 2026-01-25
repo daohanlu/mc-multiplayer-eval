@@ -106,6 +106,7 @@ def _run_one_model(
     dry_run: bool,
     limit: int | None,
     num_trials: int,
+    results_dir: Path | None,
 ) -> tuple[str, str, bool]:
     model_name = model_dir.name
     out_lines: list[str] = []
@@ -148,6 +149,8 @@ def _run_one_model(
             "--generated",
             str(model_dir),
         ]
+        if results_dir is not None:
+            cmd.extend(["--results-dir", str(results_dir)])
         if limit:
             cmd.extend(["--limit", str(limit)])
         if num_trials != 1:
@@ -212,6 +215,15 @@ def main():
         type=Path,
         default=DATASET_BASE,
         help="Path to base dataset directory containing eval datasets (e.g., translationEval, rotationEval, ...)",
+    )
+    parser.add_argument(
+        "--results-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Root directory for auto-organized JSON outputs (forwarded to run_eval.py --results-dir). "
+            "If omitted, run_eval.py defaults to ./results_json relative to the working directory."
+        ),
     )
     parser.add_argument(
         "--limit",
@@ -285,6 +297,8 @@ def main():
                 str(dataset_path),
                 "--extract-frames",
             ]
+            if args.results_dir is not None:
+                cmd.extend(["--results-dir", str(args.results_dir)])
             if args.limit:
                 cmd.extend(["--limit", str(args.limit)])
             if args.num_trials != 1:
@@ -349,6 +363,7 @@ def main():
                 dry_run=args.dry_run,
                 limit=args.limit,
                 num_trials=args.num_trials,
+                results_dir=args.results_dir,
             )
             completed += 1
             print(text)
@@ -364,6 +379,7 @@ def main():
                     args.dry_run,
                     args.limit,
                     args.num_trials,
+                    args.results_dir,
                 ): model_dir
                 for model_dir in sorted_models
             }
