@@ -2,8 +2,11 @@
 """Run evaluations for all models and datasets."""
 
 import argparse
+import os
 import subprocess
-import re
+import concurrent.futures
+import time
+from dataclasses import dataclass
 from pathlib import Path
 
 # Base directories
@@ -97,6 +100,173 @@ def extract_eval_type(folder_name: str) -> str | None:
     return None
 
 
+@dataclass(frozen=True)
+class _EvalRun:
+    eval_type: str
+    cmd: list[str]
+    dataset_path: Path
+    generated_subdir_name: str | None
+
+
+@dataclass(frozen=True)
+class _EvalOutcome:
+    eval_type: str
+    ok: bool
+    returncode: int
+    summary: str
+
+
+@dataclass(frozen=True)
+class _ModelOutcome:
+    model_name: str
+    outcomes: list[_EvalOutcome]
+    skipped: list[str]
+
+
+def _build_model_plan(
+    model_dir: Path,
+    enabled_eval_types: list[str],
+    dataset_base: Path,
+    limit: int | None,
+    num_trials: int,
+) -> tuple[list[_EvalRun], list[str]]:
+    """Build run plan (commands) for a model, plus skip reasons."""
+    eval_subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
+    available_eval_types: dict[str, Path] = {}
+    for eval_subdir in eval_subdirs:
+        eval_type = extract_eval_type(eval_subdir.name)
+        if eval_type:
+            available_eval_types[eval_type] = eval_subdir
+
+    runs: list[_EvalRun] = []
+    skipped: list[str] = []
+
+    for eval_type in enabled_eval_types:
+        dataset_name = EVAL_TYPE_MAPPING[eval_type]
+        dataset_path = dataset_base / dataset_name
+
+        if not dataset_path.exists():
+            skipped.append(f"{eval_type} (dataset not found: {dataset_path})")
+            continue
+
+        if eval_type not in available_eval_types:
+            skipped.append(f"{eval_type} (no generated videos)")
+            continue
+
+        cmd = [
+            "python",
+            "run_eval.py",
+            str(dataset_path),
+            "--generated",
+            str(model_dir),
+        ]
+        if limit:
+            cmd.extend(["--limit", str(limit)])
+        if num_trials != 1:
+            cmd.extend(["--num-trials", str(num_trials)])
+
+        runs.append(
+            _EvalRun(
+                eval_type=eval_type,
+                cmd=cmd,
+                dataset_path=dataset_path,
+                generated_subdir_name=available_eval_types[eval_type].name,
+            )
+        )
+
+    return runs, skipped
+
+
+def _extract_summary(stdout: str) -> str:
+    """Extract the 'EVALUATION SUMMARY' section from run_eval stdout."""
+    if not stdout:
+        return ""
+    lines = stdout.splitlines()
+    in_summary = False
+    out_lines: list[str] = []
+    for line in lines:
+        if "EVALUATION SUMMARY" in line:
+            in_summary = True
+        if in_summary:
+            out_lines.append(line)
+    return "\n".join(out_lines).strip()
+
+
+def _run_one_model(
+    model_dir: Path,
+    enabled_eval_types: list[str],
+    dataset_base: Path,
+    dry_run: bool,
+    limit: int | None,
+    num_trials: int,
+) -> _ModelOutcome:
+    model_name = model_dir.name
+    runs, skipped = _build_model_plan(
+        model_dir=model_dir,
+        enabled_eval_types=enabled_eval_types,
+        dataset_base=dataset_base,
+        limit=limit,
+        num_trials=num_trials,
+    )
+
+    outcomes: list[_EvalOutcome] = []
+
+    if dry_run:
+        for r in runs:
+            outcomes.append(
+                _EvalOutcome(
+                    eval_type=r.eval_type,
+                    ok=True,
+                    returncode=0,
+                    summary=(
+                        "[DRY RUN]\n"
+                        f"cmd: {' '.join(r.cmd)}\n"
+                        f"dataset: {r.dataset_path}\n"
+                        f"generated subdir: {r.generated_subdir_name}"
+                    ),
+                )
+            )
+        return _ModelOutcome(model_name=model_name, outcomes=outcomes, skipped=skipped)
+
+    for r in runs:
+        try:
+            result = subprocess.run(
+                r.cmd,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            ok = result.returncode == 0
+            summary = _extract_summary(result.stdout)
+            if not ok:
+                tail_out = (result.stdout or "")[-1000:]
+                tail_err = (result.stderr or "")[-1000:]
+                summary = (
+                    (summary + "\n\n" if summary else "")
+                    + f"STDOUT (tail):\n{tail_out}\n\nSTDERR (tail):\n{tail_err}"
+                ).strip()
+
+            outcomes.append(
+                _EvalOutcome(
+                    eval_type=r.eval_type,
+                    ok=ok,
+                    returncode=result.returncode,
+                    summary=summary,
+                )
+            )
+        except Exception as e:
+            outcomes.append(
+                _EvalOutcome(
+                    eval_type=r.eval_type,
+                    ok=False,
+                    returncode=1,
+                    summary=f"Exception while running: {e!r}",
+                )
+            )
+
+    return _ModelOutcome(model_name=model_name, outcomes=outcomes, skipped=skipped)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run evaluations for all models and datasets")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be run without executing")
@@ -127,6 +297,16 @@ def main():
         type=int,
         default=1,
         help="Number of evaluation trials to run per (model, dataset) pair (passed to run_eval.py).",
+    )
+    parser.add_argument(
+        "-j",
+        "--max-workers",
+        type=int,
+        default=None,
+        help=(
+            "Max number of models to evaluate in parallel. "
+            "Defaults to min(num_models, CPU count). Set to 1 for sequential behavior."
+        ),
     )
     parser.add_argument(
         "--eval-types",
@@ -219,85 +399,86 @@ def main():
 
     print(f"Found {len(model_dirs)} model(s) to evaluate")
     print(f"Generations dir: {generations_dir}")
+    if args.max_workers is None:
+        cpu = os.cpu_count() or 1
+        max_workers = min(len(model_dirs), cpu)
+    else:
+        max_workers = args.max_workers
+    if max_workers < 1:
+        raise SystemExit("--max-workers must be >= 1")
+    print(f"Parallelism: {max_workers} worker(s)")
 
-    for model_dir in sorted(model_dirs):
-        model_name = model_dir.name
-        print(f"{'=' * 80}")
-        print(f"Model: {model_name}")
-        print(f"{'=' * 80}")
+    started = time.time()
+    sorted_models = sorted(model_dirs)
 
-        # Check which evaluation types this model has generated videos for
-        eval_subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
-        available_eval_types = {}
+    any_failed = False
+    completed = 0
 
-        for eval_subdir in eval_subdirs:
-            eval_type = extract_eval_type(eval_subdir.name)
-            if eval_type:
-                available_eval_types[eval_type] = eval_subdir
+    if max_workers == 1:
+        for model_dir in sorted_models:
+            outcome = _run_one_model(
+                model_dir=model_dir,
+                enabled_eval_types=enabled_eval_types,
+                dataset_base=dataset_base,
+                dry_run=args.dry_run,
+                limit=args.limit,
+                num_trials=args.num_trials,
+            )
+            completed += 1
+            print(f"{'=' * 80}")
+            print(f"Model: {outcome.model_name}  ({completed}/{len(sorted_models)})")
+            print(f"{'=' * 80}")
+            if outcome.skipped:
+                print("Skipped:")
+                for s in outcome.skipped:
+                    print(f"  - {s}")
+            for o in outcome.outcomes:
+                print(f"\n{'✓' if o.ok else '✗'} {o.eval_type} (rc={o.returncode})")
+                if o.summary:
+                    print(o.summary)
+                if not o.ok:
+                    any_failed = True
+            print()
+    else:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+            fut_to_model = {
+                ex.submit(
+                    _run_one_model,
+                    model_dir,
+                    enabled_eval_types,
+                    dataset_base,
+                    args.dry_run,
+                    args.limit,
+                    args.num_trials,
+                ): model_dir
+                for model_dir in sorted_models
+            }
 
-        print(f"Available eval types: {list(available_eval_types.keys())}")
+            for fut in concurrent.futures.as_completed(fut_to_model):
+                outcome = fut.result()
+                completed += 1
+                print(f"{'=' * 80}")
+                print(f"Model: {outcome.model_name}  ({completed}/{len(sorted_models)})")
+                print(f"{'=' * 80}")
+                if outcome.skipped:
+                    print("Skipped:")
+                    for s in outcome.skipped:
+                        print(f"  - {s}")
+                for o in outcome.outcomes:
+                    print(f"\n{'✓' if o.ok else '✗'} {o.eval_type} (rc={o.returncode})")
+                    if o.summary:
+                        print(o.summary)
+                    if not o.ok:
+                        any_failed = True
+                print()
 
-        # Run evaluation for each enabled eval type
-        for eval_type in enabled_eval_types:
-            dataset_name = EVAL_TYPE_MAPPING[eval_type]
-            dataset_path = dataset_base / dataset_name
+    elapsed = time.time() - started
+    print(f"{'=' * 80}")
+    print(f"Done in {elapsed:.1f}s. Failures: {'yes' if any_failed else 'no'}")
+    print(f"{'=' * 80}")
 
-            if not dataset_path.exists():
-                print(f"⊘ Skipping {eval_type} - dataset not found: {dataset_path}")
-                continue
-
-            if eval_type not in available_eval_types:
-                print(f"⊘ Skipping {eval_type} - no generated videos for this model")
-                continue
-
-            # Construct the command
-            cmd = [
-                "python",
-                "run_eval.py",
-                str(dataset_path),
-                "--generated",
-                str(model_dir)
-            ]
-            if args.limit:
-                cmd.extend(["--limit", str(args.limit)])
-            if args.num_trials != 1:
-                cmd.extend(["--num-trials", str(args.num_trials)])
-
-            print(f"\n{'[DRY RUN] Would run' if args.dry_run else 'Running'}: {' '.join(cmd)}")
-
-            if args.dry_run:
-                print(f"  → Dataset: {dataset_path}")
-                print(f"  → Generated subdir: {available_eval_types[eval_type].name}")
-                continue
-
-            # Run the command
-            try:
-                result = subprocess.run(
-                    cmd,
-                    check=True,
-                    capture_output=True,
-                    text=True
-                )
-                print(f"✓ Success for {eval_type}")
-                if result.stdout:
-                    # Print just the summary section
-                    lines = result.stdout.split('\n')
-                    in_summary = False
-                    for line in lines:
-                        if 'EVALUATION SUMMARY' in line:
-                            in_summary = True
-                        if in_summary:
-                            print(line)
-            except subprocess.CalledProcessError as e:
-                print(f"✗ Error for {eval_type}")
-                print(f"Return code: {e.returncode}")
-                if e.stdout:
-                    print("STDOUT:", e.stdout[-1000:])  # Last 1000 chars
-                if e.stderr:
-                    print("STDERR:", e.stderr[-1000:])
-
-        print()
-
+    # Preserve historical behavior: keep exit code 0 even if some evals fail.
+    # (If you prefer non-zero on any failure, we can add a flag and flip this.)
     return 0
 
 
