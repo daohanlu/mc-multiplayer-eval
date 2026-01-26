@@ -661,6 +661,30 @@ def _write_stats_json(output_dir: Path, accuracies: list[float]) -> None:
     print(f"Stats saved to: {stats_path}")
 
 
+def _clear_existing_trial_files(output_dir: Path) -> None:
+    """Remove any existing trial outputs in output_dir.
+
+    We intentionally keep this narrowly-scoped (only deletes files we own: trial_*.json and
+    stats.json) to avoid surprising data loss if the user points --output at a shared dir.
+    """
+    removed: list[Path] = []
+
+    stats_path = output_dir / "stats.json"
+    if stats_path.exists() and stats_path.is_file():
+        stats_path.unlink()
+        removed.append(stats_path)
+
+    for p in output_dir.glob("trial_*.json"):
+        if p.is_file():
+            p.unlink()
+            removed.append(p)
+
+    if removed:
+        # Print a stable, compact message for logs.
+        removed_names = ", ".join(sorted(p.name for p in removed))
+        print(f"Removed existing trial file(s) in {output_dir}: {removed_names}")
+
+
 def main():
     import argparse
 
@@ -841,6 +865,7 @@ Examples:
     else:
         # Run full evaluation num_trials times, save per-trial JSON + aggregate stats.
         assert output_dir is not None
+        _clear_existing_trial_files(output_dir)
         trial_accuracies: list[float] = []
 
         for trial_idx in range(1, args.num_trials + 1):

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Run evaluations for all models and datasets."""
+"""Run evaluations for all models and datasets.
+
+Note: per-(model, dataset) JSON outputs are written by `run_eval.py`, which now
+clears any existing `trial_*.json` and `stats.json` in the resolved output directory
+before starting a new set of trials (i.e., reruns overwrite cleanly).
+"""
 
 import argparse
 import os
