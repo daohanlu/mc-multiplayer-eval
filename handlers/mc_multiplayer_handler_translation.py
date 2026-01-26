@@ -96,6 +96,7 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
 
         # Create keyframe queries for BOTH bot perspectives
         # Both Alpha and Bravo cameras show the same scene at the same time
+        # This is a two-frame comparison query (frame1 vs frame2)
         for video_path, video_variant in [
             (video_pair.alpha_video, "alpha"),
             (video_pair.bravo_video, "bravo")
@@ -103,6 +104,7 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
             queries.append(KeyframeQuery(
                 video_path=video_path,
                 frame_index=frame1_idx,
+                second_frame_index=frame2_idx,  # Two-frame comparison
                 expected_answer=expected_answer,
                 metadata={
                     "variant": video_variant,
@@ -110,8 +112,7 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
                     "sneak_frame": sneak_frame,
                     "movement_frame": movement_frame,
                     "movement_direction": movement_direction,
-                    "frame1": frame1_idx,
-                    "frame2": frame2_idx,
+                    "frame1": frame1_idx,  # Kept for generated video offset calculation
                     "episode": video_pair.episode_num,
                     "instance": video_pair.instance_num
                 }

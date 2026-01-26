@@ -38,13 +38,21 @@ class VideoPair:
 
 @dataclass
 class KeyframeQuery:
-    """Represents a single keyframe query with expected answer."""
+    """Represents a single keyframe query with expected answer.
+    
+    For single-frame queries, only frame_index is set.
+    For two-frame comparison queries (e.g., translation), both frame_index 
+    and second_frame_index are set.
+    """
     video_path: Path
-    frame_index: int
+    frame_index: int  # Primary/first frame index
     expected_answer: str
+    second_frame_index: Optional[int] = None  # For two-frame comparison queries
     metadata: Optional[Dict] = None  # Additional context for the query
 
     def __repr__(self):
+        if self.second_frame_index is not None:
+            return f"KeyframeQuery(video={self.video_path.name}, frames=[{self.frame_index}, {self.second_frame_index}])"
         return f"KeyframeQuery(video={self.video_path.name}, frame={self.frame_index})"
 
 
@@ -526,6 +534,7 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
             {
                 "video": str(r.query.video_path.name),
                 "frame_index": r.query.frame_index,
+                **({"second_frame_index": r.query.second_frame_index} if r.query.second_frame_index is not None else {}),
                 "expected": r.query.expected_answer,
                 "response": r.vlm_response,
                 "correct": r.is_correct,
@@ -541,6 +550,7 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
             {
                 "video": str(err["query"].video_path.name),
                 "frame_index": err["query"].frame_index,
+                **({"second_frame_index": err["query"].second_frame_index} if err["query"].second_frame_index is not None else {}),
                 "expected": err["query"].expected_answer,
                 "error": err["error"],
                 "metadata": err["metadata"],

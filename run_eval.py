@@ -103,9 +103,9 @@ def extract_query_frames(
             frames["alpha_frame"] = extract_frame(alpha_video, alpha_frame_idx)
             frames["bravo_frame"] = extract_frame(bravo_video, bravo_frame_idx)
     
-    elif 'frame2' in meta:
-        # Translation: needs both frames
-        frame2_idx = meta['frame2']
+    elif query.second_frame_index is not None:
+        # Two-frame comparison query (e.g., translation): needs both frames
+        frame2_idx = query.second_frame_index
         variant = meta['variant']
         
         if generated_subdir:
@@ -116,7 +116,7 @@ def extract_query_frames(
             frames["frame1"] = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
             frames["frame2"] = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
         else:
-            frames["frame1"] = extract_frame(query.video_path, frame1_idx)
+            frames["frame1"] = extract_frame(query.video_path, query.frame_index)
             frames["frame2"] = extract_frame(query.video_path, frame2_idx)
     
     else:
@@ -304,8 +304,8 @@ def dry_run(handler, video_pairs: List[VideoPair], limit: Optional[int] = None):
                 print(f"  Yaw difference: {yaw_diff:.2f}°")
 
         print(f"  Frame 1: {meta['frame1']}")
-        if 'frame2' in meta:
-            print(f"  Frame 2: {meta['frame2']}")
+        if queries[0].second_frame_index is not None:
+            print(f"  Frame 2: {queries[0].second_frame_index}")
         print(f"  Query frame: {queries[0].frame_index}")
         print(f"  Expected answer: {queries[0].expected_answer}")
         print(f"  Perspectives: {len(queries)} (both Alpha and Bravo)\n")
