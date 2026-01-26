@@ -13,7 +13,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
 from handlers.camera_utils import find_end_of_first_sneak_chunk
-from constants import SNEAK_FRAME_START_DELAY
 
 
 class MinecraftTranslationHandler(EpisodeTypeHandler):
@@ -89,7 +88,7 @@ class MinecraftTranslationHandler(EpisodeTypeHandler):
             return queries
 
         # Calculate keyframe indices
-        frame1_idx = sneak_frame + SNEAK_FRAME_START_DELAY
+        frame1_idx = sneak_frame
         frame2_idx = movement_frame + 40
 
         # Determine expected answer based on movement direction

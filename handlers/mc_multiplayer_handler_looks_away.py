@@ -30,7 +30,6 @@ from handlers.camera_utils import (
     find_camera_rotation_frame,
     find_stop_turning_frame,
 )
-from constants import SNEAK_FRAME_START_DELAY
 
 
 class MinecraftLooksAwayHandler(EpisodeTypeHandler):
@@ -97,7 +96,7 @@ class MinecraftLooksAwayHandler(EpisodeTypeHandler):
             return queries
 
         # Calculate keyframe indices
-        frame1_idx = sneak_frame + SNEAK_FRAME_START_DELAY  # Reference frame (before turning)
+        frame1_idx = sneak_frame  # Reference frame (before turning)
         
         # Frame when fully turned away: find when camera stops moving
         looked_away_frame_idx = find_stop_turning_frame(rotating_data, frame1_idx)

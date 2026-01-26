@@ -13,6 +13,10 @@ All values are in RADIANS:
 import math
 from typing import List, Optional, Tuple
 
+# The delay (in frames) after the sneak chunk ends when the episode actually starts.
+# This buffer accounts for settling time after the sneak action completes.
+SNEAK_FRAME_START_DELAY = 25
+
 
 def normalize_radians(angle):
     """
@@ -125,18 +129,24 @@ def get_yaw_difference(data: List[dict], frame1_idx: int, frame2_idx: int) -> fl
     return sign * yaw_diff
 
 
-def find_end_of_first_sneak_chunk(data: List[dict]) -> Optional[int]:
+def find_end_of_first_sneak_chunk(
+    data: List[dict], 
+    buffer: int = SNEAK_FRAME_START_DELAY
+) -> Optional[int]:
     """
-    Find the last frame of the first contiguous sneak chunk.
+    Find the frame where the episode actually starts (after the first sneak chunk).
     
     Episodes may have multiple sneak chunks, but we only want the end of the
-    first one, which marks when the episode actually begins.
+    first one, which marks when the episode actually begins. A buffer is added
+    to account for settling time after the sneak action completes.
     
     Args:
         data: List of frame dictionaries containing action data
+        buffer: Number of frames to add after the sneak chunk ends (default: 25).
+                Set to 0 to get the raw last frame of the sneak chunk.
         
     Returns:
-        Index of the last frame in the first contiguous sneak=True chunk,
+        Index of the episode start frame (last sneak frame + buffer),
         or None if no sneak frames found
     """
     in_sneak_chunk = False
@@ -153,7 +163,9 @@ def find_end_of_first_sneak_chunk(data: List[dict]) -> Optional[int]:
             # This means the first chunk has ended
             break
     
-    return last_sneak_in_chunk
+    if last_sneak_in_chunk is None:
+        raise ValueError(f"No sneak frames found in data!")
+    return last_sneak_in_chunk + buffer
 
 
 def find_camera_rotation_frame(

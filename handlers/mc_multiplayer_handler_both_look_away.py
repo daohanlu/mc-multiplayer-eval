@@ -30,7 +30,6 @@ from handlers.camera_utils import (
     find_camera_rotation_frame,
     find_stop_turning_frame,
 )
-from constants import SNEAK_FRAME_START_DELAY
 
 
 class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
@@ -96,7 +95,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
                 continue
 
             # Calculate keyframe indices using the LATEST sneak frame
-            frame1_idx = latest_sneak_frame + SNEAK_FRAME_START_DELAY  # Reference frame (before turning)
+            frame1_idx = latest_sneak_frame  # Reference frame (before turning)
             
             
             # Frame when fully turned away: find when camera stops moving
