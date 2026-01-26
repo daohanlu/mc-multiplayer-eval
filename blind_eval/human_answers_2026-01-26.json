@@ -1,0 +1,1296 @@
+{
+  "timestamp": "2026-01-26T22:06:57.749Z",
+  "description": "Human blind evaluation answers for turn-to-look tasks. Can be re-verified against updated VLM results using: python blind_eval_tool.py verify <this_file>",
+  "total_questions": 128,
+  "answered": 128,
+  "models_evaluated": [
+    "flagship",
+    "no_kv_cache_backprop"
+  ],
+  "eval_types": [
+    "turnToLookEval",
+    "turnToLookOppositeEval"
+  ],
+  "answers": [
+    {
+      "question_id": 9,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000009",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000009_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 92,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000028",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000028_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 102,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000006",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000006_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 76,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000012",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000012_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 49,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000017",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000017_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 16,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000016",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000016_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 62,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000030",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000030_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 103,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000007",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000007_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 104,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000008",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000008_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 82,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000018",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000018_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 47,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000015",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000015_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 21,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000021",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000021_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 30,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000030",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000030_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 118,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000022",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000022_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 32,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000000",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000000_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 50,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000018",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000018_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 63,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000031",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000031_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 123,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000027",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000027_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 96,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000000",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000000_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 18,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000018",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000018_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 74,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000010",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000010_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 2,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000002",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000002_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 66,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000002",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000002_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 80,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000016",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000016_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 36,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000004",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000004_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 85,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000021",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000021_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 7,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000007",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000007_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 1,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000001",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000001_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 87,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000023",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000023_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 79,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000015",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000015_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 26,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000026",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000026_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 101,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000005",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000005_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 60,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000028",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000028_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 73,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000009",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000009_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 95,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000031",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000031_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 59,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000027",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000027_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 39,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000007",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000007_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 72,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000008",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000008_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 34,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000002",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000002_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 51,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000019",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000019_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 61,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000029",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000029_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 38,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000006",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000006_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 111,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000015",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000015_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 41,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000009",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000009_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 84,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000020",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000020_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 78,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000014",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000014_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 56,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000024",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000024_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 42,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000010",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000010_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 100,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000004",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000004_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 22,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000022",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000022_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 52,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000020",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000020_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 70,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000006",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000006_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 23,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000023",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000023_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 97,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000001",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000001_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 40,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000008",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000008_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 106,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000010",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000010_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 121,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000025",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000025_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 67,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000003",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000003_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 6,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000006",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000006_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 55,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000023",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000023_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 14,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000014",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000014_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 90,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000026",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000026_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 65,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000001",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000001_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 98,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000002",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000002_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 107,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000011",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000011_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 117,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000021",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000021_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 8,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000008",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000008_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 24,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000024",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000024_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 46,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000014",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000014_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 37,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000005",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000005_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 10,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000010",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000010_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 81,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000017",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000017_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 15,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000015",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000015_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 68,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000004",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000004_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 58,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000026",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000026_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 5,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000005",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000005_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 33,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000001",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000001_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 105,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000009",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000009_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 44,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000012",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000012_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 45,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000013",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000013_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 12,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000012",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000012_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 48,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000016",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000016_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 109,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000013",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000013_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 119,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000023",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000023_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 88,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000024",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000024_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 108,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000012",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000012_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 19,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000019",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000019_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 93,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000029",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000029_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 43,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000011",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000011_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 112,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000016",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000016_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 99,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000003",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000003_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 20,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000020",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000020_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 0,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000000",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000000_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 124,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000028",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000028_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 113,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000017",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000017_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 57,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000025",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000025_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 122,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000026",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000026_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 53,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000021",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000021_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 115,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000019",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000019_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 89,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000025",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000025_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 83,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000019",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000019_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 91,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000027",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000027_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 25,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000025",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000025_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 71,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000007",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000007_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 110,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000014",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000014_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 77,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000013",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000013_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 64,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000000",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000000_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 29,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000029",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000029_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 27,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000027",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000027_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 116,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000020",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000020_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 126,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000030",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000030_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 4,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000004",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000004_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 54,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000022",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000022_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 75,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000011",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000011_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 11,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000011",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000011_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 69,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000005",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000005_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 114,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000018",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000018_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 120,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000024",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000024_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 86,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000022",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000022_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 13,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000013",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000013_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 125,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000029",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000029_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 17,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000017",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000017_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 127,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000031",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/no_kv_cache_backprop/default/ep000031_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 31,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000031",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000031_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 35,
+      "model": "flagship",
+      "eval_type": "turnToLookOppositeEval",
+      "episode": "000003",
+      "instance": "000",
+      "variant": "turn_to_look_opposite",
+      "original_image": "frame_extraction_side_by_side/turnToLookOppositeEval/flagship/default/ep000003_inst000_turn_to_look_opposite_comparison.png",
+      "human_answer": "no"
+    },
+    {
+      "question_id": 94,
+      "model": "no_kv_cache_backprop",
+      "eval_type": "turnToLookEval",
+      "episode": "000030",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/no_kv_cache_backprop/default/ep000030_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 3,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000003",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000003_inst000_turn_to_look_comparison.png",
+      "human_answer": "yes"
+    },
+    {
+      "question_id": 28,
+      "model": "flagship",
+      "eval_type": "turnToLookEval",
+      "episode": "000028",
+      "instance": "000",
+      "variant": "turn_to_look",
+      "original_image": "frame_extraction_side_by_side/turnToLookEval/flagship/default/ep000028_inst000_turn_to_look_comparison.png",
+      "human_answer": "no"
+    }
+  ]
+}

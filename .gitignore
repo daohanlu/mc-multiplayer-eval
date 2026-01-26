@@ -49,6 +49,11 @@ ground_truths/
 results_json/
 eval_results*.json
 
+# Blind eval generated files (HTML is 90MB+ with embedded images)
+blind_eval/blind_eval.html
+blind_eval/cropped_images/
+frame_extraction_side_by_side/
+
 # Other data files
 *.mp4
 *.avi
