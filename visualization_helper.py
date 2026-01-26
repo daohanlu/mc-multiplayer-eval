@@ -12,6 +12,71 @@ from typing import Optional
 from vlm_utils import KeyframeQuery
 
 
+def add_expected_answer_label(image, expected_answer: str, font_scale: float = 0.6, padding: int = 10):
+    """
+    Add expected answer text at the bottom of the image.
+    
+    Args:
+        image: CV2 image (numpy array)
+        expected_answer: The expected VLM answer to display
+        font_scale: Font size scale
+        padding: Padding around the text
+        
+    Returns:
+        Image with expected answer label added at the bottom
+    """
+    import cv2
+    import numpy as np
+    
+    h, w = image.shape[:2]
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    thickness = 1
+    
+    # Prepare text with "Expected: " prefix
+    text = f"Expected: {expected_answer}"
+    
+    # Calculate text size
+    (text_width, text_height), baseline = cv2.getTextSize(text, font, font_scale, thickness)
+    
+    # If text is too wide, wrap it
+    max_text_width = w - 2 * padding
+    lines = []
+    if text_width > max_text_width:
+        # Simple word wrapping
+        words = text.split(' ')
+        current_line = ""
+        for word in words:
+            test_line = current_line + (" " if current_line else "") + word
+            (test_width, _), _ = cv2.getTextSize(test_line, font, font_scale, thickness)
+            if test_width <= max_text_width:
+                current_line = test_line
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = word
+        if current_line:
+            lines.append(current_line)
+    else:
+        lines = [text]
+    
+    # Calculate total height needed for all lines
+    line_height = text_height + baseline + 5
+    total_text_height = len(lines) * line_height + 2 * padding
+    
+    # Create a bar at the bottom for the text
+    bar = np.zeros((total_text_height, w, 3), dtype=np.uint8)
+    bar[:] = (40, 40, 40)  # Dark gray background
+    
+    # Draw each line of text
+    for i, line in enumerate(lines):
+        y_pos = padding + (i + 1) * line_height - baseline
+        cv2.putText(bar, line, (padding, y_pos), font, font_scale, (255, 255, 255), thickness)
+    
+    # Stack the original image and the text bar
+    result = np.vstack([image, bar])
+    return result
+
+
 def get_side_by_side_output_dir(dataset_name: str, model_name: str, query_type: Optional[str]) -> Path:
     """
     Get the output directory for side-by-side comparison frames.
@@ -129,8 +194,8 @@ def create_side_by_side_comparison(
             f"Bravo @ frame {bravo_frame_idx}"
         ))
     elif "frame1" in gt_frames and "frame2" in gt_frames:
-        # Translation: two frames
-        frame2_idx = meta['frame2']  # Required for translation
+        # Translation: two frames (frame2 stored in query.second_frame_index)
+        frame2_idx = query.second_frame_index
         frame_pairs.append((
             gt_frames["frame1"],
             gen_frames["frame1"],
@@ -172,6 +237,11 @@ def create_side_by_side_comparison(
         comparison = np.vstack(comparison_rows)
     else:
         comparison = comparison_rows[0]
+    
+    # Add expected answer text at the bottom
+    expected_answer = query.expected_answer
+    if expected_answer:
+        comparison = add_expected_answer_label(comparison, expected_answer)
     
     # Save the comparison image
     output_path.mkdir(parents=True, exist_ok=True)

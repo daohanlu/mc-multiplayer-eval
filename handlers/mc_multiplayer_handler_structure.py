@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
-from handlers.camera_utils import find_end_of_first_sneak_chunk
+from handlers.camera_utils import find_end_of_first_sneak_chunk, find_last_action_frame
 
 
 class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
@@ -135,19 +135,22 @@ class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
         # Find the end of the first sneak chunk from builder's data to determine episode start
         sneak_frame = find_end_of_first_sneak_chunk(builder_data)
         if sneak_frame is None:
-            print(f"  ⚠ Episode {video_pair.episode_num} instance {video_pair.instance_num}: "
-                  f"No sneak frame found in builder data")
-            return queries
+            raise ValueError(f"No sneak frame found in builder data for episode {video_pair.episode_num} instance {video_pair.instance_num}")
 
         # Calculate keyframe indices
         frame1_idx = sneak_frame
-        frame2_idx = frame1_idx + 240
+        
+        # Find 20 frames after builder's last action, but clip to frame1 + 240
+        last_action = find_last_action_frame(builder_data, frame1_idx, buffer=20)
+        if last_action is None:
+            raise ValueError(f"No actions found in builder data for episode {video_pair.episode_num} instance {video_pair.instance_num}")
+        
+        max_frame2 = frame1_idx + 240
+        frame2_idx = min(last_action, max_frame2)
 
         # Check if we have enough frames
         if frame2_idx >= len(observer_data):
-            print(f"  ⚠ Episode {video_pair.episode_num} instance {video_pair.instance_num}: "
-                  f"Not enough frames (need {frame2_idx}, have {len(observer_data)})")
-            return queries
+            raise ValueError(f"Not enough frames (need {frame2_idx}, have {len(observer_data)}) for episode {video_pair.episode_num} instance {video_pair.instance_num}")
 
         # Create keyframe query only for the observer (non-building bot)
         # Note: Single-frame query, only frame_index is sent to VLM
@@ -164,7 +167,6 @@ class MinecraftStructureBuildingHandler(EpisodeTypeHandler):
                 "bravo_structure": episode_data["bravo_structure"],
                 "alpha_builds": episode_data["alpha_builds"],
                 "bravo_builds": episode_data["bravo_builds"],
-                "sneak_frame": sneak_frame,
                 "frame1": frame1_idx,
                 "episode": video_pair.episode_num,
                 "instance": video_pair.instance_num

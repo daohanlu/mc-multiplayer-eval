@@ -164,79 +164,107 @@ def find_end_of_first_sneak_chunk(
             break
     
     if last_sneak_in_chunk is None:
-        raise ValueError(f"No sneak frames found in data!")
+        return None
     return last_sneak_in_chunk + buffer
 
 
-def find_camera_rotation_frame(
-    data: List[dict], start_frame: int, threshold: float = 0.0001
-) -> Tuple[Optional[int], Optional[str]]:
-    """
-    Find the first frame after start_frame with camera rotation.
+def _is_rotating(action: dict, threshold: float = 0.0001) -> bool:
+    """Check if an action contains camera rotation."""
+    camera = action.get("camera", [0, 0])
+    return abs(camera[0]) > threshold or abs(camera[1]) > threshold
 
+
+def _is_noop(action: dict, threshold: float = 0.0001) -> bool:
+    """
+    Check if an action is a no-op (no significant action).
+    
+    A no-op is when all boolean action values are False and camera values are near 0.
+    """
+    for key, value in action.items():
+        if key == "camera":
+            # Camera is handled separately by _is_rotating
+            if _is_rotating(action, threshold):
+                return False
+        elif isinstance(value, bool) and value:
+            # Any True boolean value means it's not a no-op
+            return False
+    
+    return True
+
+
+def find_end_of_first_rotation_chunk(
+    data: List[dict], 
+    start_frame: int, 
+    buffer: int = 20,
+    threshold: float = 0.0001
+) -> Optional[int]:
+    """
+    Find the frame after the first rotation chunk ends (plus buffer).
+    
+    Starting from start_frame, finds when camera rotation begins, then returns
+    the first frame after rotation stops plus a buffer.
+    
     Args:
         data: List of frame dictionaries containing action data
         start_frame: Frame index to start searching from
+        buffer: Number of frames to add after rotation ends (default: 20)
         threshold: Minimum camera movement to consider as rotation
-
+        
     Returns:
-        Tuple of (frame_index, direction) where direction describes the
-        camera rotation (e.g., "left", "right", "up", "down").
-        Returns (None, None) if no rotation found.
+        Frame index after first rotation chunk (last rotating frame + buffer),
+        or None if no rotation found
     """
+    in_rotation_chunk = False
+    last_rotation_frame = None
+    
     for i in range(start_frame, len(data)):
         action = data[i].get("action", {})
-        camera = action.get("camera", [0, 0])
-
-        # Check if there's significant camera movement
-        if abs(camera[0]) > threshold or abs(camera[1]) > threshold:
-            # Determine direction based on which axis has more movement
-            if abs(camera[0]) > abs(camera[1]):
-                # Horizontal rotation (yaw)
-                direction = "left" if camera[0] < 0 else "right"
-            else:
-                # Vertical rotation (pitch)
-                direction = "down" if camera[1] < 0 else "up"
-
-            return i, direction
-
-    return None, None
+        is_rotating = _is_rotating(action, threshold)
+        
+        if is_rotating:
+            in_rotation_chunk = True
+            last_rotation_frame = i
+        elif in_rotation_chunk:
+            # We were rotating but now stopped - first chunk has ended
+            break
+    
+    if last_rotation_frame is None:
+        return None
+    return last_rotation_frame + buffer
 
 
-def find_stop_turning_frame(
-    data: List[dict], frame1_idx: int, threshold: float = 0.0001
+def find_last_action_frame(
+    data: List[dict], 
+    start_frame: int, 
+    buffer: int = 20,
+    threshold: float = 0.0001
 ) -> Optional[int]:
     """
-    Find the frame where the bot stops turning.
-
-    Starts at frame1_idx, waits for camera to start turning, then returns
-    the first frame where turning stops + 10 (+0.5s).
-
+    Find the frame after the last non-no-op action (plus buffer).
+    
+    Scans from start_frame to find the last frame with any significant action
+    (movement, camera rotation, attack, use, etc.), then adds a buffer.
+    
     Args:
         data: List of frame dictionaries containing action data
-        frame1_idx: Starting frame index
+        start_frame: Frame index to start searching from
+        buffer: Number of frames to add after last action (default: 20)
         threshold: Threshold for camera movement detection
-
+        
     Returns:
-        Frame index where bot has stopped turning, or None if not found
+        Frame index after last action (last action frame + buffer),
+        or None if no actions found after start_frame
     """
-    # First, find when the camera starts turning
-    turning_started = False
-    for i in range(frame1_idx, len(data)):
+    last_action_frame = None
+    
+    for i in range(start_frame, len(data)):
         action = data[i].get("action", {})
-        camera = action.get("camera", [0, 0])
-
-        is_turning = abs(camera[0]) > threshold or abs(camera[1]) > threshold
-
-        if not turning_started:
-            if is_turning:
-                turning_started = True
-        else:
-            # We were turning, check if we've stopped
-            if not is_turning:
-                return i + 10  #Wait 0.5s for the camera to stabilize
-
-    return None
+        if not _is_noop(action, threshold):
+            last_action_frame = i
+    
+    if last_action_frame is None:
+        return None
+    return last_action_frame + buffer
 
 
 def calculate_position_answer(

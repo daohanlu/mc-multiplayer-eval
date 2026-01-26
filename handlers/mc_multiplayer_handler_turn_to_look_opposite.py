@@ -15,7 +15,7 @@ from typing import List, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
-from handlers.camera_utils import find_end_of_first_sneak_chunk
+from handlers.camera_utils import find_end_of_first_sneak_chunk, find_end_of_first_rotation_chunk
 
 
 class MinecraftTurnToLookOppositeHandler(EpisodeTypeHandler):
@@ -58,21 +58,26 @@ class MinecraftTurnToLookOppositeHandler(EpisodeTypeHandler):
 
         # Ensure at least one bot has a sneak frame
         if alpha_sneak_frame is None and bravo_sneak_frame is None:
-            return queries
+            raise ValueError(f"No sneak frame found in episode {video_pair.episode_num} instance {video_pair.instance_num}")
 
-        # Use the LATEST sneak frame as the starting point
+        # Use the LATEST sneak frame as the starting point (frame1)
         sneak_frames = [f for f in [alpha_sneak_frame, bravo_sneak_frame] if f is not None]
-        latest_sneak_frame = max(sneak_frames)
+        frame1_idx = max(sneak_frames)
 
-        # Calculate keyframe indices
-        frame1_idx = latest_sneak_frame
-        frame2_idx = frame1_idx + 200
+        # Find when rotation ends for each bot, then use the latest
+        alpha_rotation_end = find_end_of_first_rotation_chunk(alpha_data, frame1_idx, buffer=20)
+        bravo_rotation_end = find_end_of_first_rotation_chunk(bravo_data, frame1_idx, buffer=20)
+        
+        rotation_ends = [f for f in [alpha_rotation_end, bravo_rotation_end] if f is not None]
+        if not rotation_ends:
+            raise ValueError(f"No rotation found in episode {video_pair.episode_num} instance {video_pair.instance_num}")
+        
+        # Use the latest rotation end as frame2 (when both bots have finished turning)
+        frame2_idx = max(rotation_ends)
 
         # Validate that frame2_idx exists in both videos
         if frame2_idx >= len(alpha_data) or frame2_idx >= len(bravo_data):
-            print(f"  ⚠ Skipping episode {video_pair.episode_num} instance {video_pair.instance_num}: "
-                  f"frame2_idx {frame2_idx} exceeds video length")
-            return queries
+            raise ValueError(f"frame2_idx {frame2_idx} exceeds video length in episode {video_pair.episode_num} instance {video_pair.instance_num}")
 
         # For turn_to_look_opposite, we expect bots to NOT be at nearby perspectives
         expected_answer = "no"
@@ -93,9 +98,6 @@ class MinecraftTurnToLookOppositeHandler(EpisodeTypeHandler):
                 "bravo_video": str(video_pair.bravo_video),
                 "alpha_frame": frame2_idx,
                 "bravo_frame": frame2_idx,
-                "alpha_sneak_frame": alpha_sneak_frame,
-                "bravo_sneak_frame": bravo_sneak_frame,
-                "latest_sneak_frame": latest_sneak_frame,
                 "frame1": frame1_idx,
                 "episode": video_pair.episode_num,
                 "instance": video_pair.instance_num

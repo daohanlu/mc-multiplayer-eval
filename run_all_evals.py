@@ -281,10 +281,86 @@ def main():
         print("EXTRACT FRAMES MODE - extracting from ground-truth videos (no --generated)")
     print()
 
-    # --extract-frames mode: run on ground-truth videos without --generated
+    # --extract-frames mode: extract frames without VLM queries
     if args.extract_frames:
+        # Check if generations_dir exists - if so, create side-by-side comparisons
+        if generations_dir.exists():
+            # Get all model directories
+            model_dirs = [d for d in generations_dir.iterdir() if d.is_dir()]
+            if model_dirs:
+                print(f"{'=' * 80}")
+                print("Extracting frames with side-by-side comparisons (GT + generated)")
+                print(f"Found {len(model_dirs)} model(s)")
+                print(f"{'=' * 80}")
+
+                for model_dir in sorted(model_dirs):
+                    model_name = model_dir.name
+                    print(f"\n{'=' * 80}")
+                    print(f"Model: {model_name}")
+                    print(f"{'=' * 80}")
+
+                    # Check which evaluation types this model has generated videos for
+                    eval_subdirs = [d for d in model_dir.iterdir() if d.is_dir()]
+                    available_eval_types: dict[str, Path] = {}
+
+                    for eval_subdir in eval_subdirs:
+                        eval_type = extract_eval_type(eval_subdir.name)
+                        if eval_type:
+                            available_eval_types[eval_type] = eval_subdir
+
+                    print(f"Available eval types: {list(available_eval_types.keys())}")
+
+                    for eval_type in enabled_eval_types:
+                        dataset_name = EVAL_TYPE_MAPPING[eval_type]
+                        dataset_path = dataset_base / dataset_name
+
+                        if not dataset_path.exists():
+                            print(f"⊘ Skipping {eval_type} - dataset not found: {dataset_path}")
+                            continue
+
+                        if eval_type not in available_eval_types:
+                            print(f"⊘ Skipping {eval_type} - no generated videos for this model")
+                            continue
+
+                        # Construct the command with both --extract-frames and --generated
+                        cmd = [
+                            "python",
+                            "run_eval.py",
+                            str(dataset_path),
+                            "--extract-frames",
+                            "--generated",
+                            str(model_dir),
+                        ]
+                        if args.results_dir is not None:
+                            cmd.extend(["--results-dir", str(args.results_dir)])
+                        if args.limit:
+                            cmd.extend(["--limit", str(args.limit)])
+
+                        print(f"\n{'[DRY RUN] Would run' if args.dry_run else 'Running'}: {' '.join(cmd)}")
+
+                        if args.dry_run:
+                            print(f"  → Dataset: {dataset_path}")
+                            print(f"  → Generated subdir: {available_eval_types[eval_type].name}")
+                            continue
+
+                        # Run the command
+                        try:
+                            result = subprocess.run(
+                                cmd,
+                                check=True,
+                                capture_output=False,  # Show output in real-time
+                                text=True
+                            )
+                            print(f"✓ Success for {eval_type}")
+                        except subprocess.CalledProcessError as e:
+                            print(f"✗ Error for {eval_type}")
+                            print(f"Return code: {e.returncode}")
+
+                return 0
+
+        # No generations_dir or it doesn't exist - extract GT frames only
         print(f"{'=' * 80}")
-        print("Extracting frames from ground-truth videos")
+        print("Extracting frames from ground-truth videos only (no --generations-dir found)")
         print(f"{'=' * 80}")
 
         for eval_type in enabled_eval_types:
@@ -306,8 +382,6 @@ def main():
                 cmd.extend(["--results-dir", str(args.results_dir)])
             if args.limit:
                 cmd.extend(["--limit", str(args.limit)])
-            if args.num_trials != 1:
-                cmd.extend(["--num-trials", str(args.num_trials)])
 
             print(f"\n{'[DRY RUN] Would run' if args.dry_run else 'Running'}: {' '.join(cmd)}")
 

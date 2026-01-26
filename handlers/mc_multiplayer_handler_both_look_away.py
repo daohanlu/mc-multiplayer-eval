@@ -25,10 +25,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
 from handlers.camera_utils import (
-    get_accumulated_yaw,
     find_end_of_first_sneak_chunk,
-    find_camera_rotation_frame,
-    find_stop_turning_frame,
+    find_end_of_first_rotation_chunk,
+    find_last_action_frame,
+    get_yaw_difference,
 )
 
 
@@ -76,40 +76,32 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
 
         # Ensure both bots have sneak frames
         if alpha_sneak_frame is None or bravo_sneak_frame is None:
-            return queries
+            raise ValueError(f"Missing sneak frame in episode {video_pair.episode_num} instance {video_pair.instance_num}")
 
         # Use the LATEST sneak frame as the starting point for both bots
-        latest_sneak_frame = max(alpha_sneak_frame, bravo_sneak_frame)
+        frame1_idx = max(alpha_sneak_frame, bravo_sneak_frame)
 
-        # Process each bot that has rotation
-        for data, video_path, variant, bot_sneak_frame in [
-            (alpha_data, video_pair.alpha_video, "alpha", alpha_sneak_frame),
-            (bravo_data, video_pair.bravo_video, "bravo", bravo_sneak_frame)
+        # Process each bot
+        for data, video_path, variant in [
+            (alpha_data, video_pair.alpha_video, "alpha"),
+            (bravo_data, video_pair.bravo_video, "bravo")
         ]:
-            # Find the camera rotation frame
-            rotation_frame, rotation_direction = find_camera_rotation_frame(
-                data, bot_sneak_frame
-            )
-
-            if rotation_frame is None or rotation_direction is None:
-                continue
-
-            # Calculate keyframe indices using the LATEST sneak frame
-            frame1_idx = latest_sneak_frame  # Reference frame (before turning)
-            
-            
-            # Frame when fully turned away: find when camera stops moving
-            looked_away_frame_idx = find_stop_turning_frame(data, frame1_idx)
+            # Frame when fully turned away: end of first rotation chunk + 10 frame buffer
+            looked_away_frame_idx = find_end_of_first_rotation_chunk(data, frame1_idx, buffer=10)
             if looked_away_frame_idx is None:
-                raise ValueError(f"No stop turning frame found for {variant} in episode {video_pair.episode_num} instance {video_pair.instance_num}")
+                raise ValueError(f"No rotation found for {variant} in episode {video_pair.episode_num} instance {video_pair.instance_num}")
             
-            # Frame when turned back: rotation_frame + 200 (bot has returned to original orientation)
-            turned_back_frame_idx = rotation_frame + 200
+            # Frame when turned back: 20 frames after last action
+            turned_back_frame_idx = find_last_action_frame(data, frame1_idx, buffer=20)
+            if turned_back_frame_idx is None:
+                raise ValueError(f"No actions found for {variant} in episode {video_pair.episode_num} instance {video_pair.instance_num}")
 
+            # Compute delta_yaw for each query
+            delta_yaw_looked_away = get_yaw_difference(data, frame1_idx, looked_away_frame_idx)
+            delta_yaw_turned_back = get_yaw_difference(data, frame1_idx, turned_back_frame_idx)
+            rotation_direction = "left" if delta_yaw_looked_away > 0 else "right"
 
-
-            # Query 1 (chronological): Fully looked away - player NOT visible
-            # Note: Single-frame query, only frame_index is sent to VLM
+            # Query 1: Fully looked away - player NOT visible
             queries.append(KeyframeQuery(
                 video_path=video_path,
                 frame_index=looked_away_frame_idx,
@@ -118,20 +110,15 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
                     "variant": variant,
                     "rotating_bot": variant,
                     "query_type": "player_invisible_looked_away",
-                    "sneak_frame": bot_sneak_frame,
-                    "latest_sneak_frame": latest_sneak_frame,
-                    "rotation_frame": rotation_frame,
                     "rotation_direction": rotation_direction,
+                    "delta_yaw": delta_yaw_looked_away,
                     "frame1": frame1_idx,
-                    "yaw1": get_accumulated_yaw(data, frame1_idx),
-                    "yaw2": get_accumulated_yaw(data, looked_away_frame_idx),
                     "episode": video_pair.episode_num,
                     "instance": video_pair.instance_num
                 }
             ))
 
-            # Query 2 (chronological): Turned back - player should be back at center
-            # Note: Single-frame query, only frame_index is sent to VLM
+            # Query 2: Turned back - player should be back at center
             queries.append(KeyframeQuery(
                 video_path=video_path,
                 frame_index=turned_back_frame_idx,
@@ -140,13 +127,9 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
                     "variant": variant,
                     "rotating_bot": variant,
                     "query_type": "player_position_turned_back",
-                    "sneak_frame": bot_sneak_frame,
-                    "latest_sneak_frame": latest_sneak_frame,
-                    "rotation_frame": rotation_frame,
                     "rotation_direction": rotation_direction,
+                    "delta_yaw": delta_yaw_turned_back,
                     "frame1": frame1_idx,
-                    "yaw1": get_accumulated_yaw(data, frame1_idx),
-                    "yaw2": get_accumulated_yaw(data, turned_back_frame_idx),
                     "episode": video_pair.episode_num,
                     "instance": video_pair.instance_num
                 }

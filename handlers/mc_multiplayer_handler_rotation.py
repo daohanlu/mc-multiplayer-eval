@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
-from handlers.camera_utils import find_end_of_first_sneak_chunk, find_camera_rotation_frame, calculate_position_answer
+from handlers.camera_utils import find_end_of_first_sneak_chunk, find_end_of_first_rotation_chunk, calculate_position_answer, get_yaw_difference
 
 
 class MinecraftRotationHandler(EpisodeTypeHandler):
@@ -54,30 +54,22 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
 
         if alpha_sneak_frame is not None:
             rotating_data = alpha_data
-            rotating_video = video_pair.alpha_video
             sneak_frame = alpha_sneak_frame
             variant = "alpha"
         elif bravo_sneak_frame is not None:
             rotating_data = bravo_data
-            rotating_video = video_pair.bravo_video
             sneak_frame = bravo_sneak_frame
             variant = "bravo"
         else:
-            # No rotation found
-            return queries
+            raise ValueError(f"No sneak frame found in episode {video_pair.episode_num} instance {video_pair.instance_num}")
 
-        # Find the camera rotation frame (first frame after sneak with camera movement)
-        rotation_frame, rotation_direction = find_camera_rotation_frame(
-            rotating_data, sneak_frame
-        )
-
-        if rotation_frame is None or rotation_direction is None:
-            # No camera rotation found
-            return queries
+        # Find the frame after the first rotation chunk ends (+ 20 frame buffer)
+        frame2_idx = find_end_of_first_rotation_chunk(rotating_data, sneak_frame, buffer=20)
+        if frame2_idx is None:
+            raise ValueError(f"No rotation found in episode {video_pair.episode_num} instance {video_pair.instance_num}")
 
         # Calculate keyframe indices
         frame1_idx = sneak_frame
-        frame2_idx = rotation_frame + 140
 
         # Calculate expected answer based on yaw difference
         try:
@@ -88,6 +80,10 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
             # Skip this episode if yaw difference doesn't match expected patterns
             print(f"  ⚠ Skipping episode {video_pair.episode_num} instance {video_pair.instance_num}: {e}")
             return queries
+
+        # Compute delta_yaw and rotation_direction for metadata
+        delta_yaw = get_yaw_difference(rotating_data, frame1_idx, frame2_idx)
+        rotation_direction = "left" if delta_yaw > 0 else "right"
 
         # Create keyframe queries for BOTH bot perspectives
         # Note: Only frame2 is used for the VLM query (single-frame query)
@@ -103,12 +99,9 @@ class MinecraftRotationHandler(EpisodeTypeHandler):
                 metadata={
                     "variant": video_variant,
                     "rotating_bot": variant,
-                    "sneak_frame": sneak_frame,
-                    "rotation_frame": rotation_frame,
                     "rotation_direction": rotation_direction,
+                    "delta_yaw": delta_yaw,
                     "frame1": frame1_idx,
-                    "yaw1": rotating_data[frame1_idx].get("yaw", 0),
-                    "yaw2": rotating_data[frame2_idx].get("yaw", 0),
                     "episode": video_pair.episode_num,
                     "instance": video_pair.instance_num
                 }
