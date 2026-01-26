@@ -416,6 +416,8 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[
         print(f"{'='*80}\n")
 
     results = []
+    vlm_errors = []  # Track VLM errors separately (quota/throttling issues)
+    vlm_error_warned = False  # Only warn once about VLM errors
 
     # Track which video pair we're currently evaluating
     # (needed because filtering may reduce queries per pair)
@@ -507,13 +509,24 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[
             else:
                 vlm_response = query_vlm(prompt, frames["frame"], enable_thinking=enable_thinking)
         except Exception as e:
+            error_str = str(e)
             print(f"✗ VLM Error: {e}")
-            results.append(EvalResult(
-                query=query,
-                vlm_response=f"ERROR: {e}",
-                is_correct=False,
-                metadata={"error": str(e), **meta}
-            ))
+            
+            # Warn user on first VLM error (likely quota/throttling issue)
+            if not vlm_error_warned:
+                vlm_error_warned = True
+                print(f"\n{'!'*80}")
+                print("WARNING: VLM API error encountered. This may indicate quota exhaustion or throttling.")
+                print("VLM errors will be tracked separately and will NOT count as incorrect responses.")
+                print("Check your API quota at: https://ai.dev/rate-limit")
+                print(f"{'!'*80}\n")
+            
+            # Track error separately - don't add to results (doesn't count as incorrect)
+            vlm_errors.append({
+                "query": query,
+                "error": error_str,
+                "metadata": meta,
+            })
             continue
 
         # Validate response
@@ -549,21 +562,29 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[
     print(f"\n{'='*80}")
     print("SAVING RESULTS")
     print(f"{'='*80}")
-    save_results(results, output_file, VLM_MODEL_NAME, model_name, thinking_enabled=enable_thinking)
+    save_results(results, output_file, VLM_MODEL_NAME, model_name, thinking_enabled=enable_thinking, vlm_errors=vlm_errors)
 
     # Print summary
-    total = len(results)
+    total_attempted = len(all_queries)
+    total_successful = len(results)  # Only queries that got VLM responses
+    num_vlm_errors = len(vlm_errors)
     correct = sum(1 for r in results if r.is_correct)
-    incorrect = total - correct
-    accuracy = correct / total * 100 if total > 0 else 0
+    incorrect = total_successful - correct
+    accuracy = correct / total_successful * 100 if total_successful > 0 else 0
 
     print(f"\n{'='*80}")
     print("EVALUATION SUMMARY")
     print(f"{'='*80}")
-    print(f"Total queries: {total}")
+    print(f"Total queries: {total_successful}")
     print(f"Correct: {correct}")
     print(f"Incorrect: {incorrect}")
     print(f"Accuracy: {accuracy:.2f}%")
+    
+    # Show VLM errors prominently if any occurred
+    if num_vlm_errors > 0:
+        print(f"\n{'!'*80}")
+        print(f"VLM ERRORS: {num_vlm_errors} queries failed due to API errors (not counted as incorrect)")
+        print(f"{'!'*80}")
 
     # Break down by query type if multiple types exist
     query_types = set(r.metadata.get('query_type', 'default') for r in results)

@@ -11,6 +11,7 @@ This module provides utility functions and data structures for VLM evaluation:
 
 import json
 import os
+import time
 import warnings
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -288,7 +289,7 @@ def extract_frame_from_generated(
     return buffer.tobytes()
 
 
-def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = None, enable_thinking: bool = False) -> str:
+def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = None, enable_thinking: bool = False, max_retries: int = 3) -> str:
     """
     Query the VLM (e.g., Gemini) with a prompt and image(s).
 
@@ -297,6 +298,7 @@ def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = 
         image_bytes: First image data as bytes
         image_bytes_2: Optional second image data as bytes
         enable_thinking: Whether to enable thinking mode (default: False)
+        max_retries: Maximum number of retries for rate limit errors (default: 3)
 
     Returns:
         VLM response as string
@@ -343,20 +345,43 @@ def query_vlm(prompt: str, image_bytes: bytes, image_bytes_2: Optional[bytes] = 
             thinking_config=types.ThinkingConfig(thinking_budget=0)
         )
 
-    response = client.models.generate_content(
-        model=VLM_MODEL_NAME,
-        contents=content_parts,
-        config=config,
-    )
-
-    # Explicitly extract text parts to avoid warning about non-text parts (e.g., thought_signature)
-    text_parts = [part.text for part in response.candidates[0].content.parts if hasattr(part, 'text')]
-    if not text_parts:
-        warnings.warn(f"No text parts found in VLM response: {response}")
-        return ""
-    if len(text_parts) > 1:                                                            
-        warnings.warn(f"Multiple text parts in VLM response: {text_parts}") 
-    return ''.join(text_parts).strip().lower()
+    # Retry loop with exponential backoff for rate limit errors
+    last_exception = None
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model=VLM_MODEL_NAME,
+                contents=content_parts,
+                config=config,
+            )
+            
+            # Explicitly extract text parts to avoid warning about non-text parts (e.g., thought_signature)
+            text_parts = [part.text for part in response.candidates[0].content.parts if hasattr(part, 'text')]
+            if not text_parts:
+                warnings.warn(f"No text parts found in VLM response: {response}")
+                return ""
+            if len(text_parts) > 1:                                                            
+                warnings.warn(f"Multiple text parts in VLM response: {text_parts}") 
+            return ''.join(text_parts).strip().lower()
+            
+        except Exception as e:
+            last_exception = e
+            error_str = str(e)
+            
+            # Check if this is a rate limit error (429) that we should retry
+            is_rate_limit = "429" in error_str or "RESOURCE_EXHAUSTED" in error_str
+            
+            if is_rate_limit and attempt < max_retries - 1:
+                # Exponential backoff: 2s, 4s, 8s, ...
+                wait_time = 2 ** (attempt + 1)
+                print(f"\n  ⚠ Rate limited (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                # Not a rate limit error, or we've exhausted retries - re-raise
+                raise
+    
+    # Should not reach here, but just in case
+    raise last_exception
 
 
 def _compute_episode_level_accuracy(results: List[EvalResult]) -> Dict:
@@ -449,18 +474,22 @@ def _compute_episode_level_accuracy(results: List[EvalResult]) -> Dict:
     return episode_metrics
 
 
-def save_results(results: List[EvalResult], output_path: str, vlm_model_name: str, our_model_name: str, thinking_enabled: bool = False):
+def save_results(results: List[EvalResult], output_path: str, vlm_model_name: str, our_model_name: str, thinking_enabled: bool = False, vlm_errors: Optional[List[Dict]] = None):
     """
     Save evaluation results to a JSON file.
 
     Args:
-        results: List of EvalResult objects
+        results: List of EvalResult objects (successful VLM queries only)
         output_path: Path to save the JSON file
         vlm_model_name: the VLM judge used for the evaluation
         our_model_name: the name of our video generation model being evaluated, or "ground_truth" for GT videos
         thinking_enabled: Whether thinking mode was enabled for VLM queries
+        vlm_errors: Optional list of VLM errors (queries that failed due to API errors)
     """
-    # Calculate overall statistics
+    if vlm_errors is None:
+        vlm_errors = []
+    
+    # Calculate overall statistics (only from successful queries)
     total = len(results)
     correct = sum(1 for r in results if r.is_correct)
     accuracy = (correct / total * 100) if total > 0 else 0
@@ -490,6 +519,7 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
         "total_queries": total,
         "correct": correct,
         "accuracy": accuracy,
+        "vlm_errors_count": len(vlm_errors),
         "breakdown_by_query_type": breakdown_by_query_type,
         "episode_level_accuracy": episode_level_accuracy,
         "results": [
@@ -502,8 +532,21 @@ def save_results(results: List[EvalResult], output_path: str, vlm_model_name: st
                 "metadata": r.metadata
             }
             for r in results
-        ]
+        ],
     }
+    
+    # Include VLM errors if any occurred
+    if vlm_errors:
+        output_data["vlm_errors"] = [
+            {
+                "video": str(err["query"].video_path.name),
+                "frame_index": err["query"].frame_index,
+                "expected": err["query"].expected_answer,
+                "error": err["error"],
+                "metadata": err["metadata"],
+            }
+            for err in vlm_errors
+        ]
 
     with open(output_path, 'w') as f:
         json.dump(output_data, f, indent=2)
