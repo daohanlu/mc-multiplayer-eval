@@ -8,7 +8,7 @@ Given:
     starting with "VLM" contain dataset names (often on a second line)
 
 For each (model, VLM-column) pair, this script looks for:
-  {generated_root}/{model}_{camelCase(dataset)+Eval}/stats.json
+  {generated_root}/{model}_{datasetEval}/stats.json
 and, if found, reads the top-level "mean" field and writes it into the cell.
 
 It writes an updated CSV next to the original with an "_update" suffix.
@@ -24,6 +24,34 @@ import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+# Mapping from human-readable column names to the actual folder name suffixes.
+# These are the special cases where the column name doesn't directly translate.
+DATASET_NAME_MAPPING: Dict[str, str] = {
+    "grounding": "oneLooksAwayEval_long",
+    "memory": "bothLookAwayEval_long",
+    "building": "structureEval",
+    "translation": "translationEval",
+    "rotation": "rotationEval",
+    "turn to look": "turnToLookEval",
+    "turn to look opposite": "turnToLookOppositeEval",
+}
+
+# Mapping from human-readable model names (in CSV) to actual folder names.
+MODEL_NAME_MAPPING: Dict[str, str] = {
+    "ours": "flagship",
+    "concat": "concat_c",
+    "ours scratch": "from_scratch",
+    "ours causvid dmd": "causvid_dmd",
+    "ours w/o kv-bp": "no_kv_cache_backprop",
+    "ours causvid ode reg.": "causvid_regression",
+}
+
+# Columns that should be skipped (averages that user fills manually)
+SKIP_COLUMNS: set[str] = {
+    "movement (translation + rotation)",
+    "consistency",
+}
 
 
 def _camelcase_dataset(name: str) -> str:
@@ -54,14 +82,41 @@ def _extract_dataset_phrase_from_vlm_column(col_name: str) -> str:
     return dataset
 
 
+def _should_skip_column(dataset_phrase: str) -> bool:
+    """Check if this column should be skipped (averages that user fills manually)."""
+    return dataset_phrase.lower() in SKIP_COLUMNS
+
+
+def _get_dataset_folder_name(dataset_phrase: str) -> Optional[str]:
+    """
+    Convert a dataset phrase from the column header to the actual folder name suffix.
+    Uses the DATASET_NAME_MAPPING for known mappings, otherwise falls back to camelCase.
+    """
+    normalized = dataset_phrase.lower().strip()
+    if normalized in DATASET_NAME_MAPPING:
+        return DATASET_NAME_MAPPING[normalized]
+    # Fallback to camelCase + "Eval"
+    cc = _camelcase_dataset(dataset_phrase)
+    if cc:
+        return f"{cc}Eval"
+    return None
+
+
+def _get_model_folder_name(model_name: str) -> str:
+    """
+    Convert a human-readable model name from the CSV to the actual folder name.
+    Uses MODEL_NAME_MAPPING if available, otherwise returns the original name.
+    """
+    normalized = model_name.lower().strip()
+    return MODEL_NAME_MAPPING.get(normalized, model_name)
+
+
 def _is_vlm_column(col_name: str) -> bool:
     return col_name.replace("\r", "").lstrip().upper().startswith("VLM")
 
 
 def _format_number(x: float) -> str:
-    # Preserve useful precision but avoid noisy trailing zeros.
-    s = f"{x:.2f}".rstrip("0").rstrip(".")
-    return s
+    return str(x)
 
 
 def _read_mean(stats_path: Path) -> Optional[float]:
@@ -115,10 +170,18 @@ def update_csv(generated_root: Path, csv_path: Path) -> Tuple[Path, int]:
         if not model_name:
             continue
 
+        # Map human-readable model name to folder name
+        model_folder_name = _get_model_folder_name(model_name)
+
         for col in vlm_cols:
             dataset_phrase = _extract_dataset_phrase_from_vlm_column(col)
-            dataset_cc = _camelcase_dataset(dataset_phrase)
-            if not dataset_cc:
+            
+            # Skip columns that are averages (user fills manually)
+            if _should_skip_column(dataset_phrase):
+                continue
+            
+            dataset_name = _get_dataset_folder_name(dataset_phrase)
+            if not dataset_name:
                 missing_count += 1
                 print(
                     f"WARNING: could not parse dataset name from column {col!r} (row {row_idx}, model {model_name!r})",
@@ -126,8 +189,7 @@ def update_csv(generated_root: Path, csv_path: Path) -> Tuple[Path, int]:
                 )
                 continue
 
-            dataset_name = f"{dataset_cc}Eval"
-            subdir = generated_root / f"{model_name}_{dataset_name}"
+            subdir = generated_root / f"{model_folder_name}_{dataset_name}"
             stats_path = subdir / "stats.json"
 
             mean = _read_mean(stats_path)
