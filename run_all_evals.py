@@ -81,6 +81,40 @@ def _normalize_eval_types_arg(values: list[str] | None) -> list[str] | None:
     return out
 
 
+def _normalize_models_arg(values: list[str] | None) -> list[str] | None:
+    """Normalize --models input.
+
+    Supports:
+    - space-separated values: --models MODEL_A MODEL_B
+    - comma-separated values: --models MODEL_A,MODEL_B
+    - mixed: --models MODEL_A,MODEL_B MODEL_C
+    - special: --models all
+    """
+    if not values:
+        return None
+
+    normalized: list[str] = []
+    for v in values:
+        parts = [p.strip() for p in v.split(",") if p.strip()]
+        normalized.extend(parts)
+
+    if not normalized:
+        return None
+
+    if any(v.lower() == "all" for v in normalized):
+        return None  # None means "no filtering"
+
+    # De-duplicate while preserving order
+    seen: set[str] = set()
+    out: list[str] = []
+    for v in normalized:
+        if v not in seen:
+            out.append(v)
+            seen.add(v)
+
+    return out
+
+
 def extract_eval_type(folder_name: str) -> str | None:
     """Extract evaluation type from generated folder name.
 
@@ -260,6 +294,14 @@ def main():
             f"Valid keys: {', '.join(sorted(EVAL_TYPE_MAPPING.keys()))}"
         ),
     )
+    parser.add_argument(
+        "--models",
+        nargs="+",
+        help=(
+            "Only run these model folder name(s) under --generations-dir. "
+            "Examples: --models MODEL_A MODEL_B | --models MODEL_A,MODEL_B | --models all."
+        ),
+    )
     args = parser.parse_args()
     if args.num_trials < 1:
         raise SystemExit("--num-trials must be >= 1")
@@ -273,8 +315,12 @@ def main():
         valid = ", ".join(sorted(EVAL_TYPE_MAPPING.keys()))
         raise SystemExit(f"Unknown eval type(s): {unknown}. Valid keys: {valid}")
 
+    selected_models = _normalize_models_arg(args.models)
+
     print(f"Enabled eval types: {enabled_eval_types}")
     print(f"Dataset base: {dataset_base}")
+    if selected_models is not None:
+        print(f"Model filter: {selected_models}")
     if args.dry_run:
         print("DRY RUN - commands will not be executed")
     if args.extract_frames:
@@ -287,6 +333,16 @@ def main():
         if generations_dir.exists():
             # Get all model directories
             model_dirs = [d for d in generations_dir.iterdir() if d.is_dir()]
+            if selected_models is not None:
+                available = {d.name for d in model_dirs}
+                missing = [m for m in selected_models if m not in available]
+                if missing:
+                    raise SystemExit(
+                        f"Unknown model(s) under {generations_dir}: {missing}. "
+                        f"Available: {sorted(available)}"
+                    )
+                wanted = set(selected_models)
+                model_dirs = [d for d in model_dirs if d.name in wanted]
             if model_dirs:
                 print(f"{'=' * 80}")
                 print("Extracting frames with side-by-side comparisons (GT + generated)")
@@ -411,6 +467,16 @@ def main():
 
     # Get all model directories
     model_dirs = [d for d in generations_dir.iterdir() if d.is_dir()]
+    if selected_models is not None:
+        available = {d.name for d in model_dirs}
+        missing = [m for m in selected_models if m not in available]
+        if missing:
+            raise SystemExit(
+                f"Unknown model(s) under {generations_dir}: {missing}. "
+                f"Available: {sorted(available)}"
+            )
+        wanted = set(selected_models)
+        model_dirs = [d for d in model_dirs if d.name in wanted]
 
     if not model_dirs:
         print(f"No model directories found in {generations_dir}")
