@@ -197,6 +197,8 @@ def find_generated_video_subdir(generated_base_path: Path, dataset_name: str) ->
         "rotationEval": "rotation",
         "bothLookAwayEval": "both_look_away",
         "oneLooksAwayEval": "one_looks_away",
+        "bothLookAwayEval_long": "both_look_away_long",
+        "oneLooksAwayEval_long": "one_looks_away_long",
         "turnToLookEval": "turn_to_look",
         "turnToLookOppositeEval": "turn_to_look_opposite",  # Uses same generated videos as turnToLookEval
         "structureEval": "structure",
@@ -209,7 +211,9 @@ def find_generated_video_subdir(generated_base_path: Path, dataset_name: str) ->
 
     # Known suffixes that can be safely stripped from generated directory names
     # These are training/evaluation variants that don't affect which task the videos are for
-    strippable_suffixes = ["_max_speed"] # ["_max_speed", "_ema_length_256"] for legacy models
+    # Order matters: strip _max_speed_long before _max_speed to handle both_look_away_max_speed_long -> both_look_away_long
+    strippable_suffixes = ["_max_speed_long", "_max_speed"] # ["_max_speed", "_ema_length_256"] for legacy models
+    replacement_suffixes = ["_long", ""]  # What to replace each strippable suffix with
     
     # Look for subdirectories matching the pattern (e.g., *_eval_translation, *_eval_rotation).
     # Use exact matching to prevent bugs like "turn_to_look" matching "turn_to_look_opposite".
@@ -220,11 +224,11 @@ def find_generated_video_subdir(generated_base_path: Path, dataset_name: str) ->
         _, _, suffix = subdir.name.partition("eval_")
         if not suffix:
             continue
-        # Strip known suffixes before matching
+        # Strip known suffixes before matching (with replacement)
         normalized_suffix = suffix
-        for strip_suffix in strippable_suffixes:
+        for strip_suffix, replace_with in zip(strippable_suffixes, replacement_suffixes):
             if normalized_suffix.endswith(strip_suffix):
-                normalized_suffix = normalized_suffix[:-len(strip_suffix)]
+                normalized_suffix = normalized_suffix[:-len(strip_suffix)] + replace_with
                 break
         # Exact match only
         if normalized_suffix == subdir_key:

@@ -124,18 +124,22 @@ def extract_eval_type(folder_name: str) -> str | None:
         step_0080000_multiplayer_v2_eval_translation_ema_length_256 -> translation
         step_0002000_multiplayer_v2_eval_both_look_away -> both_look_away
         step_0001200_multiplayer_v2_eval_both_look_away_max_speed -> both_look_away
+        step_0001200_multiplayer_v2_eval_both_look_away_max_speed_long -> both_look_away_long
     """
-    # Extract whatever comes after "eval_" and map it back to a canonical eval type key.
-    #
-    # We intentionally allow extra suffixes (e.g. "_ema_length_256", "_max_speed") and
-    # match by prefix against known keys in EVAL_TYPE_MAPPING.
     _, _, suffix = folder_name.partition("eval_")
     if not suffix:
         return None
 
-    for key in sorted(EVAL_TYPE_MAPPING.keys(), key=len, reverse=True):
+    # Check for _long suffix (e.g., both_look_away_max_speed_long -> both_look_away_long)
+    is_long = suffix.endswith("_long")
+    if is_long:
+        suffix = suffix[:-5]  # Strip "_long" for base matching
+
+    # Match against base keys only
+    base_keys = [k for k in EVAL_TYPE_MAPPING if not k.endswith("_long")]
+    for key in sorted(base_keys, key=len, reverse=True):
         if suffix == key or suffix.startswith(f"{key}_"):
-            return key
+            return f"{key}_long" if is_long and f"{key}_long" in EVAL_TYPE_MAPPING else key
 
     return None
 
