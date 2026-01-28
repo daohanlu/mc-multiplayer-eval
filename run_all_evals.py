@@ -32,6 +32,8 @@ EVAL_TYPE_MAPPING = {
     "turn_to_look_opposite": "turnToLookOppositeEval",
     "one_looks_away": "oneLooksAwayEval",
     "both_look_away": "bothLookAwayEval",
+    "one_looks_away_long": "oneLooksAwayEval_long",
+    "both_look_away_long": "bothLookAwayEval_long",
 }
 
 # Which eval types to actually run (comment out to skip)

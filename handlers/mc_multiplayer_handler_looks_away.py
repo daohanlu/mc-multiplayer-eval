@@ -40,7 +40,7 @@ class MinecraftLooksAwayHandler(EpisodeTypeHandler):
     but with longer frame timing.
     """
 
-    DATASET_NAMES = ["oneLooksAwayEval"]
+    DATASET_NAMES = ["oneLooksAwayEval", "oneLooksAwayEval_long"]
 
     def get_prompt(self, query_type: str = "player_position_during_turn") -> str:
         # Single frame query: bot has turned away, other player should NOT be visible
