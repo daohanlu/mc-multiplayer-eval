@@ -15,14 +15,13 @@ from pathlib import Path
 
 # Base directories
 GENERATIONS_DIR = Path("./generations")
-DATASET_BASE = Path("./mc_multiplayer_v2_eval_max_speed")
+DATASET_BASE = Path("./datasets/eval/")
 
 # Mapping from generated video subdirectory key (e.g., "translation" from "*_eval_translation")
 # to the dataset folder name (e.g., "translationEval")
 #
 # Model folders: generations/{model_name}/  (e.g., SF_CONCAT_FINAL_2)
 # Eval subdirs:  step_{N}_multiplayer_v2_eval_{key}  (e.g., step_0002000_multiplayer_v2_eval_translation)
-# Dataset folders: mc_multiplayer_v2_eval_max_speed/{datasetName}  (e.g., mc_multiplayer_v2_eval_max_speed/translationEval)
 EVAL_TYPE_MAPPING = {
     "translation": "translationEval",
     "rotation": "rotationEval",
@@ -32,8 +31,6 @@ EVAL_TYPE_MAPPING = {
     "turn_to_look_opposite": "turnToLookOppositeEval",
     "one_looks_away": "oneLooksAwayEval",
     "both_look_away": "bothLookAwayEval",
-    "one_looks_away_long": "oneLooksAwayEval_long",
-    "both_look_away_long": "bothLookAwayEval_long",
 }
 
 # Which eval types to actually run (comment out to skip)
@@ -118,28 +115,16 @@ def _normalize_models_arg(values: list[str] | None) -> list[str] | None:
 
 
 def extract_eval_type(folder_name: str) -> str | None:
-    """Extract evaluation type from generated folder name.
-
-    Examples:
-        step_0080000_multiplayer_v2_eval_translation_ema_length_256 -> translation
-        step_0002000_multiplayer_v2_eval_both_look_away -> both_look_away
-        step_0001200_multiplayer_v2_eval_both_look_away_max_speed -> both_look_away
-        step_0001200_multiplayer_v2_eval_both_look_away_max_speed_long -> both_look_away_long
-    """
     _, _, suffix = folder_name.partition("eval_")
     if not suffix:
         return None
 
-    # Check for _long suffix (e.g., both_look_away_max_speed_long -> both_look_away_long)
-    is_long = suffix.endswith("_long")
-    if is_long:
-        suffix = suffix[:-5]  # Strip "_long" for base matching
 
     # Match against base keys only
-    base_keys = [k for k in EVAL_TYPE_MAPPING if not k.endswith("_long")]
+    base_keys = [k for k in EVAL_TYPE_MAPPING]
     for key in sorted(base_keys, key=len, reverse=True):
         if suffix == key or suffix.startswith(f"{key}_"):
-            return f"{key}_long" if is_long and f"{key}_long" in EVAL_TYPE_MAPPING else key
+            return key
 
     return None
 

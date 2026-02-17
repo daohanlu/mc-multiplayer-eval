@@ -39,7 +39,7 @@ class MinecraftBothLookAwayHandler(EpisodeTypeHandler):
     Both bots rotate away from each other and then back.
     """
 
-    DATASET_NAMES = ["bothLookAwayEval", "bothLookAwayEval_long"]
+    DATASET_NAMES = ["bothLookAwayEval"]
 
     def get_prompt(self, query_type: str = "player_position_during_turn") -> str:
         # Single frame query: bot has turned away but other player should still be visible

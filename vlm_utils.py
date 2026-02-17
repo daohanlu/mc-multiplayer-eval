@@ -197,8 +197,6 @@ def find_generated_video_subdir(generated_base_path: Path, dataset_name: str) ->
         "rotationEval": "rotation",
         "bothLookAwayEval": "both_look_away",
         "oneLooksAwayEval": "one_looks_away",
-        "bothLookAwayEval_long": "both_look_away_long",
-        "oneLooksAwayEval_long": "one_looks_away_long",
         "turnToLookEval": "turn_to_look",
         "turnToLookOppositeEval": "turn_to_look_opposite",  # Uses same generated videos as turnToLookEval
         "structureEval": "structure",
@@ -208,12 +206,8 @@ def find_generated_video_subdir(generated_base_path: Path, dataset_name: str) ->
     subdir_key = dataset_to_subdir_key.get(dataset_name)
     if not subdir_key:
         raise ValueError(f"Unknown dataset name: {dataset_name}")
-
-    # Known suffixes that can be safely stripped from generated directory names
-    # These are training/evaluation variants that don't affect which task the videos are for
-    # Order matters: strip _max_speed_long before _max_speed to handle both_look_away_max_speed_long -> both_look_away_long
-    strippable_suffixes = ["_max_speed_long", "_max_speed"] # ["_max_speed", "_ema_length_256"] for legacy models
-    replacement_suffixes = ["_long", ""]  # What to replace each strippable suffix with
+    strippable_suffixes = [] #
+    replacement_suffixes = []  #
     
     # Look for subdirectories matching the pattern (e.g., *_eval_translation, *_eval_rotation).
     # Use exact matching to prevent bugs like "turn_to_look" matching "turn_to_look_opposite".
