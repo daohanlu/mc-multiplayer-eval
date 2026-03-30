@@ -12,6 +12,8 @@ For each (model, VLM-column) pair, this script looks for:
 and, if found, reads the top-level "mean" field and writes it into the cell.
 
 It writes an updated CSV next to the original with an "_update" suffix.
+It also writes a second CSV with an "_update_with_std" suffix that has a
+separate "SD" column inserted next to each VLM column.
 Warnings are printed for any missing cell/file/mean.
 """
 
@@ -119,7 +121,8 @@ def _format_number(x: float) -> str:
     return str(x)
 
 
-def _read_mean(stats_path: Path) -> Optional[float]:
+def _read_stats(stats_path: Path) -> Optional[Tuple[float, Optional[float]]]:
+    """Read mean and std from a stats.json file. Returns (mean, std) or None."""
     try:
         with stats_path.open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -133,9 +136,19 @@ def _read_mean(stats_path: Path) -> Optional[float]:
     if mean is None:
         return None
     try:
-        return float(mean)
+        mean_f = float(mean)
     except Exception:
         return None
+
+    std_val = data.get("std")
+    std_f: Optional[float] = None
+    if std_val is not None:
+        try:
+            std_f = float(std_val)
+        except Exception:
+            pass
+
+    return mean_f, std_f
 
 
 def _find_name_column(fieldnames: List[str]) -> Optional[str]:
@@ -145,7 +158,15 @@ def _find_name_column(fieldnames: List[str]) -> Optional[str]:
     return None
 
 
-def update_csv(generated_root: Path, csv_path: Path) -> Tuple[Path, int]:
+def _make_sd_column_name(vlm_col: str) -> str:
+    """Create an SD column name from a VLM column name (e.g. 'VLM ↑ \nTranslation' -> 'SD\nTranslation')."""
+    dataset_phrase = _extract_dataset_phrase_from_vlm_column(vlm_col)
+    if dataset_phrase:
+        return f"SD\n{dataset_phrase}"
+    return "SD"
+
+
+def update_csv(generated_root: Path, csv_path: Path) -> Tuple[Path, Path, int]:
     with csv_path.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         if reader.fieldnames is None:
@@ -164,8 +185,26 @@ def update_csv(generated_root: Path, csv_path: Path) -> Tuple[Path, int]:
             # Keep raw strings; csv.DictReader returns str values (or None).
             rows.append({k: (v if v is not None else "") for k, v in row.items()})
 
+    # Build fieldnames for the with-std CSV: insert an SD column after each VLM column.
+    vlm_to_sd: Dict[str, str] = {}
+    fieldnames_with_std: List[str] = []
+    for col in fieldnames:
+        fieldnames_with_std.append(col)
+        if _is_vlm_column(col):
+            sd_col = _make_sd_column_name(col)
+            vlm_to_sd[col] = sd_col
+            fieldnames_with_std.append(sd_col)
+
+    # Deep copy rows for the with-std variant (add empty SD columns)
+    rows_with_std: List[Dict[str, str]] = []
+    for row in rows:
+        row_std = {**row}
+        for sd_col in vlm_to_sd.values():
+            row_std[sd_col] = ""
+        rows_with_std.append(row_std)
+
     missing_count = 0
-    for row_idx, row in enumerate(rows, start=2):  # +1 for header, +1 for 1-based indexing
+    for row_idx, (row, row_std) in enumerate(zip(rows, rows_with_std), start=2):
         model_name = (row.get(name_col) or "").strip()
         if not model_name:
             continue
@@ -175,11 +214,11 @@ def update_csv(generated_root: Path, csv_path: Path) -> Tuple[Path, int]:
 
         for col in vlm_cols:
             dataset_phrase = _extract_dataset_phrase_from_vlm_column(col)
-            
+
             # Skip columns that are averages (user fills manually)
             if _should_skip_column(dataset_phrase):
                 continue
-            
+
             dataset_name = _get_dataset_folder_name(dataset_phrase)
             if not dataset_name:
                 missing_count += 1
@@ -192,8 +231,8 @@ def update_csv(generated_root: Path, csv_path: Path) -> Tuple[Path, int]:
             subdir = generated_root / f"{model_folder_name}_{dataset_name}"
             stats_path = subdir / "stats.json"
 
-            mean = _read_mean(stats_path)
-            if mean is None:
+            result = _read_stats(stats_path)
+            if result is None:
                 missing_count += 1
                 print(
                     f"WARNING: missing stats for cell (model={model_name!r}, dataset={dataset_name!r}) at {stats_path}",
@@ -201,15 +240,27 @@ def update_csv(generated_root: Path, csv_path: Path) -> Tuple[Path, int]:
                 )
                 continue
 
+            mean, std = result
             row[col] = _format_number(mean)
+            row_std[col] = _format_number(mean)
+            if std is not None:
+                row_std[vlm_to_sd[col]] = _format_number(std)
 
+    # Write mean-only CSV
     out_path = csv_path.with_name(f"{csv_path.stem}_update{csv_path.suffix}")
     with out_path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 
-    return out_path, missing_count
+    # Write CSV with separate SD columns
+    out_path_std = csv_path.with_name(f"{csv_path.stem}_update_with_std{csv_path.suffix}")
+    with out_path_std.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames_with_std, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows_with_std)
+
+    return out_path, out_path_std, missing_count
 
 
 def main() -> None:
@@ -236,8 +287,9 @@ def main() -> None:
     if not csv_path.exists() or not csv_path.is_file():
         raise SystemExit(f"csv_path is not a file: {csv_path}")
 
-    out_path, missing = update_csv(generated_root=generated_root, csv_path=csv_path)
+    out_path, out_path_std, missing = update_csv(generated_root=generated_root, csv_path=csv_path)
     print(f"Wrote: {out_path}")
+    print(f"Wrote: {out_path_std}")
     if missing:
         print(f"Warnings: {missing} cells not found on disk", file=sys.stderr)
 

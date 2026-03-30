@@ -1,0 +1,696 @@
+{
+  "vlm_model_name": "gemini-3-flash-preview",
+  "our_model_name": "flagship",
+  "thinking_enabled": true,
+  "total_queries": 32,
+  "correct": 19,
+  "accuracy": 59.375,
+  "vlm_errors_count": 0,
+  "breakdown_by_query_type": {
+    "default": {
+      "total": 32,
+      "correct": 19,
+      "accuracy": 59.375
+    }
+  },
+  "episode_level_accuracy": {
+    "total_episodes": 32,
+    "fully_correct_episodes": 19,
+    "episode_accuracy": 59.375,
+    "is_both_players_dataset": false
+  },
+  "results": [
+    {
+      "video": "000000_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000000_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000000_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000000",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000001_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000001_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000001_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000001",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000002_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000002_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000002_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000002",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000003_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000003_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000003_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000003",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000004_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000004_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000004_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000004",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000005_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000005_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000005_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000005",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000006_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000006_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000006_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000006",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000007_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000007_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000007_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000007",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000008_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000008_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000008_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000008",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000009_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000009_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000009_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000009",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000010_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000010_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000010_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000010",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000011_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000011_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000011_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000011",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000012_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000012_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000012_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000012",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000013_Alpha_instance_000_camera.mp4",
+      "frame_index": 85,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000013_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000013_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 85,
+        "bravo_frame": 85,
+        "frame1": 53,
+        "episode": "000013",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000014_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000014_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000014_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000014",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000015_Alpha_instance_000_camera.mp4",
+      "frame_index": 82,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000015_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000015_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 82,
+        "bravo_frame": 82,
+        "frame1": 50,
+        "episode": "000015",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000016_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000016_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000016_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000016",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000017_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000017_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000017_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000017",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000018_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000018_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000018_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000018",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000019_Alpha_instance_000_camera.mp4",
+      "frame_index": 85,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000019_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000019_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 85,
+        "bravo_frame": 85,
+        "frame1": 53,
+        "episode": "000019",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000020_Alpha_instance_000_camera.mp4",
+      "frame_index": 82,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000020_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000020_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 82,
+        "bravo_frame": 82,
+        "frame1": 50,
+        "episode": "000020",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000021_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000021_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000021_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 51,
+        "episode": "000021",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000022_Alpha_instance_000_camera.mp4",
+      "frame_index": 85,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000022_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000022_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 85,
+        "bravo_frame": 85,
+        "frame1": 53,
+        "episode": "000022",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000023_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000023_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000023_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000023",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000024_Alpha_instance_000_camera.mp4",
+      "frame_index": 85,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000024_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000024_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 85,
+        "bravo_frame": 85,
+        "frame1": 53,
+        "episode": "000024",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000025_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000025_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000025_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000025",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000026_Alpha_instance_000_camera.mp4",
+      "frame_index": 85,
+      "expected": "yes",
+      "response": "based on a close comparison of the two screenshots, they show the same scenery. although the player's arm skin and a small dark object on the distant hill have changed, the terrain, cloud formations, grass patch placements, and hotbar contents are identical, indicating they were taken in the same location at the same time in the game world.\n\nyes",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000026_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000026_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 85,
+        "bravo_frame": 85,
+        "frame1": 53,
+        "episode": "000026",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000027_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000027_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000027_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000027",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000028_Alpha_instance_000_camera.mp4",
+      "frame_index": 85,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000028_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000028_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 85,
+        "bravo_frame": 85,
+        "frame1": 53,
+        "episode": "000028",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000029_Alpha_instance_000_camera.mp4",
+      "frame_index": 83,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000029_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000029_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 83,
+        "bravo_frame": 83,
+        "frame1": 52,
+        "episode": "000029",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000030_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "no",
+      "correct": false,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000030_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000030_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000030",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000031_Alpha_instance_000_camera.mp4",
+      "frame_index": 84,
+      "expected": "yes",
+      "response": "yes",
+      "correct": true,
+      "metadata": {
+        "prompt": "You will be shown two Minecraft screenshots. Do these two screenshots show the same scenery? Be careful and answer based on the content of the screenshots, not just the camera angles.Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftTurnToLookHandler",
+        "using_generated": true,
+        "variant": "turn_to_look",
+        "is_turn_to_look": true,
+        "alpha_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000031_Alpha_instance_000_camera.mp4",
+        "bravo_video": "mc_multiplayer_v2_eval_new_sneak_combined/turnToLookEval/test/000031_Bravo_instance_000_camera.mp4",
+        "alpha_frame": 84,
+        "bravo_frame": 84,
+        "frame1": 52,
+        "episode": "000031",
+        "instance": "000"
+      }
+    }
+  ]
+}

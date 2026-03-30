@@ -46,7 +46,6 @@ sanity_check_detailed/
 ground_truths/
 
 # Result JSON files (evaluation outputs)
-results_json/
 eval_results*.json
 
 # Blind eval generated files (HTML is 90MB+ with embedded images)
