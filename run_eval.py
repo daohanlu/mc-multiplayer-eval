@@ -63,6 +63,7 @@ def extract_query_frames(
     generated_subdir: Optional[Path],
     current_video_id: int,
     frame1_idx: int,
+    max_gen_frame: Optional[int] = None,
 ) -> dict:
     """
     Extract frames for a query and return frame bytes with filename suffixes.
@@ -75,6 +76,9 @@ def extract_query_frames(
         generated_subdir: Path to generated video subdirectory, or None for GT videos
         current_video_id: Current video ID for generated videos
         frame1_idx: Reference frame index for generated video offset calculation
+        max_gen_frame: If set, use fixed/clamped frame indices for generated videos.
+            For two-frame (translation): forces gen frame 0 and gen frame max_gen_frame.
+            For turn-to-look / single-frame: clamps the computed gen frame index.
         
     Returns:
         Dict mapping suffix to frame bytes: {"frame": bytes} for single-frame,
@@ -97,8 +101,14 @@ def extract_query_frames(
             generated_video = generated_subdir / f"video_{current_video_id}_side_by_side.mp4"
             if not generated_video.exists():
                 raise FileNotFoundError(f"Generated video not found: {generated_video.name}")
-            frames["alpha_frame"] = extract_frame_from_generated(generated_video, alpha_frame_idx, frame1_idx, "alpha")
-            frames["bravo_frame"] = extract_frame_from_generated(generated_video, bravo_frame_idx, frame1_idx, "bravo")
+            if max_gen_frame is not None:
+                gen_alpha = min(alpha_frame_idx - frame1_idx - 1, max_gen_frame)
+                gen_bravo = min(bravo_frame_idx - frame1_idx - 1, max_gen_frame)
+                frames["alpha_frame"] = extract_frame_from_generated(generated_video, 0, 0, "alpha", direct_frame_idx=gen_alpha)
+                frames["bravo_frame"] = extract_frame_from_generated(generated_video, 0, 0, "bravo", direct_frame_idx=gen_bravo)
+            else:
+                frames["alpha_frame"] = extract_frame_from_generated(generated_video, alpha_frame_idx, frame1_idx, "alpha")
+                frames["bravo_frame"] = extract_frame_from_generated(generated_video, bravo_frame_idx, frame1_idx, "bravo")
         else:
             frames["alpha_frame"] = extract_frame(alpha_video, alpha_frame_idx)
             frames["bravo_frame"] = extract_frame(bravo_video, bravo_frame_idx)
@@ -112,9 +122,13 @@ def extract_query_frames(
             generated_video = generated_subdir / f"video_{current_video_id}_side_by_side.mp4"
             if not generated_video.exists():
                 raise FileNotFoundError(f"Generated video not found: {generated_video.name}")
-            # Use frame1_idx + 1 as first frame since generated video starts there
-            frames["frame1"] = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
-            frames["frame2"] = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
+            if max_gen_frame is not None:
+                frames["frame1"] = extract_frame_from_generated(generated_video, 0, 0, variant, direct_frame_idx=0)
+                frames["frame2"] = extract_frame_from_generated(generated_video, 0, 0, variant, direct_frame_idx=max_gen_frame)
+            else:
+                # Use frame1_idx + 1 as first frame since generated video starts there
+                frames["frame1"] = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
+                frames["frame2"] = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
         else:
             frames["frame1"] = extract_frame(query.video_path, query.frame_index)
             frames["frame2"] = extract_frame(query.video_path, frame2_idx)
@@ -127,7 +141,11 @@ def extract_query_frames(
             generated_video = generated_subdir / f"video_{current_video_id}_side_by_side.mp4"
             if not generated_video.exists():
                 raise FileNotFoundError(f"Generated video not found: {generated_video.name}")
-            frames["frame"] = extract_frame_from_generated(generated_video, query.frame_index, frame1_idx, variant)
+            if max_gen_frame is not None:
+                gen_idx = min(query.frame_index - frame1_idx - 1, max_gen_frame)
+                frames["frame"] = extract_frame_from_generated(generated_video, 0, 0, variant, direct_frame_idx=gen_idx)
+            else:
+                frames["frame"] = extract_frame_from_generated(generated_video, query.frame_index, frame1_idx, variant)
         else:
             frames["frame"] = extract_frame(query.video_path, query.frame_index)
     
@@ -311,7 +329,7 @@ def dry_run(handler, video_pairs: List[VideoPair], limit: Optional[int] = None):
         print(f"  Perspectives: {len(queries)} (both Alpha and Bravo)\n")
 
 
-def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[str] = None, limit: Optional[int] = None, generated_path: Optional[Path] = None, dataset_name: Optional[str] = None, model_name: str = "ground_truth", extract_only: bool = False):
+def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[str] = None, limit: Optional[int] = None, generated_path: Optional[Path] = None, dataset_name: Optional[str] = None, model_name: str = "ground_truth", extract_only: bool = False, generated_subdir_override: Optional[Path] = None, max_gen_frame: Optional[int] = None):
     """
     Run VLM evaluation with frame extraction.
     
@@ -364,7 +382,13 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[
 
     # Find generated video subdirectory if using generated videos
     generated_subdir = None
-    if generated_path:
+    if generated_subdir_override:
+        generated_subdir = generated_subdir_override
+        if not generated_subdir.exists():
+            print(f"Error: Generated subdir not found: {generated_subdir}")
+            return []
+        print(f"Using generated video subdirectory (direct): {generated_subdir.name}")
+    elif generated_path:
         generated_subdir = find_generated_video_subdir(generated_path, dataset_name)
         if not generated_subdir:
             print(f"Error: Could not find generated video subdirectory for dataset '{dataset_name}'")
@@ -453,6 +477,7 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[
             generated_subdir=generated_subdir,
             current_video_id=current_video_id,
             frame1_idx=frame1_idx,
+            max_gen_frame=max_gen_frame,
         )
 
         # Save frames to disk
@@ -797,6 +822,28 @@ Examples:
         "--generated",
         help="Path to generated videos directory (e.g., generations/flagship_final_v2_1B_multiplayer_final)"
     )
+    parser.add_argument(
+        "--generated-subdir",
+        type=Path,
+        help=(
+            "Direct path to a folder containing video_N_side_by_side.mp4 files. "
+            "Bypasses the automatic subdirectory lookup used by --generated. "
+            "Model name is derived from the parent directory name."
+        ),
+    )
+    parser.add_argument(
+        "--model-name",
+        help="Override the model name (used for output directory naming). Defaults to parent dir of --generated-subdir or name of --generated.",
+    )
+    parser.add_argument(
+        "--max-gen-frame",
+        type=int,
+        help=(
+            "Max frame index for generated video extraction. "
+            "For two-frame queries (translation): forces gen frames 0 and MAX_GEN_FRAME. "
+            "For turn-to-look / single-frame: clamps the computed gen frame index."
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -844,23 +891,32 @@ Examples:
 
     # Parse generated path if provided
     generated_path = None
+    generated_subdir_override = None
     model_name = "ground_truth"
-    if args.generated:
+    if args.generated_subdir:
+        generated_subdir_override = args.generated_subdir
+        if not generated_subdir_override.exists():
+            print(f"Error: Generated subdir not found: {generated_subdir_override}")
+            return 1
+        model_name = args.model_name or generated_subdir_override.parent.name
+    elif args.generated:
         generated_path = Path(args.generated)
         if not generated_path.exists():
             print(f"Error: Generated videos path not found: {generated_path}")
             return 1
-        # Extract model name from path (e.g., "flagship_final_v2_1B_multiplayer_final")
-        model_name = generated_path.name
+        model_name = args.model_name or generated_path.name
+    elif args.model_name:
+        model_name = args.model_name
 
     # Determine output directory for evaluation trials
+    is_generated = generated_path is not None or generated_subdir_override is not None
     output_dir: Optional[Path] = None
     if not args.dry_run and not args.extract_frames:
         output_dir = _resolve_output_dir(
             output_arg=args.output,
             results_dir=args.results_dir,
             dataset_name=dataset_name,
-            generated_path=generated_path,
+            generated_path=generated_path or generated_subdir_override,
             model_name=model_name,
         )
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -881,6 +937,8 @@ Examples:
             dataset_name=dataset_name,
             model_name=model_name,
             extract_only=True,
+            generated_subdir_override=generated_subdir_override,
+            max_gen_frame=args.max_gen_frame,
         )
 
     else:
@@ -904,6 +962,8 @@ Examples:
                 generated_path=generated_path,
                 dataset_name=dataset_name,
                 model_name=model_name,
+                generated_subdir_override=generated_subdir_override,
+                max_gen_frame=args.max_gen_frame,
             )
 
             if not trial_output.exists():

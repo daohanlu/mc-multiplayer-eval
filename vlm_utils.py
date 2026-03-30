@@ -253,7 +253,8 @@ def extract_frame_from_generated(
     generated_video_path: Path,
     frame_index_gt: int,
     frame1_idx_gt: int,
-    variant: str
+    variant: str,
+    direct_frame_idx: int | None = None,
 ) -> bytes:
     """
     Extract a frame from a generated side-by-side video.
@@ -263,21 +264,27 @@ def extract_frame_from_generated(
         frame_index_gt: Ground-truth frame index to extract
         frame1_idx_gt: Ground-truth frame1_idx (sneak_frame + SNEAK_FRAME_START_DELAY) - this is frame 0 in generated video
         variant: "alpha" or "bravo" to determine which quadrant to extract
+        direct_frame_idx: If provided, use this frame index directly instead of
+            computing from GT offset. Useful for short generated videos where
+            frame indices are fixed (e.g., frame 0 and frame 32).
 
     Returns:
         Image bytes (PNG format) of the extracted quadrant
     """
     import cv2
 
-    # Calculate the frame index in the generated video
-    # Generated video frame 0 corresponds to GT frame (frame1_idx + 1)
-    generated_frame_idx = frame_index_gt - frame1_idx_gt - 1
+    if direct_frame_idx is not None:
+        generated_frame_idx = direct_frame_idx
+    else:
+        # Calculate the frame index in the generated video
+        # Generated video frame 0 corresponds to GT frame (frame1_idx + 1)
+        generated_frame_idx = frame_index_gt - frame1_idx_gt - 1
 
-    if generated_frame_idx < 0:
-        raise ValueError(
-            f"Frame index {frame_index_gt} is before the generated video start "
-            f"(starts at GT frame {frame1_idx_gt + 1})"
-        )
+        if generated_frame_idx < 0:
+            raise ValueError(
+                f"Frame index {frame_index_gt} is before the generated video start "
+                f"(starts at GT frame {frame1_idx_gt + 1})"
+            )
 
     # Open the generated video
     cap = cv2.VideoCapture(str(generated_video_path))
