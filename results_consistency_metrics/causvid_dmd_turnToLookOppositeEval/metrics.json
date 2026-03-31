@@ -1,0 +1,289 @@
+{
+  "model_name": "causvid_dmd",
+  "eval_type": "turnToLookOppositeEval",
+  "num_episodes": 32,
+  "stats": {
+    "lpips": {
+      "mean": 0.4361486053094268,
+      "std": 0.08036846200172976,
+      "min": 0.2817974090576172,
+      "max": 0.6370189189910889
+    },
+    "clip_cosine_sim": {
+      "mean": 0.8944261316210032,
+      "std": 0.029621137832002188,
+      "min": 0.8214358687400818,
+      "max": 0.9387508630752563
+    },
+    "dinov2_cosine_sim": {
+      "mean": 0.8424889426678419,
+      "std": 0.060234971357366114,
+      "min": 0.6712992787361145,
+      "max": 0.9321451187133789
+    },
+    "dinov3_cosine_sim": {
+      "mean": 0.9461385570466518,
+      "std": 0.02138746157446812,
+      "min": 0.8502914905548096,
+      "max": 0.9717697501182556
+    }
+  },
+  "per_episode": [
+    {
+      "episode": "000000",
+      "instance": "000",
+      "lpips": 0.5187810659408569,
+      "clip_cosine_sim": 0.9193466901779175,
+      "dinov2_cosine_sim": 0.9007048606872559,
+      "dinov3_cosine_sim": 0.9342004060745239
+    },
+    {
+      "episode": "000001",
+      "instance": "000",
+      "lpips": 0.4691782295703888,
+      "clip_cosine_sim": 0.9051337242126465,
+      "dinov2_cosine_sim": 0.8375445604324341,
+      "dinov3_cosine_sim": 0.9581359624862671
+    },
+    {
+      "episode": "000002",
+      "instance": "000",
+      "lpips": 0.4378717243671417,
+      "clip_cosine_sim": 0.8890416026115417,
+      "dinov2_cosine_sim": 0.8647541999816895,
+      "dinov3_cosine_sim": 0.9502670764923096
+    },
+    {
+      "episode": "000003",
+      "instance": "000",
+      "lpips": 0.322072833776474,
+      "clip_cosine_sim": 0.9099838137626648,
+      "dinov2_cosine_sim": 0.8815129399299622,
+      "dinov3_cosine_sim": 0.9595390558242798
+    },
+    {
+      "episode": "000004",
+      "instance": "000",
+      "lpips": 0.4109008312225342,
+      "clip_cosine_sim": 0.8777765035629272,
+      "dinov2_cosine_sim": 0.9062309265136719,
+      "dinov3_cosine_sim": 0.9574124217033386
+    },
+    {
+      "episode": "000005",
+      "instance": "000",
+      "lpips": 0.4069763123989105,
+      "clip_cosine_sim": 0.8901181817054749,
+      "dinov2_cosine_sim": 0.9048740863800049,
+      "dinov3_cosine_sim": 0.9622218608856201
+    },
+    {
+      "episode": "000006",
+      "instance": "000",
+      "lpips": 0.4942396879196167,
+      "clip_cosine_sim": 0.8765924572944641,
+      "dinov2_cosine_sim": 0.9047924280166626,
+      "dinov3_cosine_sim": 0.9375888705253601
+    },
+    {
+      "episode": "000007",
+      "instance": "000",
+      "lpips": 0.36510398983955383,
+      "clip_cosine_sim": 0.9318876266479492,
+      "dinov2_cosine_sim": 0.8676719069480896,
+      "dinov3_cosine_sim": 0.9532280564308167
+    },
+    {
+      "episode": "000008",
+      "instance": "000",
+      "lpips": 0.46830859780311584,
+      "clip_cosine_sim": 0.8528304100036621,
+      "dinov2_cosine_sim": 0.8659002184867859,
+      "dinov3_cosine_sim": 0.9594043493270874
+    },
+    {
+      "episode": "000009",
+      "instance": "000",
+      "lpips": 0.2817974090576172,
+      "clip_cosine_sim": 0.8968040943145752,
+      "dinov2_cosine_sim": 0.9321451187133789,
+      "dinov3_cosine_sim": 0.9641204476356506
+    },
+    {
+      "episode": "000010",
+      "instance": "000",
+      "lpips": 0.4652770161628723,
+      "clip_cosine_sim": 0.8348177075386047,
+      "dinov2_cosine_sim": 0.8019290566444397,
+      "dinov3_cosine_sim": 0.9323664903640747
+    },
+    {
+      "episode": "000011",
+      "instance": "000",
+      "lpips": 0.5431808233261108,
+      "clip_cosine_sim": 0.9155694842338562,
+      "dinov2_cosine_sim": 0.8706810474395752,
+      "dinov3_cosine_sim": 0.9576140642166138
+    },
+    {
+      "episode": "000012",
+      "instance": "000",
+      "lpips": 0.412869393825531,
+      "clip_cosine_sim": 0.922555148601532,
+      "dinov2_cosine_sim": 0.8227745890617371,
+      "dinov3_cosine_sim": 0.930188000202179
+    },
+    {
+      "episode": "000013",
+      "instance": "000",
+      "lpips": 0.2856288254261017,
+      "clip_cosine_sim": 0.8930646181106567,
+      "dinov2_cosine_sim": 0.8432759642601013,
+      "dinov3_cosine_sim": 0.9711523056030273
+    },
+    {
+      "episode": "000014",
+      "instance": "000",
+      "lpips": 0.3261376917362213,
+      "clip_cosine_sim": 0.9336731433868408,
+      "dinov2_cosine_sim": 0.9129696488380432,
+      "dinov3_cosine_sim": 0.9601496458053589
+    },
+    {
+      "episode": "000015",
+      "instance": "000",
+      "lpips": 0.4204631447792053,
+      "clip_cosine_sim": 0.8914039731025696,
+      "dinov2_cosine_sim": 0.7565925121307373,
+      "dinov3_cosine_sim": 0.9492286443710327
+    },
+    {
+      "episode": "000016",
+      "instance": "000",
+      "lpips": 0.39526495337486267,
+      "clip_cosine_sim": 0.8507882952690125,
+      "dinov2_cosine_sim": 0.7825014591217041,
+      "dinov3_cosine_sim": 0.9278391003608704
+    },
+    {
+      "episode": "000017",
+      "instance": "000",
+      "lpips": 0.6370189189910889,
+      "clip_cosine_sim": 0.8674746751785278,
+      "dinov2_cosine_sim": 0.8819844722747803,
+      "dinov3_cosine_sim": 0.9479604959487915
+    },
+    {
+      "episode": "000018",
+      "instance": "000",
+      "lpips": 0.5296835899353027,
+      "clip_cosine_sim": 0.8214358687400818,
+      "dinov2_cosine_sim": 0.751824676990509,
+      "dinov3_cosine_sim": 0.8502914905548096
+    },
+    {
+      "episode": "000019",
+      "instance": "000",
+      "lpips": 0.49665316939353943,
+      "clip_cosine_sim": 0.9248449802398682,
+      "dinov2_cosine_sim": 0.8782382607460022,
+      "dinov3_cosine_sim": 0.964751124382019
+    },
+    {
+      "episode": "000020",
+      "instance": "000",
+      "lpips": 0.3296957015991211,
+      "clip_cosine_sim": 0.923373818397522,
+      "dinov2_cosine_sim": 0.8682148456573486,
+      "dinov3_cosine_sim": 0.9604368805885315
+    },
+    {
+      "episode": "000021",
+      "instance": "000",
+      "lpips": 0.4669695198535919,
+      "clip_cosine_sim": 0.8773464560508728,
+      "dinov2_cosine_sim": 0.8765516877174377,
+      "dinov3_cosine_sim": 0.958384096622467
+    },
+    {
+      "episode": "000022",
+      "instance": "000",
+      "lpips": 0.5339436531066895,
+      "clip_cosine_sim": 0.9032164216041565,
+      "dinov2_cosine_sim": 0.854408860206604,
+      "dinov3_cosine_sim": 0.9324337244033813
+    },
+    {
+      "episode": "000023",
+      "instance": "000",
+      "lpips": 0.4931357204914093,
+      "clip_cosine_sim": 0.8814087510108948,
+      "dinov2_cosine_sim": 0.8787323236465454,
+      "dinov3_cosine_sim": 0.9341740608215332
+    },
+    {
+      "episode": "000024",
+      "instance": "000",
+      "lpips": 0.4956137537956238,
+      "clip_cosine_sim": 0.9203716516494751,
+      "dinov2_cosine_sim": 0.8268803358078003,
+      "dinov3_cosine_sim": 0.9332393407821655
+    },
+    {
+      "episode": "000025",
+      "instance": "000",
+      "lpips": 0.46724972128868103,
+      "clip_cosine_sim": 0.8450336456298828,
+      "dinov2_cosine_sim": 0.8289206027984619,
+      "dinov3_cosine_sim": 0.9393589496612549
+    },
+    {
+      "episode": "000026",
+      "instance": "000",
+      "lpips": 0.4205259084701538,
+      "clip_cosine_sim": 0.9387508630752563,
+      "dinov2_cosine_sim": 0.7196309566497803,
+      "dinov3_cosine_sim": 0.9317277073860168
+    },
+    {
+      "episode": "000027",
+      "instance": "000",
+      "lpips": 0.40218213200569153,
+      "clip_cosine_sim": 0.8962031602859497,
+      "dinov2_cosine_sim": 0.7521419525146484,
+      "dinov3_cosine_sim": 0.9717697501182556
+    },
+    {
+      "episode": "000028",
+      "instance": "000",
+      "lpips": 0.3936549723148346,
+      "clip_cosine_sim": 0.9075985550880432,
+      "dinov2_cosine_sim": 0.8704822063446045,
+      "dinov3_cosine_sim": 0.9532850980758667
+    },
+    {
+      "episode": "000029",
+      "instance": "000",
+      "lpips": 0.4294479787349701,
+      "clip_cosine_sim": 0.8831456899642944,
+      "dinov2_cosine_sim": 0.8523236513137817,
+      "dinov3_cosine_sim": 0.9500294923782349
+    },
+    {
+      "episode": "000030",
+      "instance": "000",
+      "lpips": 0.3311860263347626,
+      "clip_cosine_sim": 0.9234158992767334,
+      "dinov2_cosine_sim": 0.791156530380249,
+      "dinov3_cosine_sim": 0.9405434131622314
+    },
+    {
+      "episode": "000031",
+      "instance": "000",
+      "lpips": 0.505742073059082,
+      "clip_cosine_sim": 0.9166283011436462,
+      "dinov2_cosine_sim": 0.6712992787361145,
+      "dinov3_cosine_sim": 0.9433914422988892
+    }
+  ]
+}

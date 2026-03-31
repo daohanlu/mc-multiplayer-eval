@@ -1,2 +1,8 @@
 google-genai
 opencv-python-headless
+torch
+torchvision
+lpips
+open-clip-torch
+transformers>=4.56.0
+Pillow
