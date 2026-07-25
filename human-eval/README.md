@@ -72,13 +72,22 @@ generated-only (640×704, alpha view over bravo view), full length, H.264.
 Consistency is excluded per the task definition.
 
 Answers are single-select: **no artifacts**, **character artifacts**,
-**inconsistent views**, **other artifacts** (with an optional free-text note).
-"Inconsistent views" covers the two stacked views disagreeing about the shared
-world — the same place or object rendered differently between them, or present
-in one and missing from the other.
+**other artifacts** (with an optional free-text note).
+
+Annotators are told to judge each view on its own and report only *clear*
+visual artifacts, and explicitly **not** to count the two views disagreeing
+about the shared world — that is common in this data, hard to adjudicate, and
+already measured by the Consistency task. The instruction appears both in the
+guide and as a standing line above the answer buttons.
+
+Changing the options requires bumping `TASK_VERSION` in `artifacts.html`. It is
+part of the localStorage key, so answers recorded under the old options are
+ignored rather than being re-POSTed by a returning annotator's browser and
+resurrecting values the task no longer offers. Delete the corresponding
+`responses/artifacts__*.json` server-side as well.
 
 **Playback speed** is applied in-browser via `HTMLMediaElement.playbackRate`
-(1× / 1.5× / 4×, default 1×). Nothing is re-encoded, so the bytes the
+(1× / 1.5× / 4×, default 1.5×). Nothing is re-encoded, so the bytes the
 annotator sees are the same bytes that went into the supplementary material,
 and these rates work in every current browser. The choice persists across
 clips; a stored rate from an earlier build is discarded rather than selecting a

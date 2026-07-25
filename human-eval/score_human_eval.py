@@ -32,7 +32,7 @@ PAPER_CONSISTENCY = {"flagship": (56.8, 2.9), "causvid_regression": (34.9, 1.5)}
 
 ANSWER_TO_EXPECTED = {"same": "yes", "different": "no"}
 
-ARTIFACT_LABELS = ["none", "character", "inconsistent_views", "other"]
+ARTIFACT_LABELS = ["none", "character", "other"]
 
 
 def load_key(task: str) -> dict[str, dict]:

@@ -66,12 +66,18 @@ function shuffleFor(items, name, task) {
 /* Storage ----------------------------------------------------------------- */
 
 class Store {
-  constructor(task, name, total) {
+  /**
+   * @param version bump when a task's answer options change. It is part of the
+   *   localStorage key, so answers recorded under the old options are ignored
+   *   instead of being re-POSTed and resurrecting values the task no longer
+   *   offers. Server-side files must be deleted separately.
+   */
+  constructor(task, name, total, version = 1) {
     this.task = task;
     this.name = name;
     this.total = total;
     this.answers = {};
-    this.lsKey = `humanEval.${task}.${name}`;
+    this.lsKey = `humanEval.${task}.v${version}.${name}`;
     this.pending = null;
     this.serverOk = true;
   }

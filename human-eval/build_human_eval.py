@@ -363,13 +363,16 @@ def build_artifacts() -> None:
     OUT_DATA.mkdir(parents=True, exist_ok=True)
     _write_json(OUT_DATA / "artifacts_items.json", {
         "task": "artifacts",
-        "question": "Does this video contain visual artifacts?",
+        "question": "Does this video contain clear visual artifacts?",
+        "instruction": (
+            "Judge each view on its own and report only clear visual "
+            "artifacts. Disagreement between the two players' views about the "
+            "shared world does NOT count as an artifact for this task."
+        ),
         "options": [
             {"value": "none", "label": "No artifacts", "key": "1"},
             {"value": "character", "label": "Character artifacts", "key": "2"},
-            {"value": "inconsistent_views", "label": "Inconsistent views",
-             "key": "3"},
-            {"value": "other", "label": "Other artifacts", "key": "4",
+            {"value": "other", "label": "Other artifacts", "key": "3",
              "free_text": True},
         ],
         "items": items,
