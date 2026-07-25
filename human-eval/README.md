@@ -6,7 +6,7 @@ Python server that persists progress to disk.
 | Task | What the annotator does | Items |
 |---|---|---|
 | **Consistency** | Sees two screenshots, answers *same scenery* / *different scenery* | 256 |
-| **Artifacts** | Watches a clip, picks one of four artifact labels | 105 |
+| **Artifacts** | Watches a clip, picks one of four artifact labels | 63 |
 
 ## Quick start
 
@@ -58,10 +58,16 @@ frames were handed to Gemini.
 
 ## Task 2 — Artifacts
 
-The 105 supplementary clips from `Model Generations on Eval/` — 7 models ×
-3 categories {Movement, Grounding, Building} × 5 videos — copied verbatim.
-The two `Consistency (…)` folders are **excluded**: with them it would be 175
-clips, so 105 is the count that confirms they are left out. They are already
+63 clips from `Model Generations on Eval/`, copied verbatim: 7 models ×
+3 categories {Movement, Grounding, Building} × the **first 3** of the 5 clips
+per cell (`video_0`, `video_1`, `video_2`).
+
+The two `Consistency (…)` folders are **excluded** — the supplementary ships 5
+category folders, so including them would give 7 × 5 × 3 = 105 rather than 63.
+
+`ARTIFACT_VIDEOS_PER_CELL` controls the 3. Raising it back to 5 gives 105
+clips — but it reassigns every artifacts item id, which invalidates existing
+artifacts responses. Check `responses/` before changing it. They are already
 generated-only (640×704, alpha view over bravo view), full length, H.264.
 Consistency is excluded per the task definition.
 
@@ -191,7 +197,7 @@ reproduces its recorded episode-level accuracy exactly (`flagship` 54.7% =
 | `static/` | Shared CSS + JS | yes |
 | `data/*_items.json` | Client manifests (no model info) | no — generated |
 | `data/*_key.json` | Answer key (model, episode, expected) | no — generated |
-| `frames/`, `videos/` | Stimuli (136 MB / 29 MB) | no — generated |
+| `frames/`, `videos/` | Stimuli (136 MB / 17 MB) | no — generated |
 | `Model Generations on Eval/` | Supplementary source clips | no — large |
 | `responses/` | Collected answers | no — data |
 

@@ -11,10 +11,11 @@ helper the paper run used — so the PNGs are pixel-identical to the VLM inputs.
 32 episodes x 2 timestamps (original + late-horizon) x 2 evals x 2 models
 = 256 comparisons.
 
-**Artifacts** (task 2) — the 105 supplementary clips under
-``Model Generations on Eval/`` (7 models x {Movement, Grounding, Building} x 5
-videos), copied verbatim. These are already generated-only (640x704, alpha over
-bravo), full length, H.264.
+**Artifacts** (task 2) — 63 supplementary clips under
+``Model Generations on Eval/``: 7 models x {Movement, Grounding, Building} x the
+first 3 of the 5 clips per cell, copied verbatim. These are already
+generated-only (640x704, alpha over bravo), full length, H.264. The two
+Consistency folders are excluded.
 
 Items are written with opaque ids in a build-time shuffled order, so neither the
 filename nor the ordering leaks the model. The model/episode key lives in
@@ -64,8 +65,14 @@ SUPPLEMENTARY = HERE / "Model Generations on Eval"
 CONSISTENCY_MODELS = ["flagship", "causvid_regression"]
 CONSISTENCY_EVALS = ["turnToLookEval", "turnToLookOppositeEval"]
 
-# Task 2: everything in the supplementary folder except Consistency.
+# Task 2: everything in the supplementary folder except the two Consistency
+# folders. Including those would give 7 x 5 x N instead of 7 x 3 x N.
 ARTIFACT_CATEGORIES = ["Movement", "Grounding", "Building"]
+
+# The supplementary folder ships 5 clips per (category, model); we annotate the
+# first N by video index. Changing this reassigns every artifacts item id and so
+# invalidates existing artifacts responses — check responses/ before touching it.
+ARTIFACT_VIDEOS_PER_CELL = 3
 
 # Supplementary display name -> results/generations model directory.
 MODEL_DIR_BY_DISPLAY = {
@@ -319,8 +326,14 @@ def build_artifacts() -> None:
             model_path = cat_dir / display
             if not model_path.is_dir():
                 raise SystemExit(f"missing model folder: {model_path}")
-            for video in sorted(model_path.glob("video_*_gen.mp4"),
-                                key=lambda p: int(p.stem.split("_")[1])):
+            available = sorted(model_path.glob("video_*_gen.mp4"),
+                               key=lambda p: int(p.stem.split("_")[1]))
+            if len(available) < ARTIFACT_VIDEOS_PER_CELL:
+                raise SystemExit(
+                    f"{model_path} has {len(available)} clips, "
+                    f"need {ARTIFACT_VIDEOS_PER_CELL}"
+                )
+            for video in available[:ARTIFACT_VIDEOS_PER_CELL]:
                 records.append({
                     "category": category,
                     "model": model_dir,
