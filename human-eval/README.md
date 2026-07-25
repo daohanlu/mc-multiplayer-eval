@@ -81,10 +81,15 @@ Answers are single-select, with no free-text field:
 | 4 | Other artifacts | Any other clear corruption. |
 
 Annotators are told to judge each view on its own and report only *clear*
-visual artifacts, and explicitly **not** to count the two views disagreeing
-about the shared world — that is common in this data, hard to adjudicate, and
-already measured by the Consistency task. The instruction appears both in the
-guide and as a standing line above the answer buttons.
+visual artifacts. Two failure modes are explicitly **excluded**, because both
+are expected in this data and measured elsewhere:
+
+* **Cross-view disagreement** — the same area looking different between the two
+  views, or something present in one and missing from the other.
+* **Memory failure** — the world changing when a player looks away and back.
+
+The exclusions appear both in the guide and as a standing line above the answer
+buttons, since a one-time intro is easy to forget partway through.
 
 Changing the options requires bumping `TASK_VERSION` in `artifacts.html`. It is
 part of the localStorage key, so answers recorded under the old options are

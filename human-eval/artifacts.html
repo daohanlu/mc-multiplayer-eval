@@ -36,14 +36,21 @@
     </p>
 
     <div class="warnbox" style="max-width:none;margin-bottom:18px">
-      <p style="margin:0 0 8px"><strong>Judge each view on its own.</strong>
-      Only report <strong>clear</strong> visual artifacts — things that look
-      obviously broken or corrupted in the picture itself.</p>
-      <p style="margin:0"><strong>Do not count the two views disagreeing about
-      the world.</strong> If the same area looks different between the top and
-      bottom view, or a structure or player is present in one view but missing
-      from the other, that is <em>not</em> an artifact for this task. It is
-      expected here and is measured separately. When in doubt, answer
+      <p style="margin:0 0 10px"><strong>Only report clear visual
+      artifacts</strong> — things that look obviously broken or corrupted in
+      the picture itself. Two things that look wrong but do
+      <strong>not</strong> count here:</p>
+      <ul style="margin:0 0 10px;padding-left:22px">
+        <li style="margin-bottom:6px"><strong>The two views disagreeing about
+        the world.</strong> The same area looking different between the top and
+        bottom view, or a structure or player being present in one view but
+        missing from the other.</li>
+        <li><strong>Memory failure.</strong> The world changing when a player
+        looks away and back — terrain, structures or objects that were there
+        earlier having changed or disappeared.</li>
+      </ul>
+      <p style="margin:0">Both are expected in this data and are measured
+      separately. Judge each view on its own, and when in doubt answer
       <em>No artifacts</em>.</p>
     </div>
 
@@ -78,7 +85,8 @@
       <h2 style="margin:20px 0 0;font-size:17px">Does this video contain clear visual artifacts?</h2>
       <p class="hint" style="margin:6px 0 0">
         Only count <strong>clear</strong> artifacts in the picture itself.
-        Do <strong>not</strong> count the two views disagreeing about the world.
+        Do <strong>not</strong> count the two views disagreeing about the world,
+        or the world changing when a player looks away and back.
       </p>
       <div class="answers" id="answers">
         <button data-value="none">No artifacts <span class="k">1</span></button>

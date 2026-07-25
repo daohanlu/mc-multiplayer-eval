@@ -392,8 +392,10 @@ def build_artifacts() -> None:
         "question": "Does this video contain clear visual artifacts?",
         "instruction": (
             "Judge each view on its own and report only clear visual "
-            "artifacts. Disagreement between the two players' views about the "
-            "shared world does NOT count as an artifact for this task."
+            "artifacts. Two things do NOT count: disagreement between the two "
+            "players' views about the shared world, and memory failure (the "
+            "world changing when a player looks away and back). Both are "
+            "expected in this data and measured separately."
         ),
         "options": [
             {"value": "none", "label": "No artifacts", "key": "1",
