@@ -1,0 +1,327 @@
+{
+  "task": "artifacts",
+  "annotator": "fred",
+  "total": 63,
+  "answered": 63,
+  "updated": "sim",
+  "answers": {
+    "a0054": {
+      "at": "2026-07-25T07:01:38.150Z",
+      "value": "none",
+      "index": 0
+    },
+    "a0014": {
+      "at": "2026-07-25T07:01:42.939Z",
+      "value": "building",
+      "index": 1
+    },
+    "a0015": {
+      "at": "2026-07-25T07:01:48.216Z",
+      "value": "building",
+      "index": 2
+    },
+    "a0009": {
+      "at": "2026-07-25T07:01:54.678Z",
+      "value": "none",
+      "index": 3
+    },
+    "a0026": {
+      "at": "2026-07-25T07:02:01.299Z",
+      "value": "none",
+      "index": 4
+    },
+    "a0005": {
+      "at": "2026-07-25T07:02:29.932Z",
+      "value": "other",
+      "index": 5
+    },
+    "a0039": {
+      "at": "2026-07-25T07:11:02.720Z",
+      "value": "none",
+      "index": 6
+    },
+    "a0002": {
+      "at": "2026-07-25T07:11:32.571Z",
+      "value": "other",
+      "index": 7
+    },
+    "a0037": {
+      "at": "2026-07-25T07:11:45.523Z",
+      "value": "none",
+      "index": 8
+    },
+    "a0049": {
+      "at": "2026-07-25T07:11:52.011Z",
+      "value": "none",
+      "index": 9
+    },
+    "a0030": {
+      "at": "2026-07-25T07:11:59.279Z",
+      "value": "other",
+      "index": 10
+    },
+    "a0041": {
+      "at": "2026-07-25T07:12:14.183Z",
+      "value": "character",
+      "index": 11
+    },
+    "a0032": {
+      "at": "2026-07-25T07:12:23.841Z",
+      "value": "other",
+      "index": 12
+    },
+    "a0013": {
+      "at": "2026-07-25T07:12:26.606Z",
+      "value": "building",
+      "index": 13
+    },
+    "a0045": {
+      "at": "2026-07-25T07:12:33.416Z",
+      "value": "none",
+      "index": 14
+    },
+    "a0031": {
+      "at": "2026-07-25T07:12:38.924Z",
+      "value": "building",
+      "index": 15
+    },
+    "a0062": {
+      "at": "2026-07-25T07:12:42.268Z",
+      "value": "other",
+      "index": 16
+    },
+    "a0007": {
+      "at": "2026-07-25T07:12:44.172Z",
+      "value": "other",
+      "index": 17
+    },
+    "a0056": {
+      "at": "2026-07-25T07:12:49.889Z",
+      "value": "none",
+      "index": 18
+    },
+    "a0022": {
+      "at": "2026-07-25T07:12:58.015Z",
+      "value": "building",
+      "index": 19
+    },
+    "a0017": {
+      "at": "2026-07-25T07:13:00.979Z",
+      "value": "other",
+      "index": 20
+    },
+    "a0047": {
+      "at": "2026-07-25T07:13:05.132Z",
+      "value": "other",
+      "index": 21
+    },
+    "a0046": {
+      "at": "2026-07-25T07:13:10.406Z",
+      "value": "none",
+      "index": 22
+    },
+    "a0048": {
+      "at": "2026-07-25T07:13:17.297Z",
+      "value": "none",
+      "index": 23
+    },
+    "a0043": {
+      "at": "2026-07-25T07:13:24.280Z",
+      "value": "none",
+      "index": 24
+    },
+    "a0010": {
+      "at": "2026-07-25T07:13:32.029Z",
+      "value": "none",
+      "index": 25
+    },
+    "a0063": {
+      "at": "2026-07-25T07:13:37.380Z",
+      "value": "other",
+      "index": 26
+    },
+    "a0027": {
+      "at": "2026-07-25T07:13:42.144Z",
+      "value": "none",
+      "index": 27
+    },
+    "a0040": {
+      "at": "2026-07-25T07:13:51.985Z",
+      "value": "none",
+      "index": 28
+    },
+    "a0003": {
+      "at": "2026-07-25T07:13:59.197Z",
+      "value": "none",
+      "index": 29
+    },
+    "a0024": {
+      "at": "2026-07-25T07:14:04.288Z",
+      "value": "none",
+      "index": 30
+    },
+    "a0034": {
+      "at": "2026-07-25T07:14:09.617Z",
+      "value": "none",
+      "index": 31
+    },
+    "a0023": {
+      "at": "2026-07-25T07:14:14.543Z",
+      "value": "none",
+      "index": 32
+    },
+    "a0038": {
+      "at": "2026-07-25T07:14:20.267Z",
+      "value": "character",
+      "index": 33
+    },
+    "a0020": {
+      "at": "2026-07-25T07:14:28.296Z",
+      "value": "none",
+      "index": 34
+    },
+    "a0061": {
+      "at": "2026-07-25T07:14:34.645Z",
+      "value": "building",
+      "index": 35
+    },
+    "a0033": {
+      "at": "2026-07-25T07:14:40.167Z",
+      "value": "none",
+      "index": 36
+    },
+    "a0057": {
+      "at": "2026-07-25T07:14:47.153Z",
+      "value": "building",
+      "index": 37
+    },
+    "a0058": {
+      "at": "2026-07-25T07:14:57.345Z",
+      "value": "other",
+      "index": 38
+    },
+    "a0050": {
+      "at": "2026-07-25T07:15:04.582Z",
+      "value": "none",
+      "index": 39
+    },
+    "a0060": {
+      "at": "2026-07-25T07:15:09.421Z",
+      "value": "character",
+      "index": 40
+    },
+    "a0042": {
+      "at": "2026-07-25T07:15:16.721Z",
+      "value": "building",
+      "index": 41
+    },
+    "a0021": {
+      "at": "2026-07-25T07:15:20.216Z",
+      "value": "building",
+      "index": 42
+    },
+    "a0016": {
+      "at": "2026-07-25T07:15:25.873Z",
+      "value": "other",
+      "index": 43
+    },
+    "a0028": {
+      "at": "2026-07-25T07:15:27.979Z",
+      "value": "other",
+      "index": 44
+    },
+    "a0019": {
+      "at": "2026-07-25T07:15:37.424Z",
+      "value": "other",
+      "index": 45
+    },
+    "a0051": {
+      "at": "2026-07-25T07:15:47.648Z",
+      "value": "character",
+      "index": 46
+    },
+    "a0053": {
+      "at": "2026-07-25T07:15:55.103Z",
+      "value": "none",
+      "index": 47
+    },
+    "a0044": {
+      "at": "2026-07-25T07:16:02.652Z",
+      "value": "none",
+      "index": 48
+    },
+    "a0055": {
+      "at": "2026-07-25T07:16:12.110Z",
+      "value": "none",
+      "index": 49
+    },
+    "a0029": {
+      "at": "2026-07-25T07:16:21.673Z",
+      "value": "none",
+      "index": 50
+    },
+    "a0006": {
+      "at": "2026-07-25T07:16:27.819Z",
+      "value": "building",
+      "index": 51
+    },
+    "a0012": {
+      "at": "2026-07-25T07:16:33.002Z",
+      "value": "other",
+      "index": 52
+    },
+    "a0004": {
+      "at": "2026-07-25T07:16:37.090Z",
+      "value": "other",
+      "index": 53
+    },
+    "a0001": {
+      "at": "2026-07-25T07:16:49.907Z",
+      "value": "building",
+      "index": 54
+    },
+    "a0025": {
+      "at": "2026-07-25T07:16:56.644Z",
+      "value": "none",
+      "index": 55
+    },
+    "a0036": {
+      "at": "2026-07-25T07:17:03.758Z",
+      "value": "none",
+      "index": 56
+    },
+    "a0011": {
+      "at": "2026-07-25T07:17:07.821Z",
+      "value": "other",
+      "index": 57
+    },
+    "a0018": {
+      "at": "2026-07-25T07:17:14.313Z",
+      "value": "building",
+      "index": 58
+    },
+    "a0052": {
+      "at": "2026-07-25T07:17:24.064Z",
+      "value": "none",
+      "index": 59
+    },
+    "a0059": {
+      "at": "2026-07-25T07:17:30.049Z",
+      "value": "other",
+      "index": 60
+    },
+    "a0035": {
+      "at": "2026-07-25T07:17:37.655Z",
+      "value": "none",
+      "index": 61
+    },
+    "a0008": {
+      "at": "2026-07-25T07:17:43.841Z",
+      "value": "none",
+      "index": 62
+    }
+  },
+  "instruction_version_note": "Set to v2 as a one-off on 2026-07-25. 20 of these answers predate the memory-failure exclusion being added to the page, but the annotator proposed that exclusion and confirmed all answers were already made under it.",
+  "instruction_version_locked": true,
+  "instruction_version": 2
+}
