@@ -164,6 +164,22 @@ Two independent counters, both in the task page:
   current wording, and echoes an optional `instruction_version_note` if the
   file carries one.
 
+To correct a run's version by hand — say the annotator confirms their answers
+already followed guidance the page had not yet been updated with — edit the
+response file and set:
+
+```json
+"instruction_version": 2,
+"instruction_version_locked": true,
+"instruction_version_note": "why this was set by hand"
+```
+
+The lock matters. A browser rewrites the *entire* response file on every save,
+so without it the next page load would silently drop both the corrected version
+and the note. `serve.py` carries `STICKY_FIELDS` forward from the file on disk
+into each incoming payload, and pins `instruction_version` whenever the lock is
+set, so stale page code cannot downgrade a deliberate correction.
+
 If you serve the folder with plain `python -m http.server` instead, everything
 still works, but saving is localStorage-only — annotators must use the
 **Download my answers** button, and you then pass those files to

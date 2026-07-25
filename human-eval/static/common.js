@@ -196,11 +196,18 @@ class Store {
 
 /* Progress bar ------------------------------------------------------------ */
 
-function renderProgress(el, done, total) {
+/**
+ * @param label optional prefix. Passing one also switches off the percentage,
+ *   which is meaningless when the bar is showing a position rather than
+ *   completion (e.g. while reviewing a finished task).
+ */
+function renderProgress(el, done, total, label) {
   const pct = total ? (100 * done / total) : 0;
   el.querySelector('.fill').style.width = pct.toFixed(2) + '%';
-  el.querySelector('.count').textContent =
-    `${done} / ${total}  (${pct.toFixed(0)}%)`;
+  el.querySelector('.count').textContent = label
+    ? `${label} ${done} / ${total}`
+    : `${done} / ${total}  (${pct.toFixed(0)}%)`;
+  el.classList.toggle('reviewing', !!label);
 }
 
 async function loadJSON(path) {

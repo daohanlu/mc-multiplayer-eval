@@ -87,6 +87,11 @@ p.lede { color: var(--muted); margin: 0 0 20px; }
   white-space: nowrap;
 }
 
+/* Reviewing: the bar is a position indicator, not completion. Muting it keeps
+   that visually distinct from a run still being filled in. */
+.progress.reviewing .fill { background: var(--muted); opacity: .55; }
+.progress.reviewing .count { color: var(--accent); }
+
 /* cards ------------------------------------------------------------------- */
 
 .card {

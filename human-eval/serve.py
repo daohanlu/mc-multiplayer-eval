@@ -40,6 +40,11 @@ HERE = Path(__file__).resolve().parent
 RESPONSES = HERE / "responses"
 
 VALID_TASK = {"consistency", "artifacts"}
+
+# Fields curated server-side that a client POST must not clobber. The browser
+# rewrites the whole file on every save and knows nothing about these, so
+# without carrying them forward a single page load would silently erase them.
+STICKY_FIELDS = ("instruction_version_note", "instruction_version_locked")
 # Annotator names become filenames; keep them boring.
 NAME_RE = re.compile(r"^[A-Za-z0-9 _.\-]{1,64}$")
 MAX_BODY = 8 * 1024 * 1024
@@ -139,11 +144,37 @@ class Handler(SimpleHTTPRequestHandler):
 
         payload["task"] = task
         payload["annotator"] = name
-        self._atomic_write(response_path(task, name), payload)
+        path = response_path(task, name)
+        self._merge_sticky(path, payload)
+        self._atomic_write(path, payload)
         return self._send_json({"ok": True,
                                 "answered": len(payload["answers"])})
 
     # --- internals --------------------------------------------------------
+
+    @staticmethod
+    def _merge_sticky(path: Path, payload: dict) -> None:
+        """Carry curated server-side fields from the existing file into an
+        incoming client payload, in place.
+
+        ``instruction_version_locked`` additionally pins ``instruction_version``
+        to whatever was set by hand, so a browser running older page code cannot
+        silently downgrade or drop a version that was corrected deliberately.
+        """
+        if not path.exists():
+            return
+        try:
+            existing = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            return
+
+        for field in STICKY_FIELDS:
+            if field in existing and field not in payload:
+                payload[field] = existing[field]
+
+        if existing.get("instruction_version_locked"):
+            if "instruction_version" in existing:
+                payload["instruction_version"] = existing["instruction_version"]
 
     @staticmethod
     def _atomic_write(path: Path, payload: dict) -> None:

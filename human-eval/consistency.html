@@ -138,7 +138,7 @@ function show(i) {
   document.getElementById('prev').disabled = idx === 0;
   document.getElementById('next').textContent =
     idx === items.length - 1 ? 'Finish' : (cur ? 'Next →' : 'Skip →');
-  renderProgress(el.prog, store.count(), items.length);
+  updateProgress();
 
   // Preload the next pair so answering never waits on the network.
   const nxt = items[idx + 1];
@@ -147,7 +147,7 @@ function show(i) {
 
 function answer(value) {
   store.set(items[idx].id, { value, index: idx });
-  renderProgress(el.prog, store.count(), items.length);
+  updateProgress();
   if (idx === items.length - 1) { show(idx); maybeDone(); }
   else show(idx + 1);
 }
@@ -163,6 +163,14 @@ function enterReview(at = 0) {
   el.task.hidden = false;
   show(at);
   window.scrollTo(0, 0);
+}
+
+/* While reviewing, the bar tracks position instead of completion: on a
+   finished task the answered count is pinned at 100% and would look frozen
+   as you page through. */
+function updateProgress() {
+  if (reviewMode) renderProgress(el.prog, idx + 1, items.length, 'Reviewing');
+  else renderProgress(el.prog, store.count(), items.length);
 }
 
 function maybeDone() {
@@ -206,7 +214,7 @@ el.answers.onclick = e => {
 document.getElementById('prev').onclick = () => { el.done.hidden = true; el.task.hidden = false; show(idx - 1); };
 document.getElementById('next').onclick = () => {
   // "Finish" on the last item leaves review mode and shows the summary.
-  if (idx === items.length - 1) { reviewMode = false; maybeDone(); }
+  if (idx === items.length - 1) { reviewMode = false; updateProgress(); maybeDone(); }
   else show(idx + 1);
 };
 document.getElementById('review').onclick = () => enterReview(0);
@@ -239,7 +247,7 @@ document.addEventListener('keydown', e => {
     setTimeout(() => { el.saveState.textContent = ''; }, 1800);
   };
   await store.load();
-  renderProgress(el.prog, store.count(), items.length);
+  updateProgress();
 
   const resuming = store.count() > 0;
   show(reviewMode ? 0 : firstUnanswered());
