@@ -61,8 +61,13 @@ DATASET_BASE = REPO_ROOT / "mc_multiplayer_v2_eval_new_sneak_combined"
 GENERATIONS_DIR = REPO_ROOT / "mc_multiplayer_v2_generations"
 SUPPLEMENTARY = HERE / "Model Generations on Eval"
 
-# Task 1: the two Table 3 rows the paper reports at 56.8 +/- 2.9 and 34.9 +/- 1.5.
-CONSISTENCY_MODELS = ["flagship", "causvid_regression"]
+# Task 1: Solaris Default vs Frame Concat — the paper reports these at
+# 56.8 +/- 2.9 (Table 2 and 3) and 25.5 +/- 3.2 (Table 2) on Consistency.
+# Changing this list changes every item id, so existing answers must be
+# migrated by (model, eval, query_type, episode, instance) rather than by id —
+# see migrate_consistency_responses.py — and CONSISTENCY TASK_VERSION in
+# consistency.html must be bumped so stale localStorage is ignored.
+CONSISTENCY_MODELS = ["flagship", "concat_c"]
 CONSISTENCY_EVALS = ["turnToLookEval", "turnToLookOppositeEval"]
 
 # Task 2: everything in the supplementary folder except the two Consistency
@@ -289,9 +294,13 @@ def build_consistency(skip_frames: bool) -> None:
     rng.shuffle(records)
 
     if not skip_frames:
-        if OUT_FRAMES.exists():
-            shutil.rmtree(OUT_FRAMES)
-        OUT_FRAMES.mkdir(parents=True)
+        # Clear only this task's own stills. frames/ is shared — the artifacts
+        # guide example lives here too, and wiping the directory would delete it
+        # whenever consistency alone was rebuilt.
+        OUT_FRAMES.mkdir(parents=True, exist_ok=True)
+        for stale in list(OUT_FRAMES.glob("c[0-9]*.png")) + \
+                list(OUT_FRAMES.glob("cal_*.png")):
+            stale.unlink()
 
     items, key = [], []
     for i, rec in enumerate(records, 1):

@@ -28,7 +28,11 @@ DATA = HERE / "data"
 RESPONSES = HERE / "responses"
 
 # What the paper reports for these two rows (Consistency column, Table 3).
-PAPER_CONSISTENCY = {"flagship": (56.8, 2.9), "causvid_regression": (34.9, 1.5)}
+PAPER_CONSISTENCY = {
+    "flagship": (56.8, 2.9),            # Tables 2 and 3
+    "concat_c": (25.5, 3.2),            # Table 2, Frame concat
+    "causvid_regression": (34.9, 1.5),  # Table 3, ODE Reg (kept for old runs)
+}
 
 ANSWER_TO_EXPECTED = {"same": "yes", "different": "no"}
 
@@ -128,10 +132,15 @@ def score_consistency(runs: list[dict], key: dict[str, dict]) -> None:
             print(f"  {model:22s} {qa:11.1f}% {ea:13.1f}% {len(eps):5d}   "
                   f"{pm:.1f} +/- {ps:.1f}{flag}")
 
-        if len(by_model_ep) == 2:
-            a, b = sorted(by_model_ep, key=lambda m: -_acc(by_model_ep[m]))
+        # Only rank once both models actually have completed episodes —
+        # otherwise a partial run reports a comparison against nan.
+        ranked = {m: v for m, v in by_model_ep.items() if v}
+        if len(ranked) == 2:
+            a, b = sorted(ranked, key=lambda m: -_acc(ranked[m]))
             print(f"  -> humans rank {a} above {b} "
-                  f"({_acc(by_model_ep[a]):.1f}% vs {_acc(by_model_ep[b]):.1f}%)")
+                  f"({_acc(ranked[a]):.1f}% vs {_acc(ranked[b]):.1f}%)")
+        elif len(ranked) < 2:
+            print("  -> not enough completed episodes to rank yet")
 
 
 def _acc(oks: list[bool]) -> float:

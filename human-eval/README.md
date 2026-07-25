@@ -185,6 +185,37 @@ still works, but saving is localStorage-only — annotators must use the
 **Download my answers** button, and you then pass those files to
 `score_human_eval.py` directly.
 
+## Changing the model pair
+
+`CONSISTENCY_MODELS` in `build_human_eval.py` selects which two models the
+Consistency task compares. Changing it renumbers **every** item id, because ids
+are assigned by position in a shuffled list — so `c0007` means a different
+screenshot pair before and after. Answers keyed by id would silently point at
+the wrong pair.
+
+`migrate_consistency_responses.py` handles this. It matches answers on the
+query itself — `(model, eval, query_type, episode, instance)`, which is stable
+across rebuilds — rewrites answers for retained models under their new ids, and
+drops answers for models no longer in the task. Annotators keep everything they
+have already judged for a retained model.
+
+```bash
+./deploy.sh stop
+cp data/consistency_key.json backups/<stamp>/consistency_key.OLD.json   # BEFORE rebuilding
+# edit CONSISTENCY_MODELS, then:
+python3 build_human_eval.py --only consistency
+python3 migrate_consistency_responses.py --old-key backups/<stamp>/consistency_key.OLD.json --dry-run
+python3 migrate_consistency_responses.py --old-key backups/<stamp>/consistency_key.OLD.json
+# bump TASK_VERSION in consistency.html and VERSIONS in index.html
+./deploy.sh && ./deploy.sh restart
+```
+
+Back up `responses/` first — the old key is needed to migrate, and it is
+overwritten by the rebuild. Bumping `TASK_VERSION` is not optional: a returning
+browser would otherwise re-POST its localStorage answers under ids that now
+mean something else. Each migrated file records what happened under a
+`migrations` list.
+
 ## Deployment
 
 `deploy.sh` syncs the bundle to the annotation host and keeps the server alive

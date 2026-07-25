@@ -88,7 +88,7 @@ async function showTasks(name) {
 
   // Task versions must match the ones the task pages use, or the landing page
   // would read a different localStorage key and under-report progress.
-  const VERSIONS = { consistency: 1, artifacts: 3 };
+  const VERSIONS = { consistency: 2, artifacts: 3 };
 
   for (const [task, cardIdx, link, rev] of
        [['consistency', 0, 'goC', 'revC'], ['artifacts', 1, 'goA', 'revA']]) {

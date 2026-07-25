@@ -87,7 +87,10 @@
 const TASK = 'consistency';
 // See Store: TASK_VERSION invalidates old answers, INSTRUCTION_VERSION only
 // records which wording a run was collected under.
-const TASK_VERSION = 1;
+// v2: the model pair changed (causvid_regression -> concat_c), which renumbers
+// every item id. Stale localStorage must be ignored or a returning browser
+// would re-POST answers under ids that now mean something else.
+const TASK_VERSION = 2;
 const INSTRUCTION_VERSION = 1;
 const name = requireName();
 document.getElementById('who').textContent = name;

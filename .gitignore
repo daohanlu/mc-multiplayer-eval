@@ -62,6 +62,7 @@ human-eval/frames/
 human-eval/videos/
 human-eval/data/
 human-eval/responses/
+human-eval/backups/
 human-eval/Model Generations on Eval/
 
 # Other data files
