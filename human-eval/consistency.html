@@ -92,6 +92,18 @@
     </div>
   </section>
 
+  <!-- shown only if the page fails to initialise ---------------------- -->
+  <section id="fatal" hidden>
+    <div class="card" style="border-color:var(--warn)">
+      <h2>This page could not load</h2>
+      <p class="lede">Your saved answers are safe on the server — nothing has been lost.</p>
+      <p>This is almost always a stale cached copy of the page. Please force-reload:
+        <strong>Ctrl+Shift+R</strong> (Windows/Linux) or <strong>Cmd+Shift+R</strong> (Mac).</p>
+      <p class="hint">If it keeps happening, send this to whoever set up the study:</p>
+      <pre id="fatalMsg" style="white-space:pre-wrap;color:var(--warn);font-size:13px"></pre>
+    </div>
+  </section>
+
 </div>
 
 <script src="static/common.js"></script>
@@ -275,6 +287,7 @@ document.addEventListener('keydown', e => {
 });
 
 (async function init() {
+ try {
   spec = await loadJSON('data/consistency_items.json');
   const cal = await loadJSON('data/consistency_calibration.json');
   renderCalibration(cal);
@@ -287,6 +300,9 @@ document.addEventListener('keydown', e => {
     setTimeout(() => { el.saveState.textContent = ''; }, 1800);
   };
   await store.load();
+  // Reviewing nothing would skip the guide and show a blank first
+  // question, so ignore the flag until there is something to review.
+  if (reviewMode && store.count() === 0) reviewMode = false;
   updateProgress();
 
   const resuming = store.count() > 0;
@@ -301,6 +317,14 @@ document.addEventListener('keydown', e => {
   // first item rather than the completion screen.
   if (resuming || reviewMode) { el.task.hidden = false; maybeDone(); }
   else { el.cal.hidden = false; }
+ } catch (err) {
+   // Without this the page renders blank: every section starts hidden and the
+   // throw happens before any of them is shown.
+   console.error(err);
+   const box = document.getElementById('fatal');
+   document.getElementById('fatalMsg').textContent = (err && err.stack) || String(err);
+   box.hidden = false;
+ }
 })();
 </script>
 </body>

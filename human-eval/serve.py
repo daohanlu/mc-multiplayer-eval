@@ -44,7 +44,8 @@ VALID_TASK = {"consistency", "artifacts"}
 # Fields curated server-side that a client POST must not clobber. The browser
 # rewrites the whole file on every save and knows nothing about these, so
 # without carrying them forward a single page load would silently erase them.
-STICKY_FIELDS = ("instruction_version_note", "instruction_version_locked")
+STICKY_FIELDS = ("instruction_version_note", "instruction_version_locked",
+                 "migrations")
 # Annotator names become filenames; keep them boring.
 NAME_RE = re.compile(r"^[A-Za-z0-9 _.\-]{1,64}$")
 MAX_BODY = 8 * 1024 * 1024
@@ -65,6 +66,25 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(HERE), **kwargs)
 
     # --- helpers ----------------------------------------------------------
+
+    # --- caching ----------------------------------------------------------
+    #
+    # Every deploy rewrites the pages and static/common.js together. Without an
+    # explicit directive a browser applies heuristic caching and can pair a
+    # cached page with a freshly fetched script (or the reverse); the page then
+    # calls a helper the script does not have, throws during init before any
+    # section is un-hidden, and renders blank. Forcing revalidation keeps the
+    # two in step. Last-Modified is still sent, so unchanged files cost a 304.
+
+    def send_header(self, keyword, value):  # noqa: N802
+        if keyword.lower() == "cache-control":
+            self._cc_sent = True
+        super().send_header(keyword, value)
+
+    def end_headers(self) -> None:  # noqa: N802
+        if not getattr(self, "_cc_sent", False):
+            self.send_header("Cache-Control", "no-cache, must-revalidate")
+        super().end_headers()
 
     def _send_json(self, payload: dict, status: int = HTTPStatus.OK) -> None:
         body = json.dumps(payload).encode()
@@ -87,6 +107,7 @@ class Handler(SimpleHTTPRequestHandler):
     # --- routes -----------------------------------------------------------
 
     def do_GET(self) -> None:  # noqa: N802
+        self._cc_sent = False
         clean = self.path.split("?")[0]
 
         if clean == "/api/annotators":
@@ -119,6 +140,7 @@ class Handler(SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self) -> None:  # noqa: N802
+        self._cc_sent = False
         parsed = self._parse_api_path()
         if not parsed:
             return self._send_json({"error": "bad path"}, HTTPStatus.NOT_FOUND)
