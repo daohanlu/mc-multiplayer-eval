@@ -228,7 +228,9 @@ figure.example {
 figure.example img {
   display: block;
   width: 100%;
-  max-width: 330px;
+  /* 660px wide renders the 640x704 still at ~726px tall — twice the previous
+     size, and close enough to native that the pixel art stays crisp. */
+  max-width: 660px;
   margin: 10px auto 0;
   border-radius: 6px;
   border: 1px solid var(--line);
