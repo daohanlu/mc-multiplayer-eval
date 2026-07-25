@@ -52,6 +52,7 @@
       <p><strong>Character artifacts</strong> — character disappearing, duplicating, morphing, or unrecognizable.</p>
       <p><strong>Building artifacts</strong> — puts down no blocks or multiple blocks when attempting to build.</p>
       <p><strong>Other artifacts</strong> — any other clear corruption: terrain or structures warping or dissolving, textures smearing, global colour shifts, whole-frame flicker, HUD corruption.</p>
+      <div id="guideExamples"></div>
       <p class="hint" style="margin-bottom:0">If a clip has more than one kind, pick the most prominent one.</p>
     </div>
     <button class="primary big" id="startBtn">Start</button>
@@ -257,8 +258,25 @@ document.addEventListener('keydown', e => {
 el.vid.addEventListener('loadedmetadata', applyRate);
 el.vid.addEventListener('play', applyRate);
 
+/* Worked examples rendered from the manifest, so the guide stays in step with
+   whatever the build produced instead of hardcoding a filename here. */
+function renderGuideExamples(spec) {
+  const host = document.getElementById('guideExamples');
+  const examples = spec.guide_examples || [];
+  if (!examples.length) { host.innerHTML = ''; return; }
+  host.innerHTML = examples.map(ex => {
+    const label = (spec.options.find(o => o.value === ex.option) || {}).label || ex.option;
+    return `
+      <figure class="example">
+        <figcaption><span class="tag">Example &middot; ${label}</span> ${ex.caption}</figcaption>
+        <img src="${ex.image}" alt="Example of ${label}" loading="lazy">
+      </figure>`;
+  }).join('');
+}
+
 (async function init() {
   const spec = await loadJSON('data/artifacts_items.json');
+  renderGuideExamples(spec);
   items = shuffleFor(spec.items, name, TASK);
   store = new Store(TASK, name, items.length, TASK_VERSION);
   store.onsave = ok => {

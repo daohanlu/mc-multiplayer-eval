@@ -87,6 +87,25 @@ MODEL_DIR_BY_DISPLAY = {
 
 SHUFFLE_SEED = 20260725
 
+# A still from a real clip, shown in the guide as a worked example of the
+# "Other artifacts" option. Identified by source clip rather than item id, so a
+# reshuffle cannot silently repoint it at a different video.
+#
+# Caveat: this clip is also one of the 63 scored items. Annotators therefore see
+# it once in the guide with the answer given, and again in the task. The item is
+# flagged ``guide_example`` in the key so the scorer can report it separately.
+GUIDE_EXAMPLE = {
+    "option": "other",
+    "category": "Grounding",
+    "model_display": "Frame Concat (Training Ablation)",
+    "video_index": 2,
+    "caption": (
+        "The world has collapsed into a flat, featureless plane — the terrain "
+        "detail and the horizon are gone. It is not a character or a building "
+        "problem, so it counts as <em>Other artifacts</em>."
+    ),
+}
+
 # run_eval.py appends /test to the dataset folder and caps at 32 pairs when
 # --limit is not given. Both are replicated below so the query list matches the
 # paper run exactly.
@@ -355,10 +374,19 @@ def build_artifacts() -> None:
     items, key = [], []
     for i, rec in enumerate(records, 1):
         item_id = f"a{i:04d}"
+        rec["id"] = item_id
         shutil.copyfile(rec["_path"], OUT_VIDEOS / f"{item_id}.mp4")
         items.append({"id": item_id, "video": f"videos/{item_id}.mp4"})
         key.append({"id": item_id, **{k: v for k, v in rec.items()
-                                      if not k.startswith("_")}})
+                                      if not k.startswith("_") and k != "id"}})
+
+    guide, guide_item_id = build_guide_example(records)
+    for entry in key:
+        if entry["id"] == guide_item_id:
+            entry["guide_example"] = True
+    print(f"  guide example: {guide_item_id} "
+          f"({GUIDE_EXAMPLE['category']}/{GUIDE_EXAMPLE['model_display']}, "
+          f"video_{GUIDE_EXAMPLE['video_index']}) -> {guide['image']}")
 
     OUT_DATA.mkdir(parents=True, exist_ok=True)
     _write_json(OUT_DATA / "artifacts_items.json", {
@@ -382,6 +410,7 @@ def build_artifacts() -> None:
             {"value": "other", "label": "Other artifacts", "key": "4",
              "help": "Any other clear corruption."},
         ],
+        "guide_examples": [guide],
         "items": items,
     })
     _write_json(OUT_DATA / "artifacts_key.json", {
@@ -391,6 +420,62 @@ def build_artifacts() -> None:
         "items": key,
     })
     print(f"  -> {len(items)} videos")
+
+
+def _save_last_frame(video: Path, out_path: Path) -> None:
+    """Write the final frame of ``video`` to ``out_path`` as a PNG."""
+    import cv2
+
+    cap = cv2.VideoCapture(str(video))
+    try:
+        total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        if total <= 0:
+            raise SystemExit(f"could not read frame count from {video}")
+        # Seek slightly before the end and read forward: the very last index is
+        # not always decodable depending on the container's frame count.
+        frame = None
+        for idx in range(total - 1, max(total - 6, -1), -1):
+            cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+            ok, candidate = cap.read()
+            if ok:
+                frame = candidate
+                break
+        if frame is None:
+            raise SystemExit(f"could not decode a final frame from {video}")
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(out_path), frame)
+    finally:
+        cap.release()
+
+
+def build_guide_example(records: list[dict]) -> tuple[dict, str | None]:
+    """Render the guide's worked example and return (payload, item_id).
+
+    ``records`` is the shuffled record list, each entry already carrying its
+    assigned ``id``.
+    """
+    match = [
+        r for r in records
+        if r["category"] == GUIDE_EXAMPLE["category"]
+        and r["model_display"] == GUIDE_EXAMPLE["model_display"]
+        and r["video_index"] == GUIDE_EXAMPLE["video_index"]
+    ]
+    if not match:
+        raise SystemExit(
+            "GUIDE_EXAMPLE does not match any selected clip — it may fall "
+            "outside ARTIFACT_VIDEOS_PER_CELL"
+        )
+    rec = match[0]
+    rel = "frames/guide_other.png"
+    _save_last_frame(rec["_path"], HERE / rel)
+    return (
+        {
+            "option": GUIDE_EXAMPLE["option"],
+            "image": rel,
+            "caption": GUIDE_EXAMPLE["caption"],
+        },
+        rec["id"],
+    )
 
 
 def _write_json(path: Path, payload: dict) -> None:

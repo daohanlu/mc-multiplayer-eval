@@ -153,6 +153,16 @@ def score_artifacts(runs: list[dict], key: dict[str, dict]) -> None:
             print(f"  WARNING: {stale} answer(s) use retired options and were "
                   f"skipped — collected before the options changed?")
 
+        # Any clip used as a worked example in the guide is shown to annotators
+        # with its answer, so it is primed rather than blind. Surface it so the
+        # bias is visible instead of buried in the totals.
+        for k in key.values():
+            if k.get("guide_example") and k["id"] in answers:
+                print(f"  NOTE: {k['id']} ({k['category']}/{k['model']}) is the "
+                      f"guide's worked example, so it is primed, not blind — "
+                      f"answered {answers[k['id']].get('value')!r}. "
+                      f"Consider excluding it.")
+
         # Width follows the longest label so renaming a category cannot silently
         # push the columns out of alignment.
         w = max(len(l) for l in ARTIFACT_LABELS) + 2
