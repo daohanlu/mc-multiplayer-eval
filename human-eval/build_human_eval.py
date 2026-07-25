@@ -88,21 +88,22 @@ MODEL_DIR_BY_DISPLAY = {
 SHUFFLE_SEED = 20260725
 
 # A still from a real clip, shown in the guide as a worked example of the
-# "Other artifacts" option. Identified by source clip rather than item id, so a
-# reshuffle cannot silently repoint it at a different video.
-#
-# Caveat: this clip is also one of the 63 scored items. Annotators therefore see
-# it once in the guide with the answer given, and again in the task. The item is
-# flagged ``guide_example`` in the key so the scorer can report it separately.
+# "Other artifacts" option. Resolved straight from the supplementary folder by
+# (category, model, video_index), so it does not have to be one of the scored
+# clips — and deliberately is not: video_4 falls outside
+# ARTIFACT_VIDEOS_PER_CELL, so showing it with its answer cannot prime any item
+# an annotator will later be scored on.
 GUIDE_EXAMPLE = {
     "option": "other",
-    "category": "Grounding",
-    "model_display": "Frame Concat (Training Ablation)",
-    "video_index": 2,
+    "category": "Movement",
+    "model_display": "No KV Back Prop (Self-Forcing Ablation)",
+    "video_index": 4,
     "caption": (
-        "The world has collapsed into a flat, featureless plane — the terrain "
-        "detail and the horizon are gone. It is not a character or a building "
-        "problem, so it counts as <em>Other artifacts</em>."
+        "The entire frame has degraded into a soft smear: the grass, the item "
+        "icons in the hotbar and the name tags above the players are all "
+        "blurred and unreadable. The corruption covers the whole picture "
+        "rather than being confined to a character or a build, so it counts "
+        "as <em>Other artifacts</em>."
     ),
 }
 
@@ -384,9 +385,6 @@ def build_artifacts() -> None:
     for entry in key:
         if entry["id"] == guide_item_id:
             entry["guide_example"] = True
-    print(f"  guide example: {guide_item_id} "
-          f"({GUIDE_EXAMPLE['category']}/{GUIDE_EXAMPLE['model_display']}, "
-          f"video_{GUIDE_EXAMPLE['video_index']}) -> {guide['image']}")
 
     OUT_DATA.mkdir(parents=True, exist_ok=True)
     _write_json(OUT_DATA / "artifacts_items.json", {
@@ -449,32 +447,45 @@ def _save_last_frame(video: Path, out_path: Path) -> None:
 
 
 def build_guide_example(records: list[dict]) -> tuple[dict, str | None]:
-    """Render the guide's worked example and return (payload, item_id).
+    """Render the guide's worked example and return ``(payload, item_id)``.
 
-    ``records`` is the shuffled record list, each entry already carrying its
-    assigned ``id``.
+    The clip is resolved from the supplementary folder directly, so it need not
+    be one of the scored items. ``item_id`` is the scored item it collides with,
+    or ``None`` when the example is held out (the intended case — a held-out
+    clip cannot prime anything).
     """
-    match = [
-        r for r in records
-        if r["category"] == GUIDE_EXAMPLE["category"]
-        and r["model_display"] == GUIDE_EXAMPLE["model_display"]
-        and r["video_index"] == GUIDE_EXAMPLE["video_index"]
-    ]
-    if not match:
-        raise SystemExit(
-            "GUIDE_EXAMPLE does not match any selected clip — it may fall "
-            "outside ARTIFACT_VIDEOS_PER_CELL"
-        )
-    rec = match[0]
+    source = (SUPPLEMENTARY / GUIDE_EXAMPLE["category"]
+              / GUIDE_EXAMPLE["model_display"]
+              / f"video_{GUIDE_EXAMPLE['video_index']}_gen.mp4")
+    if not source.is_file():
+        raise SystemExit(f"GUIDE_EXAMPLE clip not found: {source}")
+
     rel = "frames/guide_other.png"
-    _save_last_frame(rec["_path"], HERE / rel)
+    _save_last_frame(source, HERE / rel)
+
+    collision = next(
+        (r["id"] for r in records
+         if r["category"] == GUIDE_EXAMPLE["category"]
+         and r["model_display"] == GUIDE_EXAMPLE["model_display"]
+         and r["video_index"] == GUIDE_EXAMPLE["video_index"]),
+        None,
+    )
+    if collision:
+        print(f"  WARNING: the guide example is also scored item {collision}; "
+              f"annotators will see it with the answer given. Pick a clip "
+              f"outside the first {ARTIFACT_VIDEOS_PER_CELL} to avoid priming.")
+    else:
+        print(f"  guide example is held out of the scored set "
+              f"(video_{GUIDE_EXAMPLE['video_index']} of "
+              f"{ARTIFACT_VIDEOS_PER_CELL} used) — no priming")
+
     return (
         {
             "option": GUIDE_EXAMPLE["option"],
             "image": rel,
             "caption": GUIDE_EXAMPLE["caption"],
         },
-        rec["id"],
+        collision,
     )
 
 
