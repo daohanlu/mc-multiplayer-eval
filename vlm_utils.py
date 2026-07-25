@@ -18,8 +18,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
-# Model configuration
-VLM_MODEL_NAME = "gemini-3-flash-preview"
+# Model configuration. The default can be overridden at process-launch time
+# via the VLM_MODEL_NAME env var, which is useful for one-off ablations
+# (e.g. swapping in gemini-3.1-pro-preview) without touching this file.
+VLM_MODEL_NAME = os.environ.get("VLM_MODEL_NAME", "gemini-3-flash-preview")
 
 
 @dataclass

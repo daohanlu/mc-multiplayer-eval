@@ -15,7 +15,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
-from handlers.camera_utils import find_end_of_first_sneak_chunk, find_last_action_frame
+from handlers.camera_utils import find_end_of_first_sneak_chunk, find_last_action_frame, _late_episode_target_frame
 
 
 class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
@@ -148,6 +148,13 @@ class MinecraftStructureNoPlaceHandler(EpisodeTypeHandler):
         
         max_frame2 = frame1_idx + 240
         frame2_idx = min(last_action, max_frame2)
+
+        # Late-episode toggle: replace frame2 with the late-horizon frame,
+        # relaxing the +240 cap. Use the observer's data length for clamping
+        # since the query is rendered from the observer's perspective.
+        late_frame_idx = _late_episode_target_frame(frame1_idx, len(observer_data))
+        if late_frame_idx is not None:
+            frame2_idx = late_frame_idx
 
         # Check if we have enough frames
         if frame2_idx >= len(observer_data):

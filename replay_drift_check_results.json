@@ -1,0 +1,333 @@
+{
+  "summary": {
+    "total": 32,
+    "same_response_count": 28,
+    "different_response_count": 4,
+    "baseline_accuracy": 100.0,
+    "today_accuracy": 87.5,
+    "flips_correct_to_wrong": 4,
+    "flips_wrong_to_correct": 0
+  },
+  "rows": [
+    {
+      "video": "000000_Alpha_instance_000_camera.mp4",
+      "frame_index": 203,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "no",
+      "baseline_correct": true,
+      "today_correct": false,
+      "same_response": false
+    },
+    {
+      "video": "000000_Bravo_instance_001_camera.mp4",
+      "frame_index": 256,
+      "expected": "wall_4x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000001_Alpha_instance_000_camera.mp4",
+      "frame_index": 257,
+      "expected": "wall_4x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000001_Alpha_instance_001_camera.mp4",
+      "frame_index": 259,
+      "expected": "wall_4x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000002_Bravo_instance_000_camera.mp4",
+      "frame_index": 255,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "no",
+      "baseline_correct": true,
+      "today_correct": false,
+      "same_response": false
+    },
+    {
+      "video": "000002_Bravo_instance_001_camera.mp4",
+      "frame_index": 246,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000003_Bravo_instance_000_camera.mp4",
+      "frame_index": 246,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000003_Bravo_instance_001_camera.mp4",
+      "frame_index": 249,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000004_Bravo_instance_000_camera.mp4",
+      "frame_index": 265,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "no",
+      "baseline_correct": true,
+      "today_correct": false,
+      "same_response": false
+    },
+    {
+      "video": "000004_Bravo_instance_001_camera.mp4",
+      "frame_index": 219,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "no",
+      "baseline_correct": true,
+      "today_correct": false,
+      "same_response": false
+    },
+    {
+      "video": "000005_Bravo_instance_000_camera.mp4",
+      "frame_index": 255,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000005_Alpha_instance_001_camera.mp4",
+      "frame_index": 255,
+      "expected": "wall_4x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000006_Bravo_instance_000_camera.mp4",
+      "frame_index": 211,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000006_Alpha_instance_001_camera.mp4",
+      "frame_index": 210,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000007_Bravo_instance_000_camera.mp4",
+      "frame_index": 254,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000007_Bravo_instance_001_camera.mp4",
+      "frame_index": 255,
+      "expected": "wall_4x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000008_Alpha_instance_000_camera.mp4",
+      "frame_index": 208,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000008_Alpha_instance_001_camera.mp4",
+      "frame_index": 255,
+      "expected": "wall_4x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000009_Alpha_instance_000_camera.mp4",
+      "frame_index": 248,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000009_Bravo_instance_001_camera.mp4",
+      "frame_index": 206,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000010_Alpha_instance_000_camera.mp4",
+      "frame_index": 200,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000010_Bravo_instance_001_camera.mp4",
+      "frame_index": 211,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000011_Alpha_instance_000_camera.mp4",
+      "frame_index": 252,
+      "expected": "wall_4x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000011_Alpha_instance_001_camera.mp4",
+      "frame_index": 213,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000012_Bravo_instance_000_camera.mp4",
+      "frame_index": 219,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000012_Bravo_instance_001_camera.mp4",
+      "frame_index": 258,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000013_Alpha_instance_000_camera.mp4",
+      "frame_index": 258,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000013_Alpha_instance_001_camera.mp4",
+      "frame_index": 206,
+      "expected": "tower_2x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000014_Bravo_instance_000_camera.mp4",
+      "frame_index": 256,
+      "expected": "wall_2x2",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000014_Bravo_instance_001_camera.mp4",
+      "frame_index": 254,
+      "expected": "wall_4x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000015_Alpha_instance_000_camera.mp4",
+      "frame_index": 256,
+      "expected": "wall_4x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    },
+    {
+      "video": "000015_Bravo_instance_001_camera.mp4",
+      "frame_index": 255,
+      "expected": "wall_4x1",
+      "baseline_response": "yes",
+      "today_response": "yes",
+      "baseline_correct": true,
+      "today_correct": true,
+      "same_response": true
+    }
+  ]
+}

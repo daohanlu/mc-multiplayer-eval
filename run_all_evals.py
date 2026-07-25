@@ -308,7 +308,37 @@ def main():
             "Examples: --models MODEL_A MODEL_B | --models MODEL_A,MODEL_B | --models all."
         ),
     )
+    parser.add_argument(
+        "--late-episode",
+        action="store_true",
+        help=(
+            "Enable the late-episode query toggle. Sets LATE_EPISODE_QUERY=1 in the "
+            "environment so each spawned run_eval.py replaces its 'last' query frame "
+            "with one near the end of the generated horizon."
+        ),
+    )
+    parser.add_argument(
+        "--late-episode-strict",
+        action="store_true",
+        help=(
+            "Enable the STRICT late-episode toggle. Sets LATE_EPISODE_QUERY_STRICT=1 "
+            "so handlers EMIT BOTH the original 'last' query AND a duplicate at the "
+            "late-horizon frame. Episode-level accuracy then requires the model to be "
+            "right at both timestamps. Currently supported by oneLooksAwayEval(_long), "
+            "turnToLookEval, and turnToLookOppositeEval."
+        ),
+    )
     args = parser.parse_args()
+
+    if args.late_episode and args.late_episode_strict:
+        raise SystemExit("--late-episode and --late-episode-strict are mutually exclusive")
+
+    if args.late_episode:
+        os.environ["LATE_EPISODE_QUERY"] = "1"
+        print("Late-episode toggle ENABLED (LATE_EPISODE_QUERY=1)")
+    if args.late_episode_strict:
+        os.environ["LATE_EPISODE_QUERY_STRICT"] = "1"
+        print("Late-episode STRICT toggle ENABLED (LATE_EPISODE_QUERY_STRICT=1)")
     if args.num_trials < 1:
         raise SystemExit("--num-trials must be >= 1")
 

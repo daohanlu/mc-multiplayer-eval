@@ -1,0 +1,361 @@
+{
+  "vlm_model_name": "gemini-3-flash-preview",
+  "our_model_name": "flagship",
+  "thinking_enabled": false,
+  "total_queries": 16,
+  "correct": 7,
+  "accuracy": 43.75,
+  "vlm_errors_count": 0,
+  "breakdown_by_query_type": {
+    "player_invisible_looked_away": {
+      "total": 8,
+      "correct": 7,
+      "accuracy": 87.5
+    },
+    "player_position_turned_back": {
+      "total": 8,
+      "correct": 0,
+      "accuracy": 0.0
+    }
+  },
+  "episode_level_accuracy": {
+    "total_episodes": 8,
+    "fully_correct_episodes": 0,
+    "episode_accuracy": 0.0,
+    "is_both_players_dataset": true,
+    "per_player_episode_accuracy": {
+      "alpha": {
+        "total_episodes": 4,
+        "fully_correct_episodes": 0,
+        "episode_accuracy": 0.0
+      },
+      "bravo": {
+        "total_episodes": 4,
+        "fully_correct_episodes": 0,
+        "episode_accuracy": 0.0
+      }
+    }
+  },
+  "results": [
+    {
+      "video": "000000_Alpha_instance_000_camera.mp4",
+      "frame_index": 68,
+      "expected": "no",
+      "response": "yes",
+      "correct": false,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot. Is there another player visible on-screen? Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "alpha",
+        "rotating_bot": "alpha",
+        "query_type": "player_invisible_looked_away",
+        "rotation_direction": "right",
+        "delta_yaw": -1.2618730491922125,
+        "frame1": 48,
+        "episode": "000000",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000000_Alpha_instance_000_camera.mp4",
+      "frame_index": 147,
+      "expected": "center",
+      "response": "right",
+      "correct": false,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot potentially showing another player on the screen. Where is the player located on the screen? Answer with a single word from \"left\", \"right\", \"center\". If there is no player on the screen, answer \"no player\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "alpha",
+        "rotating_bot": "alpha",
+        "query_type": "player_position_turned_back",
+        "rotation_direction": "right",
+        "delta_yaw": 0.0,
+        "frame1": 48,
+        "episode": "000000",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000000_Alpha_instance_001_camera.mp4",
+      "frame_index": 69,
+      "expected": "no",
+      "response": "no",
+      "correct": true,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot. Is there another player visible on-screen? Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "alpha",
+        "rotating_bot": "alpha",
+        "query_type": "player_invisible_looked_away",
+        "rotation_direction": "left",
+        "delta_yaw": 1.468694565553137,
+        "frame1": 48,
+        "episode": "000000",
+        "instance": "001"
+      }
+    },
+    {
+      "video": "000000_Alpha_instance_001_camera.mp4",
+      "frame_index": 149,
+      "expected": "center",
+      "response": "no player",
+      "correct": false,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot potentially showing another player on the screen. Where is the player located on the screen? Answer with a single word from \"left\", \"right\", \"center\". If there is no player on the screen, answer \"no player\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "alpha",
+        "rotating_bot": "alpha",
+        "query_type": "player_position_turned_back",
+        "rotation_direction": "left",
+        "delta_yaw": 0.0,
+        "frame1": 48,
+        "episode": "000000",
+        "instance": "001"
+      }
+    },
+    {
+      "video": "000001_Bravo_instance_000_camera.mp4",
+      "frame_index": 70,
+      "expected": "no",
+      "response": "no",
+      "correct": true,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot. Is there another player visible on-screen? Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "bravo",
+        "rotating_bot": "bravo",
+        "query_type": "player_invisible_looked_away",
+        "rotation_direction": "right",
+        "delta_yaw": -1.5550883635272412,
+        "frame1": 48,
+        "episode": "000001",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000001_Bravo_instance_000_camera.mp4",
+      "frame_index": 151,
+      "expected": "center",
+      "response": "right",
+      "correct": false,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot potentially showing another player on the screen. Where is the player located on the screen? Answer with a single word from \"left\", \"right\", \"center\". If there is no player on the screen, answer \"no player\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "bravo",
+        "rotating_bot": "bravo",
+        "query_type": "player_position_turned_back",
+        "rotation_direction": "right",
+        "delta_yaw": 4.440892098500626e-16,
+        "frame1": 48,
+        "episode": "000001",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000001_Bravo_instance_001_camera.mp4",
+      "frame_index": 71,
+      "expected": "no",
+      "response": "no",
+      "correct": true,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot. Is there another player visible on-screen? Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "bravo",
+        "rotating_bot": "bravo",
+        "query_type": "player_invisible_looked_away",
+        "rotation_direction": "right",
+        "delta_yaw": -1.6964600329387736,
+        "frame1": 48,
+        "episode": "000001",
+        "instance": "001"
+      }
+    },
+    {
+      "video": "000001_Bravo_instance_001_camera.mp4",
+      "frame_index": 153,
+      "expected": "center",
+      "response": "right",
+      "correct": false,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot potentially showing another player on the screen. Where is the player located on the screen? Answer with a single word from \"left\", \"right\", \"center\". If there is no player on the screen, answer \"no player\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "bravo",
+        "rotating_bot": "bravo",
+        "query_type": "player_position_turned_back",
+        "rotation_direction": "right",
+        "delta_yaw": 0.0,
+        "frame1": 48,
+        "episode": "000001",
+        "instance": "001"
+      }
+    },
+    {
+      "video": "000002_Alpha_instance_000_camera.mp4",
+      "frame_index": 70,
+      "expected": "no",
+      "response": "no",
+      "correct": true,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot. Is there another player visible on-screen? Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "alpha",
+        "rotating_bot": "alpha",
+        "query_type": "player_invisible_looked_away",
+        "rotation_direction": "left",
+        "delta_yaw": 1.421570675749293,
+        "frame1": 49,
+        "episode": "000002",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000002_Alpha_instance_000_camera.mp4",
+      "frame_index": 149,
+      "expected": "center",
+      "response": "no player",
+      "correct": false,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot potentially showing another player on the screen. Where is the player located on the screen? Answer with a single word from \"left\", \"right\", \"center\". If there is no player on the screen, answer \"no player\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "alpha",
+        "rotating_bot": "alpha",
+        "query_type": "player_position_turned_back",
+        "rotation_direction": "left",
+        "delta_yaw": 0.0,
+        "frame1": 49,
+        "episode": "000002",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000002_Alpha_instance_001_camera.mp4",
+      "frame_index": 68,
+      "expected": "no",
+      "response": "no",
+      "correct": true,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot. Is there another player visible on-screen? Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "alpha",
+        "rotating_bot": "alpha",
+        "query_type": "player_invisible_looked_away",
+        "rotation_direction": "left",
+        "delta_yaw": 1.2068951777540038,
+        "frame1": 48,
+        "episode": "000002",
+        "instance": "001"
+      }
+    },
+    {
+      "video": "000002_Alpha_instance_001_camera.mp4",
+      "frame_index": 147,
+      "expected": "center",
+      "response": "right",
+      "correct": false,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot potentially showing another player on the screen. Where is the player located on the screen? Answer with a single word from \"left\", \"right\", \"center\". If there is no player on the screen, answer \"no player\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "alpha",
+        "rotating_bot": "alpha",
+        "query_type": "player_position_turned_back",
+        "rotation_direction": "left",
+        "delta_yaw": 0.0,
+        "frame1": 48,
+        "episode": "000002",
+        "instance": "001"
+      }
+    },
+    {
+      "video": "000003_Bravo_instance_000_camera.mp4",
+      "frame_index": 69,
+      "expected": "no",
+      "response": "no",
+      "correct": true,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot. Is there another player visible on-screen? Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "bravo",
+        "rotating_bot": "bravo",
+        "query_type": "player_invisible_looked_away",
+        "rotation_direction": "left",
+        "delta_yaw": 1.2304571226559258,
+        "frame1": 49,
+        "episode": "000003",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000003_Bravo_instance_000_camera.mp4",
+      "frame_index": 147,
+      "expected": "center",
+      "response": "right",
+      "correct": false,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot potentially showing another player on the screen. Where is the player located on the screen? Answer with a single word from \"left\", \"right\", \"center\". If there is no player on the screen, answer \"no player\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "bravo",
+        "rotating_bot": "bravo",
+        "query_type": "player_position_turned_back",
+        "rotation_direction": "left",
+        "delta_yaw": 0.0,
+        "frame1": 49,
+        "episode": "000003",
+        "instance": "000"
+      }
+    },
+    {
+      "video": "000003_Bravo_instance_001_camera.mp4",
+      "frame_index": 69,
+      "expected": "no",
+      "response": "no",
+      "correct": true,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot. Is there another player visible on-screen? Answer with a single word: \"yes\", \"no\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "bravo",
+        "rotating_bot": "bravo",
+        "query_type": "player_invisible_looked_away",
+        "rotation_direction": "left",
+        "delta_yaw": 1.3325588838975877,
+        "frame1": 49,
+        "episode": "000003",
+        "instance": "001"
+      }
+    },
+    {
+      "video": "000003_Bravo_instance_001_camera.mp4",
+      "frame_index": 148,
+      "expected": "center",
+      "response": "no player",
+      "correct": false,
+      "metadata": {
+        "prompt": "Here is a Minecraft screenshot potentially showing another player on the screen. Where is the player located on the screen? Answer with a single word from \"left\", \"right\", \"center\". If there is no player on the screen, answer \"no player\".",
+        "handler": "MinecraftLooksAwayHandler",
+        "using_generated": true,
+        "variant": "bravo",
+        "rotating_bot": "bravo",
+        "query_type": "player_position_turned_back",
+        "rotation_direction": "left",
+        "delta_yaw": 0.0,
+        "frame1": 49,
+        "episode": "000003",
+        "instance": "001"
+      }
+    }
+  ]
+}

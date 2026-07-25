@@ -359,8 +359,14 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[
             print("\n⚠ ERROR: GEMINI_API_KEY environment variable not set!")
             print("Please set it with: export GEMINI_API_KEY='your-api-key'")
             raise ValueError("GEMINI_API_KEY environment variable not set")
-        # Use handler's enable_vlm_thinking property
+        # Use handler's enable_vlm_thinking property, with an env-var override
+        # (FORCE_VLM_THINKING=1) so we can ablate thinking-on/off without
+        # touching per-handler defaults.
         enable_thinking = handler.enable_vlm_thinking
+        if os.environ.get("FORCE_VLM_THINKING") == "1":
+            enable_thinking = True
+        elif os.environ.get("FORCE_VLM_THINKING") == "0":
+            enable_thinking = False
 
     thinking_status = "default" if enable_thinking else "disabled"
     mode_str = "FRAME EXTRACTION ONLY" if extract_only else "VLM EVALUATION"
@@ -707,6 +713,81 @@ def _write_stats_json(output_dir: Path, accuracies: list[float]) -> None:
     print(f"Stats saved to: {stats_path}")
 
 
+def _probe_generated_video_frame_count(generated_subdir: Path) -> Optional[int]:
+    """
+    Probe the first available `video_*_side_by_side.mp4` under ``generated_subdir``
+    and return its frame count, or ``None`` if no usable video is found.
+
+    Used by the --late-episode toggle to compute the late-horizon target frame
+    once at startup (different evals are generated at different fixed lengths).
+    """
+    try:
+        import cv2
+    except ImportError:
+        print("⚠ opencv-python not installed; cannot probe generated video frame count.")
+        return None
+
+    candidates = sorted(generated_subdir.glob("video_*_side_by_side.mp4"))
+    if not candidates:
+        return None
+
+    cap = cv2.VideoCapture(str(candidates[0]))
+    try:
+        frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    finally:
+        cap.release()
+
+    return frame_count if frame_count > 0 else None
+
+
+def _maybe_set_late_episode_gen_len(
+    generated_subdir_override: Optional[Path],
+    generated_path: Optional[Path],
+    dataset_name: str,
+) -> None:
+    """
+    If ``LATE_EPISODE_QUERY=1`` (or ``LATE_EPISODE_QUERY_STRICT=1``) and a
+    generated subdir is resolvable, probe one video for its frame count and
+    export it via ``LATE_EPISODE_GEN_LEN`` so the handler helper can compute
+    ``frame1_idx + GEN_LEN - 20`` per episode.
+
+    For the GT-only / dry-run / extract-frames paths (no --generated), we leave
+    the env var unset so the handler falls back to ``len(GT) - 20``.
+    """
+    if (
+        os.environ.get("LATE_EPISODE_QUERY") != "1"
+        and os.environ.get("LATE_EPISODE_QUERY_STRICT") != "1"
+    ):
+        return
+
+    subdir: Optional[Path] = None
+    if generated_subdir_override:
+        subdir = generated_subdir_override
+    elif generated_path:
+        subdir = find_generated_video_subdir(generated_path, dataset_name)
+
+    if subdir is None or not subdir.exists():
+        print(
+            "Late-episode toggle: no generated subdir resolved; "
+            "handler will fall back to len(GT) - 20 per episode."
+        )
+        return
+
+    frame_count = _probe_generated_video_frame_count(subdir)
+    if frame_count is None:
+        print(
+            f"Late-episode toggle: could not probe generated frame count in {subdir}; "
+            "handler will fall back to len(GT) - 20 per episode."
+        )
+        return
+
+    os.environ["LATE_EPISODE_GEN_LEN"] = str(frame_count)
+    print(
+        f"Late-episode toggle: probed generated video length = {frame_count} frames "
+        f"(from {subdir.name}); LATE_EPISODE_GEN_LEN exported."
+    )
+
+
 def _clear_existing_trial_files(output_dir: Path) -> None:
     """Remove any existing trial outputs in output_dir.
 
@@ -907,6 +988,14 @@ Examples:
         model_name = args.model_name or generated_path.name
     elif args.model_name:
         model_name = args.model_name
+
+    # Late-episode toggle: probe generated video frame count once and export it
+    # so the handler helper can compute the per-episode late-horizon frame.
+    _maybe_set_late_episode_gen_len(
+        generated_subdir_override=generated_subdir_override,
+        generated_path=generated_path,
+        dataset_name=dataset_name,
+    )
 
     # Determine output directory for evaluation trials
     is_generated = generated_path is not None or generated_subdir_override is not None
