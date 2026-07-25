@@ -109,6 +109,56 @@ still works, but saving is localStorage-only — annotators must use the
 **Download my answers** button, and you then pass those files to
 `score_human_eval.py` directly.
 
+## Deployment
+
+`deploy.sh` syncs the bundle to the annotation host and keeps the server alive
+in a tmux session.
+
+```bash
+./deploy.sh            # sync, then start the server if it is not already up
+./deploy.sh status     # session alive? port answering from inside and outside?
+./deploy.sh fetch      # pull collected answers into ./responses/
+./deploy.sh logs       # tail the remote server log
+./deploy.sh restart    # bounce the server, leaving files alone
+./deploy.sh stop       # kill the session (answers untouched)
+```
+
+Defaults — override with environment variables:
+
+| Variable | Default |
+|---|---|
+| `REMOTE` | `fred@69.30.0.74` |
+| `REMOTE_DIR` | `/nas2/fred/solaris-human-eval` |
+| `PORT` | `9001` |
+| `SESSION` | `solaris-human-eval` |
+
+Currently live at **http://69.30.0.74:9001/**.
+
+Two guarantees the script is built around:
+
+* **`responses/` on the remote is never deleted.** `rsync --delete` keeps the
+  remote tidy, but `responses/` is excluded, and rsync protects excluded paths
+  from deletion. Collected answers are the one thing here that cannot be
+  regenerated. The script also never deletes by wildcard.
+* **`data/*_key.json` is never uploaded.** `serve.py` would refuse to serve it
+  (403), but keeping it off a public host entirely is the stronger guarantee.
+  Scoring is local: `./deploy.sh fetch && python3 score_human_eval.py`.
+
+`deploy` is idempotent — re-running syncs changed files and leaves a running
+server alone. Use `restart` if you changed `serve.py` itself.
+
+### Security note
+
+The server binds `0.0.0.0` and is **unauthenticated**: anyone who can reach port
+9001 can read the stimuli and POST answers under any name. That is fine for
+recruiting annotators by sharing a link, and the write path is constrained —
+names are validated against `^[A-Za-z0-9 _.\-]{1,64}$` and slugified, bodies are
+capped at 8 MB, and path traversal returns 404 (all verified against the live
+host). But there is nothing stopping a stranger from submitting junk under a
+plausible name. Since answers are keyed by annotator, treat unfamiliar names in
+`responses/` as suspect, and take the server down with `./deploy.sh stop` once
+collection is finished.
+
 ## Scoring
 
 ```bash
@@ -131,6 +181,7 @@ reproduces its recorded episode-level accuracy exactly (`flagship` 54.7% =
 |---|---|---|
 | `build_human_eval.py` | Extracts frames, copies videos, writes manifests | yes |
 | `serve.py` | Static server + progress API | yes |
+| `deploy.sh` | Sync to the annotation host, run it in tmux | yes |
 | `score_human_eval.py` | Scores collected answers | yes |
 | `index.html`, `consistency.html`, `artifacts.html` | Annotation UI | yes |
 | `static/` | Shared CSS + JS | yes |
