@@ -71,8 +71,14 @@ artifacts responses. Check `responses/` before changing it. They are already
 generated-only (640×704, alpha view over bravo view), full length, H.264.
 Consistency is excluded per the task definition.
 
-Answers are single-select: **no artifacts**, **character artifacts**,
-**other artifacts** (with an optional free-text note).
+Answers are single-select, with no free-text field:
+
+| Key | Option | Guide text |
+|---|---|---|
+| 1 | No artifacts | Each view looks clean on its own, even if the two views disagree with each other. |
+| 2 | Character artifacts | Character disappearing, duplicating, morphing, or unrecognizable. |
+| 3 | Building artifacts | Puts down no blocks or multiple blocks when attempting to build. |
+| 4 | Other artifacts | Any other clear corruption. |
 
 Annotators are told to judge each view on its own and report only *clear*
 visual artifacts, and explicitly **not** to count the two views disagreeing

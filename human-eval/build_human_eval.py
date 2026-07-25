@@ -370,10 +370,17 @@ def build_artifacts() -> None:
             "shared world does NOT count as an artifact for this task."
         ),
         "options": [
-            {"value": "none", "label": "No artifacts", "key": "1"},
-            {"value": "character", "label": "Character artifacts", "key": "2"},
-            {"value": "other", "label": "Other artifacts", "key": "3",
-             "free_text": True},
+            {"value": "none", "label": "No artifacts", "key": "1",
+             "help": "Each view looks clean on its own, even if the two views "
+                     "disagree with each other."},
+            {"value": "character", "label": "Character artifacts", "key": "2",
+             "help": "Character disappearing, duplicating, morphing, or "
+                     "unrecognizable."},
+            {"value": "building", "label": "Building artifacts", "key": "3",
+             "help": "Puts down no blocks or multiple blocks when attempting "
+                     "to build."},
+            {"value": "other", "label": "Other artifacts", "key": "4",
+             "help": "Any other clear corruption."},
         ],
         "items": items,
     })

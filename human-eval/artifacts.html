@@ -49,8 +49,9 @@
 
     <div class="card">
       <p><strong>No artifacts</strong> — each view looks clean on its own, even if the two views disagree with each other.</p>
-      <p><strong>Character artifacts</strong> — a player model is clearly broken: distorted, melting, smeared, flickering, duplicated, or limbs detaching.</p>
-      <p><strong>Other artifacts</strong> — any other clear corruption: terrain or structures warping or dissolving, textures smearing, global colour shifts, whole-frame flicker, HUD corruption. A short note box appears when you pick this.</p>
+      <p><strong>Character artifacts</strong> — character disappearing, duplicating, morphing, or unrecognizable.</p>
+      <p><strong>Building artifacts</strong> — puts down no blocks or multiple blocks when attempting to build.</p>
+      <p><strong>Other artifacts</strong> — any other clear corruption: terrain or structures warping or dissolving, textures smearing, global colour shifts, whole-frame flicker, HUD corruption.</p>
       <p class="hint" style="margin-bottom:0">If a clip has more than one kind, pick the most prominent one.</p>
     </div>
     <button class="primary big" id="startBtn">Start</button>
@@ -81,18 +82,15 @@
       <div class="answers" id="answers">
         <button data-value="none">No artifacts <span class="k">1</span></button>
         <button data-value="character">Character artifacts <span class="k">2</span></button>
-        <button data-value="other">Other artifacts <span class="k">3</span></button>
-      </div>
-
-      <div id="otherWrap" hidden style="margin-top:12px">
-        <input type="text" id="otherNote" placeholder="Briefly: what kind of artifact? (optional)" autocomplete="off">
+        <button data-value="building">Building artifacts <span class="k">3</span></button>
+        <button data-value="other">Other artifacts <span class="k">4</span></button>
       </div>
 
       <div class="nav">
         <button id="prev">&larr; Back</button>
         <button id="next">Skip &rarr;</button>
         <span class="spacer" style="flex:1"></span>
-        <span class="hint"><kbd>1</kbd>–<kbd>3</kbd> answer &middot; <kbd>Space</kbd> replay &middot; <kbd>&larr;</kbd><kbd>&rarr;</kbd> navigate</span>
+        <span class="hint"><kbd>1</kbd>–<kbd>4</kbd> answer &middot; <kbd>Space</kbd> replay &middot; <kbd>&larr;</kbd><kbd>&rarr;</kbd> navigate</span>
       </div>
     </div>
     <button class="subtle" id="dl">Download a copy</button>
@@ -119,7 +117,7 @@ const TASK = 'artifacts';
 const RATE_KEY = 'humanEval.artifacts.rate';
 // Bumped when the answer options change, so answers recorded under the old
 // options are not restored from localStorage.
-const TASK_VERSION = 2;
+const TASK_VERSION = 3;
 const name = requireName();
 document.getElementById('who').textContent = name;
 
@@ -140,8 +138,6 @@ const el = {
   prog: document.getElementById('prog'),
   vid: document.getElementById('vid'),
   answers: document.getElementById('answers'),
-  otherWrap: document.getElementById('otherWrap'),
-  otherNote: document.getElementById('otherNote'),
   saveState: document.getElementById('saveState'),
 };
 
@@ -170,9 +166,6 @@ function show(i) {
   for (const b of el.answers.querySelectorAll('button')) {
     b.classList.toggle('sel', !!cur && cur.value === b.dataset.value);
   }
-  el.otherWrap.hidden = !(cur && cur.value === 'other');
-  el.otherNote.value = (cur && cur.note) || '';
-
   document.getElementById('prev').disabled = idx === 0;
   document.getElementById('next').textContent =
     idx === items.length - 1 ? 'Finish' : (cur ? 'Next →' : 'Skip →');
@@ -180,23 +173,13 @@ function show(i) {
 }
 
 function answer(value) {
-  const payload = { value, index: idx };
-  if (value === 'other') payload.note = el.otherNote.value.trim();
-  store.set(items[idx].id, payload);
+  store.set(items[idx].id, { value, index: idx });
   renderProgress(el.prog, store.count(), items.length);
 
   for (const b of el.answers.querySelectorAll('button')) {
     b.classList.toggle('sel', b.dataset.value === value);
   }
 
-  // "Other" keeps you on the clip so you can type the note; everything else
-  // advances immediately.
-  if (value === 'other') {
-    el.otherWrap.hidden = false;
-    el.otherNote.focus();
-    return;
-  }
-  el.otherWrap.hidden = true;
   if (idx === items.length - 1) maybeDone(); else show(idx + 1);
 }
 
@@ -238,19 +221,6 @@ el.answers.onclick = e => {
   if (b) answer(b.dataset.value);
 };
 
-el.otherNote.addEventListener('input', () => {
-  const cur = store.answers[items[idx].id];
-  if (cur && cur.value === 'other') {
-    store.set(items[idx].id, { value: 'other', index: idx, note: el.otherNote.value.trim() });
-  }
-});
-el.otherNote.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    if (idx === items.length - 1) maybeDone(); else show(idx + 1);
-  }
-});
-
 document.getElementById('speed').onclick = e => {
   const b = e.target.closest('button[data-rate]');
   if (!b) return;
@@ -273,10 +243,9 @@ document.getElementById('showIntro').onclick = () => {
 };
 
 document.addEventListener('keydown', e => {
-  if (e.target === el.otherNote) return;
   if (el.task.hidden) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  const map = { '1': 'none', '2': 'character', '3': 'other' };
+  const map = { '1': 'none', '2': 'character', '3': 'building', '4': 'other' };
   if (map[e.key]) { e.preventDefault(); answer(map[e.key]); }
   else if (e.code === 'Space') { e.preventDefault(); el.vid.currentTime = 0; applyRate(); el.vid.play(); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); show(idx - 1); }

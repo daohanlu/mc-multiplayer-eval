@@ -32,7 +32,7 @@ PAPER_CONSISTENCY = {"flagship": (56.8, 2.9), "causvid_regression": (34.9, 1.5)}
 
 ANSWER_TO_EXPECTED = {"same": "yes", "different": "no"}
 
-ARTIFACT_LABELS = ["none", "character", "other"]
+ARTIFACT_LABELS = ["none", "character", "building", "other"]
 
 
 def load_key(task: str) -> dict[str, dict]:
@@ -135,7 +135,7 @@ def score_artifacts(runs: list[dict], key: dict[str, dict]) -> None:
 
         counts: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
         by_cat: dict[tuple, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-        notes: list[str] = []
+        stale = 0
 
         for item_id, ans in answers.items():
             k = key.get(item_id)
@@ -143,11 +143,15 @@ def score_artifacts(runs: list[dict], key: dict[str, dict]) -> None:
                 continue
             label = ans.get("value")
             if label not in ARTIFACT_LABELS:
+                # A value from a superseded option set (see TASK_VERSION).
+                stale += 1
                 continue
             counts[k["model"]][label] += 1
             by_cat[(k["model"], k["category"])][label] += 1
-            if label == "other" and ans.get("note"):
-                notes.append(f"{k['model']}/{k['category']}: {ans['note']}")
+
+        if stale:
+            print(f"  WARNING: {stale} answer(s) use retired options and were "
+                  f"skipped — collected before the options changed?")
 
         # Width follows the longest label so renaming a category cannot silently
         # push the columns out of alignment.
@@ -174,10 +178,6 @@ def score_artifacts(runs: list[dict], key: dict[str, dict]) -> None:
                 cells.append(f"{100.0 * row['none'] / n:11.1f}%" if n else f"{'-':>12s}")
             print("  {:22s}".format(model) + "".join(cells))
 
-        if notes:
-            print("\n  free-text notes on 'other':")
-            for note in notes:
-                print(f"    - {note}")
 
 
 def main() -> None:
