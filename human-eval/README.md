@@ -75,7 +75,7 @@ Answers are single-select: **no artifacts**, **character artifacts**,
 **terrain artifacts**, **other artifacts** (with an optional free-text note).
 
 **Playback speed** is applied in-browser via `HTMLMediaElement.playbackRate`
-(1× / 1.5× / 4×, default 1.5×). Nothing is re-encoded, so the bytes the
+(1× / 1.5× / 4×, default 1×). Nothing is re-encoded, so the bytes the
 annotator sees are the same bytes that went into the supplementary material,
 and these rates work in every current browser. The choice persists across
 clips; a stored rate from an earlier build is discarded rather than selecting a

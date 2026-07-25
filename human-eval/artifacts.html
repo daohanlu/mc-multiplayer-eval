@@ -111,7 +111,7 @@ let items = [], store = null, idx = 0;
 // natively. A stored value from an earlier build (e.g. the old 2x) is discarded
 // rather than silently selecting a button that no longer exists.
 const RATES = [1, 1.5, 4];
-const DEFAULT_RATE = 1.5;
+const DEFAULT_RATE = 1;
 let rate = parseFloat(localStorage.getItem(RATE_KEY));
 if (!RATES.includes(rate)) rate = DEFAULT_RATE;
 
