@@ -1,0 +1,162 @@
+# Human evaluation
+
+Two blind annotation tasks, served as static pages with a small standard-library
+Python server that persists progress to disk.
+
+| Task | What the annotator does | Items |
+|---|---|---|
+| **Consistency** | Sees two screenshots, answers *same scenery* / *different scenery* | 256 |
+| **Artifacts** | Watches a clip, picks one of four artifact labels | 105 |
+
+## Quick start
+
+```bash
+python human-eval/build_human_eval.py     # once: extract frames, copy videos
+python human-eval/serve.py                # http://localhost:8080
+```
+
+To let other machines connect: `python human-eval/serve.py --host 0.0.0.0 --port 8080`.
+
+When answers are in:
+
+```bash
+python human-eval/score_human_eval.py     # reads everything in responses/
+```
+
+## Task 1 — Consistency
+
+The annotator sees **exactly the screenshot pairs the VLM saw** for the two
+Table 3 rows the paper reports at **56.8 ± 2.9** (`flagship`) and
+**34.9 ± 1.5** (`causvid_regression`).
+
+Frames are produced by calling `run_eval.extract_query_frames` — the same
+"single source of truth" helper the paper run used — with
+`LATE_EPISODE_QUERY_STRICT=1`, the same generated videos
+(`step_0001200_..._turn_to_look{,_opposite}_max_speed`), and the same GT dataset
+(`mc_multiplayer_v2_eval_new_sneak_combined`). The build was verified against
+`results_json_late_episode_strict/`: all 256 items match the recorded
+`episode`, `instance`, `query_type`, `alpha_frame`, `bravo_frame`, `frame1` and
+`expected` — zero mismatches.
+
+```
+2 models x 2 evals (same-side + opposite-sides) x 32 episodes x 2 timestamps = 256
+```
+
+The two timestamps per episode are the strict toggle's original turn-end frame
+and its late-horizon duplicate. Both are included because the paper's
+episode-level accuracy requires the model to be right at *both*, and
+`score_human_eval.py` applies the same AND-semantics to the human answers.
+
+**Calibration.** Before starting, the annotator is shown two worked examples —
+one genuinely same-scenery, one genuinely different — drawn from the
+**ground-truth** (real, non-generated) episode videos, so they cannot leak
+anything about the scored items. The "different" example explicitly warns that a
+shared biome, sky and HUD are *not* evidence of the same scenery.
+
+Alpha is always shown on the left and bravo on the right, matching the order the
+frames were handed to Gemini.
+
+## Task 2 — Artifacts
+
+The 105 supplementary clips from `Model Generations on Eval/` — 7 models ×
+{Movement, Grounding, Building} × 5 videos — copied verbatim. They are already
+generated-only (640×704, alpha view over bravo view), full length, H.264.
+Consistency is excluded per the task definition.
+
+Answers are single-select: **no artifacts**, **character artifacts**,
+**terrain artifacts**, **other artifacts** (with an optional free-text note).
+
+**Playback speed** is applied in-browser via `HTMLMediaElement.playbackRate`
+(1× / 2× / 4×, default 2×). Nothing is re-encoded, so the bytes the annotator
+sees are the same bytes that went into the supplementary material, and
+1×/2×/4× works in every current browser. The choice persists across clips.
+
+## Blinding
+
+Items get opaque ids (`c0001`, `a0042`) assigned in a build-time shuffled order,
+and stimulus files are named after the id — so neither the filename, the URL,
+nor the ordering reveals which model produced a clip.
+
+The model/episode mapping lives in `data/*_key.json`, which **`serve.py` refuses
+to serve over HTTP** (403). It is only read locally by `score_human_eval.py`.
+Pass `--serve-key` to override, which un-blinds the task.
+
+On top of the build-time shuffle, each annotator gets their own deterministic
+permutation seeded by their name, so order effects do not correlate across
+people — and because it is a pure function of the name, resuming always
+reproduces the same sequence.
+
+## Progress, saving and resuming
+
+The annotator enters a name on the landing page. After **every answer**:
+
+1. the full answer set is written to `localStorage` (instant, survives a closed
+   tab or a crash), and
+2. it is `POST`ed to `serve.py`, which writes
+   `responses/<task>__<name>.json` atomically (survives a different browser,
+   a different machine, or a cleared cache).
+
+On load, both copies are merged and the larger one wins, so neither path can
+silently lose work. Re-entering the same name resumes at the first unanswered
+item. A "saved" indicator appears in the header on each write; if the server is
+unreachable it reads **saved in browser only**.
+
+Progress bars are on the landing page (per task) and pinned to the header of
+both annotation pages.
+
+If you serve the folder with plain `python -m http.server` instead, everything
+still works, but saving is localStorage-only — annotators must use the
+**Download my answers** button, and you then pass those files to
+`score_human_eval.py` directly.
+
+## Scoring
+
+```bash
+python human-eval/score_human_eval.py                          # all of responses/
+python human-eval/score_human_eval.py path/to/downloaded.json  # a specific file
+```
+
+Consistency prints query-level and episode-level accuracy per model with the
+paper's VLM numbers alongside. Artifacts prints the label distribution per model
+and per category, plus any free-text notes. Incomplete runs are labelled and
+partial episodes are excluded rather than counted as wrong.
+
+Sanity check: replaying the VLM's own trial-1 responses through the scorer
+reproduces its recorded episode-level accuracy exactly (`flagship` 54.7% =
+35/64, `causvid_regression` 32.8% = 21/64).
+
+## Files
+
+| Path | Purpose | In git |
+|---|---|---|
+| `build_human_eval.py` | Extracts frames, copies videos, writes manifests | yes |
+| `serve.py` | Static server + progress API | yes |
+| `score_human_eval.py` | Scores collected answers | yes |
+| `index.html`, `consistency.html`, `artifacts.html` | Annotation UI | yes |
+| `static/` | Shared CSS + JS | yes |
+| `data/*_items.json` | Client manifests (no model info) | no — generated |
+| `data/*_key.json` | Answer key (model, episode, expected) | no — generated |
+| `frames/`, `videos/` | Stimuli (136 MB / 29 MB) | no — generated |
+| `Model Generations on Eval/` | Supplementary source clips | no — large |
+| `responses/` | Collected answers | no — data |
+
+Everything in the "no" rows is reproduced by `build_human_eval.py`, except
+`Model Generations on Eval/` (the paper supplementary) and `responses/` (the
+collected answers) — **back those up separately.**
+
+## Rebuilding
+
+`build_human_eval.py` is deterministic: fixed shuffle seed, fixed calibration
+episodes. Re-running reproduces identical ids and identical stimuli.
+
+```bash
+python human-eval/build_human_eval.py --only artifacts   # one task
+python human-eval/build_human_eval.py --skip-frames      # re-shuffle ids only
+```
+
+`--skip-frames` reuses the PNGs already on disk and is only safe while the
+shuffle seed is unchanged. It also skips the calibration images, so re-run
+without it if you change which calibration episodes are used.
+
+Changing `SHUFFLE_SEED` **invalidates every existing response file**, because
+answers are keyed by item id.

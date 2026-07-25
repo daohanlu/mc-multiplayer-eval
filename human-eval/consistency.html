@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scene consistency</title>
+<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-inner">
+    <h1>Scene consistency</h1>
+    <span class="who" id="who"></span>
+    <span class="spacer"></span>
+    <span class="saved" id="saveState"></span>
+    <a class="btn" href="index.html">Menu</a>
+  </div>
+  <div class="bar-inner" style="padding-top:0">
+    <div class="progress" id="prog">
+      <div class="track"><div class="fill"></div></div>
+      <span class="count">–</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- calibration ------------------------------------------------------- -->
+  <section id="calibration" hidden>
+    <h2>Before you start: what counts as the same scenery</h2>
+    <p class="lede">
+      You will see two screenshots taken from two different players in the same
+      world at the same moment. Your job is to judge whether they are looking at
+      <strong>the same part of the world</strong> or at
+      <strong>unrelated parts of the world</strong>.
+      Judge the scenery itself — the camera position and angle always differ,
+      and that alone never makes a pair &ldquo;different&rdquo;.
+    </p>
+    <div id="calList"></div>
+    <button class="primary big" id="startBtn">I understand — start</button>
+    <p class="hint" style="margin-top:12px">These two examples are real recorded footage, not model output. They are not scored.</p>
+  </section>
+
+  <!-- task -------------------------------------------------------------- -->
+  <section id="task" hidden>
+    <div class="card">
+      <h2 style="margin-bottom:14px">Do these two screenshots show the same scenery?</h2>
+      <div class="pair">
+        <figure><img id="imgA" alt="First screenshot"><figcaption>Player 1</figcaption></figure>
+        <figure><img id="imgB" alt="Second screenshot"><figcaption>Player 2</figcaption></figure>
+      </div>
+
+      <div class="answers" id="answers">
+        <button data-value="same">Same scenery <span class="k">S</span></button>
+        <button data-value="different">Different scenery <span class="k">D</span></button>
+      </div>
+
+      <div class="nav">
+        <button id="prev">&larr; Back</button>
+        <button id="next">Skip &rarr;</button>
+        <span class="spacer" style="flex:1"></span>
+        <span class="hint"><kbd>S</kbd> same &middot; <kbd>D</kbd> different &middot; <kbd>&larr;</kbd><kbd>&rarr;</kbd> navigate</span>
+      </div>
+    </div>
+    <button id="dl">Download my answers</button>
+    <button id="showCal">Show examples again</button>
+  </section>
+
+  <!-- done -------------------------------------------------------------- -->
+  <section id="done" hidden>
+    <div class="card done">
+      <h2>All done — thank you!</h2>
+      <p class="lede">All <span id="doneTotal"></span> comparisons are answered and saved.</p>
+      <button class="primary big" id="dl2">Download my answers</button>
+      <p class="hint" style="margin-top:16px"><a href="index.html">Back to the menu</a> &middot; you can revisit any answer with the Back button.</p>
+    </div>
+  </section>
+
+</div>
+
+<script src="static/common.js"></script>
+<script>
+const TASK = 'consistency';
+const name = requireName();
+document.getElementById('who').textContent = name;
+
+let items = [], store = null, idx = 0, spec = null;
+
+const el = {
+  cal: document.getElementById('calibration'),
+  calList: document.getElementById('calList'),
+  task: document.getElementById('task'),
+  done: document.getElementById('done'),
+  prog: document.getElementById('prog'),
+  imgA: document.getElementById('imgA'),
+  imgB: document.getElementById('imgB'),
+  answers: document.getElementById('answers'),
+  saveState: document.getElementById('saveState'),
+};
+
+function renderCalibration(cal) {
+  el.calList.innerHTML = cal.examples.map(ex => `
+    <div class="card cal">
+      <div class="verdict ${ex.answer}">${ex.verdict}</div>
+      <p>${ex.explanation}</p>
+      <div class="pair">
+        <figure><img src="${ex.image_a}" alt=""><figcaption>Player 1</figcaption></figure>
+        <figure><img src="${ex.image_b}" alt=""><figcaption>Player 2</figcaption></figure>
+      </div>
+    </div>`).join('');
+}
+
+/* Resume at the first unanswered item so returning users land where they
+   stopped rather than at the top. */
+function firstUnanswered() {
+  const i = items.findIndex(it => !store.answers[it.id]);
+  return i === -1 ? items.length - 1 : i;
+}
+
+function show(i) {
+  idx = Math.max(0, Math.min(items.length - 1, i));
+  const item = items[idx];
+  el.imgA.src = item.image_a;
+  el.imgB.src = item.image_b;
+
+  const cur = store.answers[item.id];
+  for (const b of el.answers.querySelectorAll('button')) {
+    b.classList.toggle('sel', !!cur && cur.value === b.dataset.value);
+  }
+  document.getElementById('prev').disabled = idx === 0;
+  document.getElementById('next').textContent =
+    idx === items.length - 1 ? 'Finish' : (cur ? 'Next →' : 'Skip →');
+  renderProgress(el.prog, store.count(), items.length);
+
+  // Preload the next pair so answering never waits on the network.
+  const nxt = items[idx + 1];
+  if (nxt) { new Image().src = nxt.image_a; new Image().src = nxt.image_b; }
+}
+
+function answer(value) {
+  store.set(items[idx].id, { value, index: idx });
+  renderProgress(el.prog, store.count(), items.length);
+  if (idx === items.length - 1) { show(idx); maybeDone(); }
+  else show(idx + 1);
+}
+
+function maybeDone() {
+  if (store.count() >= items.length) {
+    el.task.hidden = true;
+    el.done.hidden = false;
+    document.getElementById('doneTotal').textContent = items.length;
+  }
+}
+
+el.answers.onclick = e => {
+  const b = e.target.closest('button[data-value]');
+  if (b) answer(b.dataset.value);
+};
+
+document.getElementById('prev').onclick = () => { el.done.hidden = true; el.task.hidden = false; show(idx - 1); };
+document.getElementById('next').onclick = () => {
+  if (idx === items.length - 1) maybeDone(); else show(idx + 1);
+};
+document.getElementById('dl').onclick = () => store.download();
+document.getElementById('dl2').onclick = () => store.download();
+document.getElementById('showCal').onclick = () => {
+  el.task.hidden = true; el.cal.hidden = false; window.scrollTo(0, 0);
+};
+
+document.addEventListener('keydown', e => {
+  if (el.task.hidden) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 's') { e.preventDefault(); answer('same'); }
+  else if (k === 'd') { e.preventDefault(); answer('different'); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); show(idx - 1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); show(idx + 1); }
+});
+
+(async function init() {
+  spec = await loadJSON('data/consistency_items.json');
+  const cal = await loadJSON('data/consistency_calibration.json');
+  renderCalibration(cal);
+
+  items = shuffleFor(spec.items, name, TASK);
+  store = new Store(TASK, name, items.length);
+  store.onsave = ok => {
+    el.saveState.textContent = ok ? 'saved' : 'saved in browser only';
+    el.saveState.className = ok ? 'saved' : 'saveerr';
+    setTimeout(() => { el.saveState.textContent = ''; }, 1800);
+  };
+  await store.load();
+  renderProgress(el.prog, store.count(), items.length);
+
+  const resuming = store.count() > 0;
+  show(firstUnanswered());
+
+  document.getElementById('startBtn').onclick = () => {
+    el.cal.hidden = true; el.task.hidden = false; window.scrollTo(0, 0); maybeDone();
+  };
+
+  // Returning annotators skip straight back to the task.
+  if (resuming) { el.task.hidden = false; maybeDone(); }
+  else { el.cal.hidden = false; }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visual artifacts</title>
+<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-inner">
+    <h1>Visual artifacts</h1>
+    <span class="who" id="who"></span>
+    <span class="spacer"></span>
+    <span class="saved" id="saveState"></span>
+    <a class="btn" href="index.html">Menu</a>
+  </div>
+  <div class="bar-inner" style="padding-top:0">
+    <div class="progress" id="prog">
+      <div class="track"><div class="fill"></div></div>
+      <span class="count">–</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- intro ------------------------------------------------------------- -->
+  <section id="intro" hidden>
+    <h2>Visual artifacts</h2>
+    <p class="lede">
+      Each clip shows two players in the same world — one view on top, one
+      below. Watch the clip and pick the <strong>single best description</strong>
+      of the visual artifacts you see.
+    </p>
+    <div class="card">
+      <p><strong>No artifacts</strong> — the clip looks clean throughout.</p>
+      <p><strong>Character artifacts</strong> — problems with a player model: distorted, melting, flickering, duplicated, limbs detaching, a player appearing or vanishing incorrectly.</p>
+      <p><strong>Terrain artifacts</strong> — problems with the world: geometry warping or dissolving, textures smearing, structures collapsing or drifting, blocks appearing or vanishing incorrectly.</p>
+      <p><strong>Other artifacts</strong> — anything else (global colour shifts, flicker across the whole frame, HUD corruption). A short note box appears when you pick this.</p>
+      <p class="hint" style="margin-bottom:0">If a clip has more than one kind, pick the most prominent one.</p>
+    </div>
+    <button class="primary big" id="startBtn">Start</button>
+  </section>
+
+  <!-- task -------------------------------------------------------------- -->
+  <section id="task" hidden>
+    <div class="card">
+      <div class="videobox">
+        <video id="vid" preload="auto" playsinline autoplay muted loop controls></video>
+      </div>
+
+      <div class="nav" style="justify-content:center;margin-top:14px">
+        <span class="speed" id="speed">
+          <span class="hint" style="margin-right:4px">Speed</span>
+          <button data-rate="1">1&times;</button>
+          <button data-rate="2">2&times;</button>
+          <button data-rate="4">4&times;</button>
+        </span>
+        <button id="replay">Replay</button>
+      </div>
+
+      <h2 style="margin:20px 0 0;font-size:17px">Does this video contain visual artifacts?</h2>
+      <div class="answers" id="answers">
+        <button data-value="none">No artifacts <span class="k">1</span></button>
+        <button data-value="character">Character artifacts <span class="k">2</span></button>
+        <button data-value="terrain">Terrain artifacts <span class="k">3</span></button>
+        <button data-value="other">Other artifacts <span class="k">4</span></button>
+      </div>
+
+      <div id="otherWrap" hidden style="margin-top:12px">
+        <input type="text" id="otherNote" placeholder="Briefly: what kind of artifact? (optional)" autocomplete="off">
+      </div>
+
+      <div class="nav">
+        <button id="prev">&larr; Back</button>
+        <button id="next">Skip &rarr;</button>
+        <span class="spacer" style="flex:1"></span>
+        <span class="hint"><kbd>1</kbd>–<kbd>4</kbd> answer &middot; <kbd>Space</kbd> replay &middot; <kbd>&larr;</kbd><kbd>&rarr;</kbd> navigate</span>
+      </div>
+    </div>
+    <button id="dl">Download my answers</button>
+    <button id="showIntro">Show the guide again</button>
+  </section>
+
+  <!-- done -------------------------------------------------------------- -->
+  <section id="done" hidden>
+    <div class="card done">
+      <h2>All done — thank you!</h2>
+      <p class="lede">All <span id="doneTotal"></span> clips are answered and saved.</p>
+      <button class="primary big" id="dl2">Download my answers</button>
+      <p class="hint" style="margin-top:16px"><a href="index.html">Back to the menu</a> &middot; you can revisit any answer with the Back button.</p>
+    </div>
+  </section>
+
+</div>
+
+<script src="static/common.js"></script>
+<script>
+const TASK = 'artifacts';
+const RATE_KEY = 'humanEval.artifacts.rate';
+const name = requireName();
+document.getElementById('who').textContent = name;
+
+let items = [], store = null, idx = 0;
+// playbackRate is set on every load: it is a property of the element, not the
+// file, so nothing is re-encoded and every browser handles 1x/2x/4x natively.
+let rate = parseFloat(localStorage.getItem(RATE_KEY) || '2') || 2;
+
+const el = {
+  intro: document.getElementById('intro'),
+  task: document.getElementById('task'),
+  done: document.getElementById('done'),
+  prog: document.getElementById('prog'),
+  vid: document.getElementById('vid'),
+  answers: document.getElementById('answers'),
+  otherWrap: document.getElementById('otherWrap'),
+  otherNote: document.getElementById('otherNote'),
+  saveState: document.getElementById('saveState'),
+};
+
+function applyRate() {
+  el.vid.playbackRate = rate;
+  for (const b of document.querySelectorAll('#speed button')) {
+    b.classList.toggle('sel', parseFloat(b.dataset.rate) === rate);
+  }
+}
+
+function firstUnanswered() {
+  const i = items.findIndex(it => !store.answers[it.id]);
+  return i === -1 ? items.length - 1 : i;
+}
+
+function show(i) {
+  idx = Math.max(0, Math.min(items.length - 1, i));
+  const item = items[idx];
+
+  el.vid.src = item.video;
+  el.vid.load();
+  applyRate();
+  el.vid.play().catch(() => { /* autoplay blocked — controls are visible */ });
+
+  const cur = store.answers[item.id];
+  for (const b of el.answers.querySelectorAll('button')) {
+    b.classList.toggle('sel', !!cur && cur.value === b.dataset.value);
+  }
+  el.otherWrap.hidden = !(cur && cur.value === 'other');
+  el.otherNote.value = (cur && cur.note) || '';
+
+  document.getElementById('prev').disabled = idx === 0;
+  document.getElementById('next').textContent =
+    idx === items.length - 1 ? 'Finish' : (cur ? 'Next →' : 'Skip →');
+  renderProgress(el.prog, store.count(), items.length);
+}
+
+function answer(value) {
+  const payload = { value, index: idx };
+  if (value === 'other') payload.note = el.otherNote.value.trim();
+  store.set(items[idx].id, payload);
+  renderProgress(el.prog, store.count(), items.length);
+
+  for (const b of el.answers.querySelectorAll('button')) {
+    b.classList.toggle('sel', b.dataset.value === value);
+  }
+
+  // "Other" keeps you on the clip so you can type the note; everything else
+  // advances immediately.
+  if (value === 'other') {
+    el.otherWrap.hidden = false;
+    el.otherNote.focus();
+    return;
+  }
+  el.otherWrap.hidden = true;
+  if (idx === items.length - 1) maybeDone(); else show(idx + 1);
+}
+
+function maybeDone() {
+  if (store.count() >= items.length) {
+    el.vid.pause();
+    el.task.hidden = true;
+    el.done.hidden = false;
+    document.getElementById('doneTotal').textContent = items.length;
+  }
+}
+
+el.answers.onclick = e => {
+  const b = e.target.closest('button[data-value]');
+  if (b) answer(b.dataset.value);
+};
+
+el.otherNote.addEventListener('input', () => {
+  const cur = store.answers[items[idx].id];
+  if (cur && cur.value === 'other') {
+    store.set(items[idx].id, { value: 'other', index: idx, note: el.otherNote.value.trim() });
+  }
+});
+el.otherNote.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (idx === items.length - 1) maybeDone(); else show(idx + 1);
+  }
+});
+
+document.getElementById('speed').onclick = e => {
+  const b = e.target.closest('button[data-rate]');
+  if (!b) return;
+  rate = parseFloat(b.dataset.rate);
+  localStorage.setItem(RATE_KEY, String(rate));
+  applyRate();
+};
+
+document.getElementById('replay').onclick = () => {
+  el.vid.currentTime = 0; applyRate(); el.vid.play();
+};
+document.getElementById('prev').onclick = () => { el.done.hidden = true; el.task.hidden = false; show(idx - 1); };
+document.getElementById('next').onclick = () => {
+  if (idx === items.length - 1) maybeDone(); else show(idx + 1);
+};
+document.getElementById('dl').onclick = () => store.download();
+document.getElementById('dl2').onclick = () => store.download();
+document.getElementById('showIntro').onclick = () => {
+  el.vid.pause(); el.task.hidden = true; el.intro.hidden = false; window.scrollTo(0, 0);
+};
+
+document.addEventListener('keydown', e => {
+  if (e.target === el.otherNote) return;
+  if (el.task.hidden) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const map = { '1': 'none', '2': 'character', '3': 'terrain', '4': 'other' };
+  if (map[e.key]) { e.preventDefault(); answer(map[e.key]); }
+  else if (e.code === 'Space') { e.preventDefault(); el.vid.currentTime = 0; applyRate(); el.vid.play(); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); show(idx - 1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); show(idx + 1); }
+});
+
+// Keep the requested rate across loops and source swaps — some browsers reset
+// playbackRate when a new source is attached.
+el.vid.addEventListener('loadedmetadata', applyRate);
+el.vid.addEventListener('play', applyRate);
+
+(async function init() {
+  const spec = await loadJSON('data/artifacts_items.json');
+  items = shuffleFor(spec.items, name, TASK);
+  store = new Store(TASK, name, items.length);
+  store.onsave = ok => {
+    el.saveState.textContent = ok ? 'saved' : 'saved in browser only';
+    el.saveState.className = ok ? 'saved' : 'saveerr';
+    setTimeout(() => { el.saveState.textContent = ''; }, 1800);
+  };
+  await store.load();
+  renderProgress(el.prog, store.count(), items.length);
+
+  const resuming = store.count() > 0;
+  show(firstUnanswered());
+  applyRate();
+
+  document.getElementById('startBtn').onclick = () => {
+    el.intro.hidden = true; el.task.hidden = false; window.scrollTo(0, 0);
+    show(idx); maybeDone();
+  };
+
+  if (resuming) { el.task.hidden = false; maybeDone(); }
+  else { el.intro.hidden = false; el.vid.pause(); }
+})();
+</script>
+</body>
+</html>

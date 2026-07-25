@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Human Evaluation</title>
+<link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-inner">
+    <h1>Human Evaluation</h1>
+    <span class="spacer"></span>
+    <span class="who" id="who"></span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="card" id="nameCard">
+    <h2>Your name</h2>
+    <p class="lede">
+      Progress is saved against your name after every answer. If you close the
+      tab, switch browsers, or lose your connection, come back and enter the
+      <em>same name</em> to pick up exactly where you left off.
+    </p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="nameInput" placeholder="e.g. fred" autocomplete="off" spellcheck="false">
+      <button class="primary" id="saveName">Continue</button>
+    </div>
+    <p class="hint" id="nameHint" style="margin-top:10px"></p>
+  </div>
+
+  <div id="tasks" hidden>
+    <h2>Tasks</h2>
+    <p class="lede">Both tasks save independently — you can do them in any order, and stop and resume at any point.</p>
+
+    <div class="task-grid">
+      <div class="card">
+        <h3>1 &middot; Scene consistency</h3>
+        <div class="meta">Two screenshots at a time &middot; same or different scenery</div>
+        <div class="progress"><div class="track"><div class="fill"></div></div><span class="count">–</span></div>
+        <p class="hint" style="margin:14px 0">
+          Starts with two worked examples so you know what counts as
+          &ldquo;same&rdquo; and what counts as &ldquo;different&rdquo;.
+        </p>
+        <a class="btn" href="consistency.html" id="goC">Start</a>
+      </div>
+
+      <div class="card">
+        <h3>2 &middot; Visual artifacts</h3>
+        <div class="meta">One video at a time &middot; pick the artifact type</div>
+        <div class="progress"><div class="track"><div class="fill"></div></div><span class="count">–</span></div>
+        <p class="hint" style="margin:14px 0">
+          Videos play at 2&times; by default; you can switch to 1&times; or 4&times;
+          and scrub freely.
+        </p>
+        <a class="btn" href="artifacts.html" id="goA">Start</a>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3>Switch annotator</h3>
+      <p class="hint">Currently annotating as <strong id="whoInline"></strong>. Changing the name starts a separate, independent set of answers.</p>
+      <button id="changeName">Change name</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="static/common.js"></script>
+<script>
+const nameCard = document.getElementById('nameCard');
+const tasks = document.getElementById('tasks');
+const input = document.getElementById('nameInput');
+const hint = document.getElementById('nameHint');
+
+function valid(n) { return /^[A-Za-z0-9 _.\-]{1,64}$/.test(n.trim()); }
+
+async function showTasks(name) {
+  document.getElementById('who').textContent = name;
+  document.getElementById('whoInline').textContent = name;
+  nameCard.hidden = true;
+  tasks.hidden = false;
+
+  for (const [task, cardIdx, link] of [['consistency', 0, 'goC'], ['artifacts', 1, 'goA']]) {
+    const card = document.querySelectorAll('.task-grid .card')[cardIdx];
+    const bar = card.querySelector('.progress');
+    try {
+      const items = await loadJSON(`data/${task}_items.json`);
+      const store = new Store(task, name, items.items.length);
+      await store.load();
+      const done = store.count();
+      renderProgress(bar, done, items.items.length);
+      const a = document.getElementById(link);
+      if (done >= items.items.length) a.textContent = 'Review / re-download';
+      else if (done > 0) a.textContent = 'Resume';
+    } catch (e) {
+      bar.querySelector('.count').textContent = 'not built';
+    }
+  }
+}
+
+document.getElementById('saveName').onclick = () => {
+  const n = input.value.trim();
+  if (!valid(n)) {
+    hint.textContent = 'Use 1–64 characters: letters, digits, spaces, dot, dash or underscore.';
+    return;
+  }
+  setName(n);
+  showTasks(n);
+};
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('saveName').click();
+});
+
+document.getElementById('changeName').onclick = () => {
+  localStorage.removeItem(NAME_KEY);
+  location.reload();
+};
+
+const existing = getName();
+if (existing) showTasks(existing);
+else input.focus();
+</script>
+</body>
+</html>

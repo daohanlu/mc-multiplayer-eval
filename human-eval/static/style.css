@@ -1,0 +1,210 @@
+:root {
+  --bg: #12141a;
+  --panel: #1b1e26;
+  --panel-2: #232733;
+  --line: #333947;
+  --text: #e8eaf0;
+  --muted: #99a0b0;
+  --accent: #5b9dff;
+  --accent-dim: #2f5fa8;
+  --good: #43c088;
+  --warn: #e0a34a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+a { color: var(--accent); }
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px 24px 64px;
+}
+
+header.bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(18, 20, 26, .94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.bar-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.bar h1 { font-size: 15px; margin: 0; font-weight: 600; }
+.bar .who { color: var(--muted); font-size: 13px; }
+.bar .spacer { flex: 1; }
+
+h2 { font-size: 20px; margin: 0 0 6px; }
+p.lede { color: var(--muted); margin: 0 0 20px; }
+
+/* progress ---------------------------------------------------------------- */
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.track {
+  flex: 1;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--panel-2);
+  overflow: hidden;
+  min-width: 160px;
+}
+
+.fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  transition: width .18s ease;
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* cards ------------------------------------------------------------------- */
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.task-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.card h3 { margin: 0 0 6px; font-size: 17px; }
+.card .meta { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+
+/* controls ---------------------------------------------------------------- */
+
+button, .btn {
+  font: inherit;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+button:hover, .btn:hover { border-color: var(--accent-dim); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+
+button.primary { background: var(--accent-dim); border-color: var(--accent); }
+button.big { padding: 14px 22px; font-size: 16px; font-weight: 600; }
+
+input[type=text] {
+  font: inherit;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  width: 100%;
+  max-width: 340px;
+}
+
+kbd {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 1px 6px;
+  font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--muted);
+}
+
+/* stimulus ---------------------------------------------------------------- */
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.pair figure { margin: 0; }
+.pair img { width: 100%; display: block; border-radius: 8px; border: 1px solid var(--line); background: #000; }
+.pair figcaption { color: var(--muted); font-size: 12px; margin-top: 6px; text-align: center; }
+
+.videobox { display: flex; justify-content: center; }
+.videobox video {
+  max-height: 74vh;
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #000;
+}
+
+/* answers ----------------------------------------------------------------- */
+
+.answers { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+
+.answers button {
+  flex: 1 1 180px;
+  padding: 15px 16px;
+  font-size: 15px;
+  text-align: left;
+}
+
+.answers button.sel {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.answers button .k { float: right; color: var(--muted); font-size: 12px; }
+.answers button.sel .k { color: var(--text); }
+
+.nav { display: flex; gap: 10px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+
+.speed { display: inline-flex; gap: 6px; align-items: center; }
+.speed button { padding: 6px 13px; font-size: 14px; }
+.speed button.sel { background: var(--accent-dim); border-color: var(--accent); font-weight: 600; }
+
+.hint { color: var(--muted); font-size: 13px; }
+.saved { color: var(--good); font-size: 13px; }
+.saveerr { color: var(--warn); font-size: 13px; }
+
+/* calibration ------------------------------------------------------------- */
+
+.cal { border-left: 3px solid var(--accent); }
+.cal .verdict { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+.cal .verdict.same { color: var(--good); }
+.cal .verdict.different { color: var(--warn); }
+.cal p { color: var(--muted); margin: 0 0 14px; }
+
+.done { text-align: center; padding: 60px 20px; }
+.done h2 { font-size: 26px; }
+
+@media (max-width: 720px) {
+  .pair { grid-template-columns: 1fr; }
+  .wrap { padding: 16px 14px 48px; }
+}
