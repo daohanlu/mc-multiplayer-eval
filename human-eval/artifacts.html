@@ -55,7 +55,7 @@
         <span class="speed" id="speed">
           <span class="hint" style="margin-right:4px">Speed</span>
           <button data-rate="1">1&times;</button>
-          <button data-rate="2">2&times;</button>
+          <button data-rate="1.5">1.5&times;</button>
           <button data-rate="4">4&times;</button>
         </span>
         <button id="replay">Replay</button>
@@ -80,16 +80,18 @@
         <span class="hint"><kbd>1</kbd>–<kbd>4</kbd> answer &middot; <kbd>Space</kbd> replay &middot; <kbd>&larr;</kbd><kbd>&rarr;</kbd> navigate</span>
       </div>
     </div>
-    <button id="dl">Download my answers</button>
-    <button id="showIntro">Show the guide again</button>
+    <button class="subtle" id="dl">Download a copy</button>
+    <button class="subtle" id="showIntro">Show the guide again</button>
   </section>
 
   <!-- done -------------------------------------------------------------- -->
   <section id="done" hidden>
     <div class="card done">
       <h2>All done — thank you!</h2>
-      <p class="lede">All <span id="doneTotal"></span> clips are answered and saved.</p>
-      <button class="primary big" id="dl2">Download my answers</button>
+      <div id="doneWarn" hidden class="warnbox"></div>
+      <p class="lede" id="doneMsg">Checking that your answers are saved&hellip;</p>
+      <p class="hint" id="doneSub"></p>
+      <button class="subtle" id="dl2">Download a copy</button>
       <p class="hint" style="margin-top:16px"><a href="index.html">Back to the menu</a> &middot; you can revisit any answer with the Back button.</p>
     </div>
   </section>
@@ -105,8 +107,13 @@ document.getElementById('who').textContent = name;
 
 let items = [], store = null, idx = 0;
 // playbackRate is set on every load: it is a property of the element, not the
-// file, so nothing is re-encoded and every browser handles 1x/2x/4x natively.
-let rate = parseFloat(localStorage.getItem(RATE_KEY) || '2') || 2;
+// file, so nothing is re-encoded and every browser handles these rates
+// natively. A stored value from an earlier build (e.g. the old 2x) is discarded
+// rather than silently selecting a button that no longer exists.
+const RATES = [1, 1.5, 4];
+const DEFAULT_RATE = 1.5;
+let rate = parseFloat(localStorage.getItem(RATE_KEY));
+if (!RATES.includes(rate)) rate = DEFAULT_RATE;
 
 const el = {
   intro: document.getElementById('intro'),
@@ -176,11 +183,35 @@ function answer(value) {
 }
 
 function maybeDone() {
-  if (store.count() >= items.length) {
-    el.vid.pause();
-    el.task.hidden = true;
-    el.done.hidden = false;
-    document.getElementById('doneTotal').textContent = items.length;
+  if (store.count() < items.length) return;
+  el.vid.pause();
+  el.task.hidden = true;
+  el.done.hidden = false;
+  confirmSaved(items.length, 'clips');
+}
+
+/* Verify with the server before telling anyone their work is safe. */
+async function confirmSaved(n, noun) {
+  const msg = document.getElementById('doneMsg');
+  const sub = document.getElementById('doneSub');
+  const warn = document.getElementById('doneWarn');
+  const dl = document.getElementById('dl2');
+
+  const { ok } = await store.verifySaved();
+  if (ok) {
+    warn.hidden = true;
+    msg.innerHTML = `<span class="reassure">All ${n} ${noun} are saved on the server.</span>`;
+    sub.textContent = 'Nothing further is needed — you can close this tab. '
+      + 'Downloading a copy is optional.';
+    dl.className = 'subtle';
+  } else {
+    warn.hidden = false;
+    warn.innerHTML = '<strong>Your answers are saved in this browser only.</strong> '
+      + 'The server could not be reached, so please download a copy and send it '
+      + 'to whoever set up this study.';
+    msg.textContent = `All ${n} ${noun} are answered.`;
+    sub.textContent = 'Do not clear this browser’s data until the file is safe.';
+    dl.className = 'primary big';
   }
 }
 

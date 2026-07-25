@@ -151,6 +151,25 @@ class Store {
     return Object.keys(this.answers).length;
   }
 
+  /**
+   * Flush any pending write, then re-read the server copy and confirm it holds
+   * at least as many answers as we do. Used to tell the annotator their work is
+   * safe — we verify it rather than assuming it, so the reassuring message can
+   * never be shown when the server never actually received the data.
+   */
+  async verifySaved() {
+    if (this.pending) { clearTimeout(this.pending); this.pending = null; }
+    await this.flushRemote();
+    try {
+      const res = await fetch(this.url(), { cache: 'no-store' });
+      if (!res.ok) return { ok: false, count: 0 };
+      const remote = Object.keys((await res.json()).answers || {}).length;
+      return { ok: remote >= this.count(), count: remote };
+    } catch (e) {
+      return { ok: false, count: 0 };
+    }
+  }
+
   download() {
     const blob = new Blob([JSON.stringify(this.payload(), null, 2)],
                           { type: 'application/json' });

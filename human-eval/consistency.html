@@ -63,16 +63,18 @@
         <span class="hint"><kbd>S</kbd> same &middot; <kbd>D</kbd> different &middot; <kbd>&larr;</kbd><kbd>&rarr;</kbd> navigate</span>
       </div>
     </div>
-    <button id="dl">Download my answers</button>
-    <button id="showCal">Show examples again</button>
+    <button class="subtle" id="dl">Download a copy</button>
+    <button class="subtle" id="showCal">Show examples again</button>
   </section>
 
   <!-- done -------------------------------------------------------------- -->
   <section id="done" hidden>
     <div class="card done">
       <h2>All done — thank you!</h2>
-      <p class="lede">All <span id="doneTotal"></span> comparisons are answered and saved.</p>
-      <button class="primary big" id="dl2">Download my answers</button>
+      <div id="doneWarn" hidden class="warnbox"></div>
+      <p class="lede" id="doneMsg">Checking that your answers are saved&hellip;</p>
+      <p class="hint" id="doneSub"></p>
+      <button class="subtle" id="dl2">Download a copy</button>
       <p class="hint" style="margin-top:16px"><a href="index.html">Back to the menu</a> &middot; you can revisit any answer with the Back button.</p>
     </div>
   </section>
@@ -146,10 +148,34 @@ function answer(value) {
 }
 
 function maybeDone() {
-  if (store.count() >= items.length) {
-    el.task.hidden = true;
-    el.done.hidden = false;
-    document.getElementById('doneTotal').textContent = items.length;
+  if (store.count() < items.length) return;
+  el.task.hidden = true;
+  el.done.hidden = false;
+  confirmSaved(items.length, 'comparisons');
+}
+
+/* Verify with the server before telling anyone their work is safe. */
+async function confirmSaved(n, noun) {
+  const msg = document.getElementById('doneMsg');
+  const sub = document.getElementById('doneSub');
+  const warn = document.getElementById('doneWarn');
+  const dl = document.getElementById('dl2');
+
+  const { ok } = await store.verifySaved();
+  if (ok) {
+    warn.hidden = true;
+    msg.innerHTML = `<span class="reassure">All ${n} ${noun} are saved on the server.</span>`;
+    sub.textContent = 'Nothing further is needed — you can close this tab. '
+      + 'Downloading a copy is optional.';
+    dl.className = 'subtle';
+  } else {
+    warn.hidden = false;
+    warn.innerHTML = '<strong>Your answers are saved in this browser only.</strong> '
+      + 'The server could not be reached, so please download a copy and send it '
+      + 'to whoever set up this study.';
+    msg.textContent = `All ${n} ${noun} are answered.`;
+    sub.textContent = 'Do not clear this browser’s data until the file is safe.';
+    dl.className = 'primary big';
   }
 }
 

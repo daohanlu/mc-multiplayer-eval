@@ -59,7 +59,9 @@ frames were handed to Gemini.
 ## Task 2 — Artifacts
 
 The 105 supplementary clips from `Model Generations on Eval/` — 7 models ×
-{Movement, Grounding, Building} × 5 videos — copied verbatim. They are already
+3 categories {Movement, Grounding, Building} × 5 videos — copied verbatim.
+The two `Consistency (…)` folders are **excluded**: with them it would be 175
+clips, so 105 is the count that confirms they are left out. They are already
 generated-only (640×704, alpha view over bravo view), full length, H.264.
 Consistency is excluded per the task definition.
 
@@ -67,9 +69,11 @@ Answers are single-select: **no artifacts**, **character artifacts**,
 **terrain artifacts**, **other artifacts** (with an optional free-text note).
 
 **Playback speed** is applied in-browser via `HTMLMediaElement.playbackRate`
-(1× / 2× / 4×, default 2×). Nothing is re-encoded, so the bytes the annotator
-sees are the same bytes that went into the supplementary material, and
-1×/2×/4× works in every current browser. The choice persists across clips.
+(1× / 1.5× / 4×, default 1.5×). Nothing is re-encoded, so the bytes the
+annotator sees are the same bytes that went into the supplementary material,
+and these rates work in every current browser. The choice persists across
+clips; a stored rate from an earlier build is discarded rather than selecting a
+button that no longer exists.
 
 ## Blinding
 

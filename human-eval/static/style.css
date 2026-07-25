@@ -121,6 +121,28 @@ button:disabled { opacity: .4; cursor: not-allowed; }
 button.primary { background: var(--accent-dim); border-color: var(--accent); }
 button.big { padding: 14px 22px; font-size: 16px; font-weight: 600; }
 
+/* Secondary escape hatch — present, but visibly not the thing to click. */
+button.subtle {
+  background: none;
+  border-color: var(--line);
+  color: var(--muted);
+  font-size: 13px;
+  padding: 6px 12px;
+}
+button.subtle:hover { color: var(--text); border-color: var(--accent-dim); }
+
+.reassure { color: var(--good); font-weight: 600; }
+.reassure::before { content: "✓ "; }
+.warnbox {
+  border-left: 3px solid var(--warn);
+  background: rgba(224, 163, 74, .08);
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 0 auto 18px;
+  max-width: 560px;
+  text-align: left;
+}
+
 input[type=text] {
   font: inherit;
   color: var(--text);
