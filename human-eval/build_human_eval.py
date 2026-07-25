@@ -367,7 +367,8 @@ def build_artifacts() -> None:
         "options": [
             {"value": "none", "label": "No artifacts", "key": "1"},
             {"value": "character", "label": "Character artifacts", "key": "2"},
-            {"value": "terrain", "label": "Terrain artifacts", "key": "3"},
+            {"value": "inconsistent_views", "label": "Inconsistent views",
+             "key": "3"},
             {"value": "other", "label": "Other artifacts", "key": "4",
              "free_text": True},
         ],

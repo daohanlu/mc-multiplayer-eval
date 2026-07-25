@@ -37,7 +37,7 @@
     <div class="card">
       <p><strong>No artifacts</strong> — the clip looks clean throughout.</p>
       <p><strong>Character artifacts</strong> — problems with a player model: distorted, melting, flickering, duplicated, limbs detaching, a player appearing or vanishing incorrectly.</p>
-      <p><strong>Terrain artifacts</strong> — problems with the world: geometry warping or dissolving, textures smearing, structures collapsing or drifting, blocks appearing or vanishing incorrectly.</p>
+      <p><strong>Inconsistent views</strong> — the two views disagree about the shared world: the same place, structure or object looks different between the top and bottom view, or is present in one view but missing from the other.</p>
       <p><strong>Other artifacts</strong> — anything else (global colour shifts, flicker across the whole frame, HUD corruption). A short note box appears when you pick this.</p>
       <p class="hint" style="margin-bottom:0">If a clip has more than one kind, pick the most prominent one.</p>
     </div>
@@ -65,7 +65,7 @@
       <div class="answers" id="answers">
         <button data-value="none">No artifacts <span class="k">1</span></button>
         <button data-value="character">Character artifacts <span class="k">2</span></button>
-        <button data-value="terrain">Terrain artifacts <span class="k">3</span></button>
+        <button data-value="inconsistent_views">Inconsistent views <span class="k">3</span></button>
         <button data-value="other">Other artifacts <span class="k">4</span></button>
       </div>
 
@@ -258,7 +258,7 @@ document.addEventListener('keydown', e => {
   if (e.target === el.otherNote) return;
   if (el.task.hidden) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  const map = { '1': 'none', '2': 'character', '3': 'terrain', '4': 'other' };
+  const map = { '1': 'none', '2': 'character', '3': 'inconsistent_views', '4': 'other' };
   if (map[e.key]) { e.preventDefault(); answer(map[e.key]); }
   else if (e.code === 'Space') { e.preventDefault(); el.vid.currentTime = 0; applyRate(); el.vid.play(); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); show(idx - 1); }

@@ -32,7 +32,7 @@ PAPER_CONSISTENCY = {"flagship": (56.8, 2.9), "causvid_regression": (34.9, 1.5)}
 
 ANSWER_TO_EXPECTED = {"same": "yes", "different": "no"}
 
-ARTIFACT_LABELS = ["none", "character", "terrain", "other"]
+ARTIFACT_LABELS = ["none", "character", "inconsistent_views", "other"]
 
 
 def load_key(task: str) -> dict[str, dict]:
@@ -149,14 +149,18 @@ def score_artifacts(runs: list[dict], key: dict[str, dict]) -> None:
             if label == "other" and ans.get("note"):
                 notes.append(f"{k['model']}/{k['category']}: {ans['note']}")
 
-        hdr = "  {:22s}".format("model") + "".join(f"{l:>11s}" for l in ARTIFACT_LABELS) + f"{'clean %':>10s}"
-        print(hdr)
+        # Width follows the longest label so renaming a category cannot silently
+        # push the columns out of alignment.
+        w = max(len(l) for l in ARTIFACT_LABELS) + 2
+        print("  {:22s}".format("model")
+              + "".join(f"{l:>{w}s}" for l in ARTIFACT_LABELS)
+              + f"{'clean %':>10s}")
         for model in sorted(counts):
             row = counts[model]
             n = sum(row.values())
             clean = 100.0 * row["none"] / n if n else 0.0
             print("  {:22s}".format(model)
-                  + "".join(f"{row[l]:11d}" for l in ARTIFACT_LABELS)
+                  + "".join(f"{row[l]:{w}d}" for l in ARTIFACT_LABELS)
                   + f"{clean:9.1f}%")
 
         print("\n  by category (clean %):")

@@ -72,7 +72,10 @@ generated-only (640×704, alpha view over bravo view), full length, H.264.
 Consistency is excluded per the task definition.
 
 Answers are single-select: **no artifacts**, **character artifacts**,
-**terrain artifacts**, **other artifacts** (with an optional free-text note).
+**inconsistent views**, **other artifacts** (with an optional free-text note).
+"Inconsistent views" covers the two stacked views disagreeing about the shared
+world — the same place or object rendered differently between them, or present
+in one and missing from the other.
 
 **Playback speed** is applied in-browser via `HTMLMediaElement.playbackRate`
 (1× / 1.5× / 4×, default 1×). Nothing is re-encoded, so the bytes the
