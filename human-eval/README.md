@@ -137,6 +137,33 @@ unreachable it reads **saved in browser only**.
 Progress bars are on the landing page (per task) and pinned to the header of
 both annotation pages.
 
+### Reviewing a finished task
+
+A completed task is not locked. The landing page shows a **Review answers**
+button once a task is done (and alongside **Resume** while it is in progress),
+and the completion screen has the same button. Both open the normal annotation
+page at the first item with every previous answer pre-selected, so answers can
+be paged through with the arrow keys and changed in place; the guide or the
+calibration examples can be re-opened from there too.
+
+Review mode is just `?review=1` on the task URL. It suppresses the completion
+screen so a finished annotator is not bounced back to it on every load —
+pressing **Finish** on the last item brings the summary back.
+
+### Instruction versions
+
+Two independent counters, both in the task page:
+
+* `TASK_VERSION` — bump when the *options* change. It is part of the
+  localStorage key, so old answers are ignored rather than resurrected.
+  Existing server-side files must be deleted by hand.
+* `INSTRUCTION_VERSION` — bump when the *wording* changes but the options do
+  not. This invalidates nothing; it is recorded on each saved run as
+  `instruction_version` so a run collected under earlier guidance can be told
+  apart later. `score_human_eval.py` prints a note when a run predates the
+  current wording, and echoes an optional `instruction_version_note` if the
+  file carries one.
+
 If you serve the folder with plain `python -m http.server` instead, everything
 still works, but saving is localStorage-only — annotators must use the
 **Download my answers** button, and you then pass those files to

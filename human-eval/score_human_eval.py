@@ -34,6 +34,25 @@ ANSWER_TO_EXPECTED = {"same": "yes", "different": "no"}
 
 ARTIFACT_LABELS = ["none", "character", "building", "other"]
 
+# Wording version each task's pages currently serve. A run recorded under an
+# older one is still valid — the options did not change — but is flagged so a
+# mixed-guidance set is visible rather than silent.
+CURRENT_INSTRUCTION_VERSION = {"consistency": 1, "artifacts": 2}
+
+
+def _instruction_note(run: dict) -> None:
+    task = run.get("task")
+    seen = run.get("instruction_version")
+    current = CURRENT_INSTRUCTION_VERSION.get(task)
+    if seen is None:
+        print("  NOTE: no instruction_version recorded — collected before the "
+              "field existed.")
+    elif current is not None and seen < current:
+        print(f"  NOTE: collected under instruction wording v{seen}; pages now "
+              f"serve v{current}.")
+    if run.get("instruction_version_note"):
+        print(f"        {run['instruction_version_note']}")
+
 
 def load_key(task: str) -> dict[str, dict]:
     path = DATA / f"{task}_key.json"
@@ -70,6 +89,7 @@ def score_consistency(runs: list[dict], key: dict[str, dict]) -> None:
         total = len(key)
         print(f"\nannotator: {who}   ({len(answers)}/{total} answered"
               f"{'' if len(answers) == total else ' — INCOMPLETE'})")
+        _instruction_note(run)
 
         # query level, and episode buckets keyed by (model, eval, episode, instance)
         q_right = defaultdict(int)
@@ -132,6 +152,7 @@ def score_artifacts(runs: list[dict], key: dict[str, dict]) -> None:
         total = len(key)
         print(f"\nannotator: {who}   ({len(answers)}/{total} answered"
               f"{'' if len(answers) == total else ' — INCOMPLETE'})")
+        _instruction_note(run)
 
         counts: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
         by_cat: dict[tuple, dict[str, int]] = defaultdict(lambda: defaultdict(int))

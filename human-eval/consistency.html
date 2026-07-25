@@ -74,6 +74,7 @@
       <div id="doneWarn" hidden class="warnbox"></div>
       <p class="lede" id="doneMsg">Checking that your answers are saved&hellip;</p>
       <p class="hint" id="doneSub"></p>
+      <button class="primary" id="review">Review my answers</button>
       <button class="subtle" id="dl2">Download a copy</button>
       <p class="hint" style="margin-top:16px"><a href="index.html">Back to the menu</a> &middot; you can revisit any answer with the Back button.</p>
     </div>
@@ -84,6 +85,10 @@
 <script src="static/common.js"></script>
 <script>
 const TASK = 'consistency';
+// See Store: TASK_VERSION invalidates old answers, INSTRUCTION_VERSION only
+// records which wording a run was collected under.
+const TASK_VERSION = 1;
+const INSTRUCTION_VERSION = 1;
 const name = requireName();
 document.getElementById('who').textContent = name;
 
@@ -147,8 +152,22 @@ function answer(value) {
   else show(idx + 1);
 }
 
+/* Review mode lets a finished annotator page back through their answers (and
+   re-open the examples) instead of being parked on the completion screen. */
+let reviewMode = new URLSearchParams(location.search).has('review');
+
+function enterReview(at = 0) {
+  reviewMode = true;
+  el.done.hidden = true;
+  el.cal.hidden = true;
+  el.task.hidden = false;
+  show(at);
+  window.scrollTo(0, 0);
+}
+
 function maybeDone() {
   if (store.count() < items.length) return;
+  if (reviewMode) return;
   el.task.hidden = true;
   el.done.hidden = false;
   confirmSaved(items.length, 'comparisons');
@@ -186,8 +205,11 @@ el.answers.onclick = e => {
 
 document.getElementById('prev').onclick = () => { el.done.hidden = true; el.task.hidden = false; show(idx - 1); };
 document.getElementById('next').onclick = () => {
-  if (idx === items.length - 1) maybeDone(); else show(idx + 1);
+  // "Finish" on the last item leaves review mode and shows the summary.
+  if (idx === items.length - 1) { reviewMode = false; maybeDone(); }
+  else show(idx + 1);
 };
+document.getElementById('review').onclick = () => enterReview(0);
 document.getElementById('dl').onclick = () => store.download();
 document.getElementById('dl2').onclick = () => store.download();
 document.getElementById('showCal').onclick = () => {
@@ -210,7 +232,7 @@ document.addEventListener('keydown', e => {
   renderCalibration(cal);
 
   items = shuffleFor(spec.items, name, TASK);
-  store = new Store(TASK, name, items.length);
+  store = new Store(TASK, name, items.length, TASK_VERSION, INSTRUCTION_VERSION);
   store.onsave = ok => {
     el.saveState.textContent = ok ? 'saved' : 'saved in browser only';
     el.saveState.className = ok ? 'saved' : 'saveerr';
@@ -220,14 +242,15 @@ document.addEventListener('keydown', e => {
   renderProgress(el.prog, store.count(), items.length);
 
   const resuming = store.count() > 0;
-  show(firstUnanswered());
+  show(reviewMode ? 0 : firstUnanswered());
 
   document.getElementById('startBtn').onclick = () => {
     el.cal.hidden = true; el.task.hidden = false; window.scrollTo(0, 0); maybeDone();
   };
 
-  // Returning annotators skip straight back to the task.
-  if (resuming) { el.task.hidden = false; maybeDone(); }
+  // Returning annotators skip straight back to the task; ?review lands on the
+  // first item rather than the completion screen.
+  if (resuming || reviewMode) { el.task.hidden = false; maybeDone(); }
   else { el.cal.hidden = false; }
 })();
 </script>

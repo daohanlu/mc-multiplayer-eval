@@ -113,6 +113,7 @@
       <div id="doneWarn" hidden class="warnbox"></div>
       <p class="lede" id="doneMsg">Checking that your answers are saved&hellip;</p>
       <p class="hint" id="doneSub"></p>
+      <button class="primary" id="review">Review my answers</button>
       <button class="subtle" id="dl2">Download a copy</button>
       <p class="hint" style="margin-top:16px"><a href="index.html">Back to the menu</a> &middot; you can revisit any answer with the Back button.</p>
     </div>
@@ -127,6 +128,10 @@ const RATE_KEY = 'humanEval.artifacts.rate';
 // Bumped when the answer options change, so answers recorded under the old
 // options are not restored from localStorage.
 const TASK_VERSION = 3;
+// Bumped when the wording changes without changing the options. Invalidates
+// nothing; it just records which guidance a run was collected under.
+// v2 added the memory-failure exclusion.
+const INSTRUCTION_VERSION = 2;
 const name = requireName();
 document.getElementById('who').textContent = name;
 
@@ -192,8 +197,22 @@ function answer(value) {
   if (idx === items.length - 1) maybeDone(); else show(idx + 1);
 }
 
+/* Review mode lets a finished annotator page back through their answers (and
+   re-open the guide) instead of being parked on the completion screen. */
+let reviewMode = new URLSearchParams(location.search).has('review');
+
+function enterReview(at = 0) {
+  reviewMode = true;
+  el.done.hidden = true;
+  el.intro.hidden = true;
+  el.task.hidden = false;
+  show(at);
+  window.scrollTo(0, 0);
+}
+
 function maybeDone() {
   if (store.count() < items.length) return;
+  if (reviewMode) return;
   el.vid.pause();
   el.task.hidden = true;
   el.done.hidden = false;
@@ -243,8 +262,11 @@ document.getElementById('replay').onclick = () => {
 };
 document.getElementById('prev').onclick = () => { el.done.hidden = true; el.task.hidden = false; show(idx - 1); };
 document.getElementById('next').onclick = () => {
-  if (idx === items.length - 1) maybeDone(); else show(idx + 1);
+  // "Finish" on the last item leaves review mode and shows the summary.
+  if (idx === items.length - 1) { reviewMode = false; maybeDone(); }
+  else show(idx + 1);
 };
+document.getElementById('review').onclick = () => enterReview(0);
 document.getElementById('dl').onclick = () => store.download();
 document.getElementById('dl2').onclick = () => store.download();
 document.getElementById('showIntro').onclick = () => {
@@ -286,7 +308,7 @@ function renderGuideExamples(spec) {
   const spec = await loadJSON('data/artifacts_items.json');
   renderGuideExamples(spec);
   items = shuffleFor(spec.items, name, TASK);
-  store = new Store(TASK, name, items.length, TASK_VERSION);
+  store = new Store(TASK, name, items.length, TASK_VERSION, INSTRUCTION_VERSION);
   store.onsave = ok => {
     el.saveState.textContent = ok ? 'saved' : 'saved in browser only';
     el.saveState.className = ok ? 'saved' : 'saveerr';
@@ -296,7 +318,7 @@ function renderGuideExamples(spec) {
   renderProgress(el.prog, store.count(), items.length);
 
   const resuming = store.count() > 0;
-  show(firstUnanswered());
+  show(reviewMode ? 0 : firstUnanswered());
   applyRate();
 
   document.getElementById('startBtn').onclick = () => {
@@ -304,7 +326,8 @@ function renderGuideExamples(spec) {
     show(idx); maybeDone();
   };
 
-  if (resuming) { el.task.hidden = false; maybeDone(); }
+  // ?review lands on the first clip rather than the completion screen.
+  if (resuming || reviewMode) { el.task.hidden = false; maybeDone(); }
   else { el.intro.hidden = false; el.vid.pause(); }
 })();
 </script>

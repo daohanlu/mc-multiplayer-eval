@@ -46,6 +46,7 @@
           &ldquo;same&rdquo; and what counts as &ldquo;different&rdquo;.
         </p>
         <a class="btn" href="consistency.html" id="goC">Start</a>
+        <a class="btn subtle" href="consistency.html?review=1" id="revC" hidden>Review answers</a>
       </div>
 
       <div class="card">
@@ -57,6 +58,7 @@
           4&times; and scrub freely.
         </p>
         <a class="btn" href="artifacts.html" id="goA">Start</a>
+        <a class="btn subtle" href="artifacts.html?review=1" id="revA" hidden>Review answers</a>
       </div>
     </div>
 
@@ -84,18 +86,32 @@ async function showTasks(name) {
   nameCard.hidden = true;
   tasks.hidden = false;
 
-  for (const [task, cardIdx, link] of [['consistency', 0, 'goC'], ['artifacts', 1, 'goA']]) {
+  // Task versions must match the ones the task pages use, or the landing page
+  // would read a different localStorage key and under-report progress.
+  const VERSIONS = { consistency: 1, artifacts: 3 };
+
+  for (const [task, cardIdx, link, rev] of
+       [['consistency', 0, 'goC', 'revC'], ['artifacts', 1, 'goA', 'revA']]) {
     const card = document.querySelectorAll('.task-grid .card')[cardIdx];
     const bar = card.querySelector('.progress');
     try {
       const items = await loadJSON(`data/${task}_items.json`);
-      const store = new Store(task, name, items.items.length);
+      const store = new Store(task, name, items.items.length, VERSIONS[task]);
       await store.load();
       const done = store.count();
       renderProgress(bar, done, items.items.length);
       const a = document.getElementById(link);
-      if (done >= items.items.length) a.textContent = 'Review / re-download';
-      else if (done > 0) a.textContent = 'Resume';
+      const r = document.getElementById(rev);
+      if (done >= items.items.length) {
+        // Finished: reviewing is the useful action, so lead with it.
+        a.textContent = 'Open';
+        a.className = 'btn subtle';
+        r.className = 'btn';
+        r.hidden = false;
+      } else if (done > 0) {
+        a.textContent = 'Resume';
+        r.hidden = false;
+      }
     } catch (e) {
       bar.querySelector('.count').textContent = 'not built';
     }
