@@ -137,6 +137,22 @@ unreachable it reads **saved in browser only**.
 Progress bars are on the landing page (per task) and pinned to the header of
 both annotation pages.
 
+### Navigating
+
+The question number is shown in the header, kept separate from the progress bar
+— *where you are* and *how much is done* are different things, and on a review
+pass the bar sits at 100% while you move around.
+
+The position also lives in the URL as `?i=` (1-based), so a spot can be
+bookmarked, shared, or survive a reload. It is written with `replaceState`, so
+256 questions do not bury the browser's back button. An explicit `?i=` wins
+over resuming or `?review=1`.
+
+**Next unanswered** — a button in the footer, or the <kbd>N</kbd> key — jumps
+to the next gap, wrapping around the end. This also backs the **Finish** button:
+on an incomplete run Finish reports how many questions are outstanding and jumps
+to the next one, rather than silently doing nothing as it used to.
+
 ### Reviewing a finished task
 
 A completed task is not locked. The landing page shows a **Review answers**

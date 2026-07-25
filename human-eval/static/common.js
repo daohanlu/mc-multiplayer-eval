@@ -210,6 +210,43 @@ function renderProgress(el, done, total, label) {
   el.classList.toggle('reviewing', !!label);
 }
 
+/* Position in the URL ------------------------------------------------------
+ *
+ * The question number lives in ?i= (1-based) so a spot can be bookmarked,
+ * shared, or survive a reload. replaceState rather than pushState: 256 history
+ * entries would bury the browser's back button.
+ */
+
+function urlIndex(total) {
+  const n = parseInt(new URLSearchParams(location.search).get('i'), 10);
+  if (!Number.isFinite(n) || n < 1 || n > total) return null;
+  return n - 1;
+}
+
+function setUrlIndex(i) {
+  const u = new URL(location.href);
+  u.searchParams.set('i', i + 1);
+  history.replaceState(null, '', u);
+}
+
+/** Next unanswered item after `from`, wrapping; -1 when everything is done. */
+function nextUnansweredFrom(items, answers, from) {
+  const n = items.length;
+  for (let k = 1; k <= n; k++) {
+    const j = (from + k) % n;
+    if (!answers[items[j].id]) return j;
+  }
+  return -1;
+}
+
+/** Transient message in the task footer. */
+function notice(el, text, ms = 4000) {
+  if (!el) return;
+  el.textContent = text;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.textContent = ''; }, ms);
+}
+
 async function loadJSON(path) {
   const res = await fetch(path, { cache: 'no-store' });
   if (!res.ok) throw new Error(`could not load ${path} (${res.status})`);

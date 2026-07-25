@@ -87,6 +87,20 @@ p.lede { color: var(--muted); margin: 0 0 20px; }
   white-space: nowrap;
 }
 
+/* Where you are, kept visually distinct from how much is done. */
+.pos {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  padding-right: 14px;
+  margin-right: 2px;
+  border-right: 1px solid var(--line);
+}
+
+.notice { color: var(--warn); font-size: 13px; }
+
 /* Reviewing: the bar is a position indicator, not completion. Muting it keeps
    that visually distinct from a run still being filled in. */
 .progress.reviewing .fill { background: var(--muted); opacity: .55; }
