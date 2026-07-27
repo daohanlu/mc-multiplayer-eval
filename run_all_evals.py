@@ -38,6 +38,10 @@ EVAL_TYPE_MAPPING = {
     # generation run emits (step_{N}_multiplayer_v2_eval_co_movement[...]).
     "co_movement": "coMovementEval",
     "co_movement_divider": "coMovementWithDividerEval",
+    # The reported co-movement eval: no cancelling action pairs, so every answer
+    # is directional and it mirrors translationEval. The other two are
+    # diagnostics — see COMOVEMENT_EVAL.md.
+    "co_movement_relative": "coMovementAlwaysRelativeMotionEval",
 }
 
 # Which eval types to actually run (comment out to skip)
@@ -50,8 +54,11 @@ ENABLED_EVAL_TYPES = [
     "turn_to_look_opposite",
     "one_looks_away",
     "both_look_away",
-    # Not enabled by default: no generations exist for these yet, so they would
-    # be skipped for every model. Pass --eval-types co_movement explicitly.
+    # Not enabled by default: generations exist only for the default model, and
+    # under subdir names the automatic lookup does not match, so these would be
+    # skipped for every model. Run them with an explicit --eval-types plus
+    # --generated-subdir (see COMOVEMENT_EVAL.md).
+    # "co_movement_relative",   <- the reported one
     # "co_movement",
     # "co_movement_divider",
 ]

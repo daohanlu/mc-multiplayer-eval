@@ -38,6 +38,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from vlm_utils import EpisodeTypeHandler, VideoPair, KeyframeQuery
 from handlers.camera_utils import find_end_of_first_sneak_chunk
+from handlers.mc_multiplayer_handler_translation import MinecraftTranslationHandler
 
 DIRECTIONS = ("forward", "back", "left", "right")
 
@@ -51,15 +52,11 @@ DEADZONE = 0.75
 class MinecraftCoMovementHandler(EpisodeTypeHandler):
     """Both bots move at once; each camera is judged on its own."""
 
-    DATASET_NAMES = [
-        "coMovementEval",
-        "coMovementWithDividerEval",
-        # Same construction, minus the cancelling action pairs: both bots always
-        # take the *same* action, so relative motion is never zero and every
-        # answer is directional. Nothing here needs special-casing — the
-        # geometry decides the answer either way.
-        "coMovementAlwaysRelativeMotionEval",
-    ]
+    # Both of these contain episodes where the two bots move but their relative
+    # position does not change, so the prompt has to teach the screen-relative
+    # frame of reference. Neither is reported — see COMOVEMENT_EVAL.md. The
+    # reported dataset is coMovementAlwaysRelativeMotionEval, handled below.
+    DATASET_NAMES = ["coMovementEval", "coMovementWithDividerEval"]
 
     def get_prompt(self, query_type: str = "co_movement") -> str:
         """Screen-relative phrasing, chosen by A/B against ground truth.
@@ -225,3 +222,36 @@ class MinecraftCoMovementHandler(EpisodeTypeHandler):
 
     def validate_response(self, response: str, expected: str) -> bool:
         return response.strip().lower() == expected.strip().lower()
+
+
+class MinecraftCoMovementAlwaysRelativeHandler(MinecraftCoMovementHandler):
+    """The reported co-movement eval: both bots always take the *same* action.
+
+    Identical construction to the parent, minus the cancelling action pairs.
+    Because the bots face each other, taking the same action always changes
+    their relative position, so relative motion is never zero and every answer
+    is directional — 16 each of closer / farther / left / right over 64
+    queries. The geometry needs no special-casing and agrees with
+    translationEval's label mapping (forward->closer, back->farther,
+    left->right, right->left) on 64/64.
+    """
+
+    DATASET_NAMES = ["coMovementAlwaysRelativeMotionEval"]
+
+    def get_prompt(self, query_type: str = "co_movement") -> str:
+        """translationEval's prompt, byte-for-byte.
+
+        This eval is the two-bot mirror of translationEval and is meant to be
+        read alongside it, so it asks the question in the same words. The
+        parent's screen-relative wording exists to rescue the "no motion" class,
+        which does not occur here — and its "if they look the same, answer no
+        motion" clause is a pure liability once no motion is never the answer.
+        Measured over the same 64 generated queries, 3 trials each: this prompt
+        100.0% +/- 0.0, the parent's 97.4% +/- 0.7, with every one of those
+        errors a 'farther' read as 'no motion'.
+
+        Delegated rather than copied on purpose: the two evals are meant to ask
+        the same question, so if translationEval's wording is ever changed this
+        one follows it. Do not fork the string.
+        """
+        return MinecraftTranslationHandler().get_prompt()

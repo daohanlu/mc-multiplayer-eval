@@ -4,11 +4,19 @@ Two new datasets pulled from
 `gs://solaris-central1/solaris/data/neurips_eval_coMovement/` into
 `mc_multiplayer_v2_eval_new_sneak_combined_simplified_naming/`:
 
-| Dataset | Pairs | Queries | Notes |
-|---|---|---|---|
-| `coMovementAlwaysRelativeMotionEval` | 32 | 64 | no cancelling pairs, every answer directional — see below |
-| `coMovementEval` | 32 | 64 | open ground, half the answers "no motion" |
-| `coMovementWithDividerEval` | 32 | 64 | a divider between the bots — **excluded, see below** |
+| Dataset | Pairs | Queries | Prompt | Notes |
+|---|---|---|---|---|
+| `coMovementAlwaysRelativeMotionEval` | 32 | 64 | translationEval's | **this is the one to report** |
+| `coMovementEval` | 32 | 64 | screen-relative | diagnostic, not reported |
+| `coMovementWithDividerEval` | 32 | 64 | screen-relative | **excluded, see below** |
+
+Two prompts on purpose. The reported eval never has a "no motion" answer, so it
+asks translationEval's question in translationEval's words and is read
+alongside it. The other two contain episodes where both bots move but their
+relative position does not change; those need the screen-relative wording to
+have any chance at the "no motion" class, and they are diagnostics rather than
+numbers to quote. `MinecraftCoMovementAlwaysRelativeHandler` subclasses
+`MinecraftCoMovementHandler` and overrides only `get_prompt`.
 
 Each is 16 episodes x 2 instances, 32 pairs — the same size as the existing
 evals, so the default 32-pair cap in `run_eval.py` takes all of them.
@@ -29,44 +37,51 @@ geometry decides the answer either way, and it agrees with translationEval's
 label mapping (`forward`->closer, `back`->farther, `left`->right,
 `right`->left) on **64/64**.
 
-Gemini 3 Flash, thinking off, 3 trials, under the handler's current prompt:
+Gemini 3 Flash, thinking off, 3 trials, under the shipped default prompt
+(translationEval's):
 
 | | GT | generated |
 |---|---|---|
-| query-level | **100.0% +/- 0.0** | **97.9% +/- 0.7** |
-| episode-level | **100.0% +/- 0.0** | **95.8% +/- 1.5** |
+| query-level | 99.5% +/- 0.7 | **100.0% +/- 0.0** |
+| episode-level | 99.0% +/- 1.5 | **100.0% +/- 0.0** |
 
-Chance is 25%. GT is a clean ceiling, which is what you want from a reference
-eval. Note that generated is close to saturated for the default model: all four
-errors are `farther` read as `no motion`, and they are a prompt artifact (see
-below), not the generator drifting. **This eval will not separate models at the
-top** — it will show that Solaris solves co-movement rather than by how much.
-The ablations are where it should still spread.
+Chance is 25%.
 
-### Which prompt to use here
+**This eval is saturated for the default model.** Generated is a flat 64/64 in
+all three trials; GT's single miss is one `right + right` query in trial 1 read
+as `right` instead of `left`, correct in the other two trials and in every A/B
+trial. That is sampling noise, not GT being harder than generation — but it is
+why generated prints *above* GT, and a gap that small in that direction should
+not be read as a result. Report this as "solved", not as a score to compare
+against other numbers at the top end. The ablations are where it should still
+spread.
 
-There are no no-motion answers in this dataset, so the current prompt's "if they
-look the same, answer no motion" clause can only ever cost points — and does.
-Same 64 generated queries, 3 trials each:
+### Why this dataset uses translationEval's prompt
+
+The prompt is chosen per dataset, and here the choice is the reason the eval
+exists: it is the two-bot mirror of translationEval and is meant to be read next
+to it, so it asks the question in the same words. The screen-relative wording
+that the other two datasets need exists to rescue the "no motion" class, which
+never occurs here — and its "if they look the same, answer no motion" clause is
+a pure liability once "no motion" is never the correct answer.
+
+Measured over the same 64 generated queries, 3 trials each:
 
 | Prompt | GT | generated |
 |---|---|---|
-| `translation_exact` (translationEval's, byte-for-byte) | 100.0% +/- 0.0 | **100.0% +/- 0.0** |
+| **`translation_exact`** (translationEval's, byte-for-byte — the default) | 100.0% +/- 0.0 | **100.0% +/- 0.0** |
 | `baseline` | — | 99.5% +/- 0.7 |
 | `screen_relative` | — | 98.4% +/- 0.0 |
-| `ignore_landmarks` (current handler default) | 100.0% +/- 0.0 | 97.4% +/- 0.7 |
+| `ignore_landmarks` (what the other two datasets use) | 100.0% +/- 0.0 | 97.4% +/- 0.7 |
 
-The trade is real either way and has not been decided:
+Every one of the `ignore_landmarks` errors is a query whose correct answer is
+`farther`, answered `no motion`. `farther` is a perfectly ordinary label here —
+16 of the 64 queries — it is `no motion` that can never be right, and the prompt
+kept offering it.
 
-* Switching this dataset to `translation_exact` measures it honestly — the
-  residual 2.6 points are the prompt, not the model — but makes generated a
-  flat 100.0%, and makes the numbers non-comparable with `coMovementEval`,
-  whose no-motion half genuinely needs the screen-relative wording.
-* Keeping `ignore_landmarks` keeps one prompt across all three datasets, at the
-  cost of a couple of points that are not the model's fault.
-
-The handler default is unchanged (`ignore_landmarks`); switching would mean a
-subclass with its own `get_prompt`.
+The consequence to keep in mind: these numbers are **not comparable with
+`coMovementEval`'s**, which is scored under a different prompt. Compare this
+eval against `translationEval`, which is what it was built for.
 
 ## How this differs from translationEval
 
@@ -312,18 +327,35 @@ skipped for every model. Pass `--eval-types co_movement` explicitly.
 
 ## Reproducing
 
-```bash
-python3 analyze_comovement.py                      # validate geometry, survey both sets
-python3 run_eval.py \
-    mc_multiplayer_v2_eval_new_sneak_combined_simplified_naming/coMovementEval \
-    --num-trials 3 --results-dir results_json_comovement
-python3 score_comovement.py                        # per-class breakdown
+The reported eval, `coMovementAlwaysRelativeMotionEval`:
 
-# generated
-gsutil -m cp -r gs://solaris-east5/outputs/neurips_eval_coMovement/co_movement \
+```bash
+DS=mc_multiplayer_v2_eval_new_sneak_combined_simplified_naming
+gsutil -m cp -r \
+    gs://solaris-central1/solaris/data/neurips_eval_coMovement/coMovementAlwaysRelativeMotionEval \
+    "$DS"/
+gsutil -m cp -r \
+    gs://solaris-east5/outputs/neurips_eval_coMovement_rel/co_movement_rel \
     generations_comovement/
-python3 run_eval.py \
-    mc_multiplayer_v2_eval_new_sneak_combined_simplified_naming/coMovementEval \
-    --generated-subdir generations_comovement/co_movement --model-name solaris \
+
+python3 run_eval.py "$DS"/coMovementAlwaysRelativeMotionEval \
     --num-trials 3 --results-dir results_json_comovement
+python3 run_eval.py "$DS"/coMovementAlwaysRelativeMotionEval \
+    --generated-subdir generations_comovement/co_movement_rel --model-name solaris \
+    --num-trials 3 --results-dir results_json_comovement
+
+python3 score_comovement.py     # per-class breakdown for every co-movement eval
+```
+
+The diagnostic sets (`coMovementEval`, and `coMovementWithDividerEval` behind
+`--include-unreliable`) run the same way with their own dataset and generated
+subdir names. `analyze_comovement.py` validates the camera geometry against
+translationEval; re-run it after touching `_camera_axes` or the deadzone.
+
+Prompt A/B, on ground truth or on a generation:
+
+```bash
+python3 prompt_ab_comovement.py --datasets coMovementAlwaysRelativeMotionEval \
+    --generated-subdir generations_comovement/co_movement_rel --trials 3 \
+    --variants translation_exact baseline screen_relative ignore_landmarks
 ```

@@ -228,7 +228,8 @@ def identify_handler(folder_name: str, summary_json_path: str = None):
         MinecraftStructureNoPlaceHandler,
         MinecraftTurnToLookHandler,
         MinecraftTurnToLookOppositeHandler,
-        MinecraftCoMovementHandler
+        MinecraftCoMovementHandler,
+        MinecraftCoMovementAlwaysRelativeHandler,
     )
 
     # List of all handler classes (order doesn't matter for exact matching)
@@ -240,6 +241,7 @@ def identify_handler(folder_name: str, summary_json_path: str = None):
         MinecraftTurnToLookHandler,
         MinecraftTurnToLookOppositeHandler,
         MinecraftCoMovementHandler,
+        MinecraftCoMovementAlwaysRelativeHandler,
     ]
 
     # Structure handlers require summary_json_path

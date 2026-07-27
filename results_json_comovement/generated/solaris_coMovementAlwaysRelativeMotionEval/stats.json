@@ -4,18 +4,18 @@
   "trials": [
     {
       "trial": 1,
-      "episode_accuracy": 96.875
+      "episode_accuracy": 100.0
     },
     {
       "trial": 2,
-      "episode_accuracy": 96.875
+      "episode_accuracy": 100.0
     },
     {
       "trial": 3,
-      "episode_accuracy": 93.75
+      "episode_accuracy": 100.0
     }
   ],
-  "mean": 95.83333333333333,
-  "median": 96.875,
-  "std": 1.473139127471974
+  "mean": 100.0,
+  "median": 100.0,
+  "std": 0.0
 }
