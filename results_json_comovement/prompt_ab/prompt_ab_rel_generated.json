@@ -1,0 +1,215 @@
+{
+  "coMovementAlwaysRelativeMotionEval [generations_comovement/co_movement_rel]": [
+    {
+      "name": "translation_exact",
+      "n": 64,
+      "errors": 0,
+      "overall": 100.0,
+      "balanced": 100.0,
+      "recalls": {
+        "closer": 100.0,
+        "farther": 100.0,
+        "left": 100.0,
+        "right": 100.0
+      },
+      "combo": {
+        "back+back": [
+          16,
+          16
+        ],
+        "forward+forward": [
+          16,
+          16
+        ],
+        "left+left": [
+          16,
+          16
+        ],
+        "right+right": [
+          16,
+          16
+        ]
+      },
+      "overall_mean": 100.0,
+      "overall_sd": 0.0,
+      "per_trial": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "confusion": {
+        "closer": {
+          "closer": 16
+        },
+        "farther": {
+          "farther": 16
+        },
+        "right": {
+          "right": 16
+        },
+        "left": {
+          "left": 16
+        }
+      }
+    },
+    {
+      "name": "baseline",
+      "n": 64,
+      "errors": 0,
+      "overall": 100.0,
+      "balanced": 100.0,
+      "recalls": {
+        "closer": 100.0,
+        "farther": 100.0,
+        "left": 100.0,
+        "right": 100.0
+      },
+      "combo": {
+        "back+back": [
+          16,
+          16
+        ],
+        "forward+forward": [
+          16,
+          16
+        ],
+        "left+left": [
+          16,
+          16
+        ],
+        "right+right": [
+          16,
+          16
+        ]
+      },
+      "overall_mean": 99.47916666666667,
+      "overall_sd": 0.736569563735987,
+      "per_trial": [
+        100.0,
+        98.4375,
+        100.0
+      ],
+      "confusion": {
+        "closer": {
+          "closer": 16
+        },
+        "farther": {
+          "farther": 16
+        },
+        "right": {
+          "right": 16
+        },
+        "left": {
+          "left": 16
+        }
+      }
+    },
+    {
+      "name": "screen_relative",
+      "n": 64,
+      "errors": 0,
+      "overall": 98.4375,
+      "balanced": 98.4375,
+      "recalls": {
+        "closer": 100.0,
+        "farther": 93.75,
+        "left": 100.0,
+        "right": 100.0
+      },
+      "combo": {
+        "back+back": [
+          15,
+          16
+        ],
+        "forward+forward": [
+          16,
+          16
+        ],
+        "left+left": [
+          16,
+          16
+        ],
+        "right+right": [
+          16,
+          16
+        ]
+      },
+      "overall_mean": 98.4375,
+      "overall_sd": 0.0,
+      "per_trial": [
+        98.4375,
+        98.4375,
+        98.4375
+      ],
+      "confusion": {
+        "closer": {
+          "closer": 16
+        },
+        "farther": {
+          "farther": 15,
+          "left": 1
+        },
+        "right": {
+          "right": 16
+        },
+        "left": {
+          "left": 16
+        }
+      }
+    },
+    {
+      "name": "ignore_landmarks",
+      "n": 64,
+      "errors": 0,
+      "overall": 96.875,
+      "balanced": 96.875,
+      "recalls": {
+        "closer": 100.0,
+        "farther": 87.5,
+        "left": 100.0,
+        "right": 100.0
+      },
+      "combo": {
+        "back+back": [
+          14,
+          16
+        ],
+        "forward+forward": [
+          16,
+          16
+        ],
+        "left+left": [
+          16,
+          16
+        ],
+        "right+right": [
+          16,
+          16
+        ]
+      },
+      "overall_mean": 97.39583333333333,
+      "overall_sd": 0.736569563735987,
+      "per_trial": [
+        96.875,
+        96.875,
+        98.4375
+      ],
+      "confusion": {
+        "closer": {
+          "closer": 16
+        },
+        "farther": {
+          "farther": 14,
+          "left": 1,
+          "no motion": 1
+        },
+        "right": {
+          "right": 16
+        },
+        "left": {
+          "left": 16
+        }
+      }
+    }
+  ]
+}

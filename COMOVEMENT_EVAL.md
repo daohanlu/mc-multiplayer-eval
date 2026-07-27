@@ -6,11 +6,67 @@ Two new datasets pulled from
 
 | Dataset | Pairs | Queries | Notes |
 |---|---|---|---|
-| `coMovementEval` | 32 | 64 | open ground — **this is the one to report** |
+| `coMovementAlwaysRelativeMotionEval` | 32 | 64 | no cancelling pairs, every answer directional — see below |
+| `coMovementEval` | 32 | 64 | open ground, half the answers "no motion" |
 | `coMovementWithDividerEval` | 32 | 64 | a divider between the bots — **excluded, see below** |
 
 Each is 16 episodes x 2 instances, 32 pairs — the same size as the existing
 evals, so the default 32-pair cap in `run_eval.py` takes all of them.
+
+## coMovementAlwaysRelativeMotionEval
+
+A later regeneration of the same idea with the cancelling action pairs removed:
+both bots always take the *same* action, so relative motion is never zero.
+Pulled from
+`gs://solaris-central1/solaris/data/neurips_eval_coMovement/coMovementAlwaysRelativeMotionEval`,
+generations from `gs://solaris-east5/outputs/neurips_eval_coMovement_rel/co_movement_rel/`
+(`run.log` there restores `pretrained/solaris.pt`, confirming the default model).
+
+Structure is otherwise identical — shared forward approach, then the tested
+chunk queried over 40 frames — and it is exactly balanced: 16 queries each of
+closer / farther / left / right. The handler needs no special-casing; the
+geometry decides the answer either way, and it agrees with translationEval's
+label mapping (`forward`->closer, `back`->farther, `left`->right,
+`right`->left) on **64/64**.
+
+Gemini 3 Flash, thinking off, 3 trials, under the handler's current prompt:
+
+| | GT | generated |
+|---|---|---|
+| query-level | **100.0% +/- 0.0** | **97.9% +/- 0.7** |
+| episode-level | **100.0% +/- 0.0** | **95.8% +/- 1.5** |
+
+Chance is 25%. GT is a clean ceiling, which is what you want from a reference
+eval. Note that generated is close to saturated for the default model: all four
+errors are `farther` read as `no motion`, and they are a prompt artifact (see
+below), not the generator drifting. **This eval will not separate models at the
+top** — it will show that Solaris solves co-movement rather than by how much.
+The ablations are where it should still spread.
+
+### Which prompt to use here
+
+There are no no-motion answers in this dataset, so the current prompt's "if they
+look the same, answer no motion" clause can only ever cost points — and does.
+Same 64 generated queries, 3 trials each:
+
+| Prompt | GT | generated |
+|---|---|---|
+| `translation_exact` (translationEval's, byte-for-byte) | 100.0% +/- 0.0 | **100.0% +/- 0.0** |
+| `baseline` | — | 99.5% +/- 0.7 |
+| `screen_relative` | — | 98.4% +/- 0.0 |
+| `ignore_landmarks` (current handler default) | 100.0% +/- 0.0 | 97.4% +/- 0.7 |
+
+The trade is real either way and has not been decided:
+
+* Switching this dataset to `translation_exact` measures it honestly — the
+  residual 2.6 points are the prompt, not the model — but makes generated a
+  flat 100.0%, and makes the numbers non-comparable with `coMovementEval`,
+  whose no-motion half genuinely needs the screen-relative wording.
+* Keeping `ignore_landmarks` keeps one prompt across all three datasets, at the
+  cost of a couple of points that are not the model's fault.
+
+The handler default is unchanged (`ignore_landmarks`); switching would mean a
+subclass with its own `get_prompt`.
 
 ## How this differs from translationEval
 

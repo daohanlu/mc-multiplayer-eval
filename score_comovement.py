@@ -89,14 +89,21 @@ def report(eval_dir: Path, include_unreliable: bool = False) -> None:
     motion_only = lambda r: r["expected"] != "no motion"
     no_motion_only = lambda r: r["expected"] == "no motion"
 
+    # coMovementAlwaysRelativeMotionEval has no no-motion queries at all, so the
+    # subsets would just restate the total. Drop them rather than print the same
+    # number three times under three different labels.
+    has_no_motion = any(no_motion_only(r) for r in trials[0]["results"])
+    subsets = [("all queries", all_q)]
+    if has_no_motion:
+        subsets += [("no-motion cases excluded", motion_only),
+                    ("no-motion cases only", no_motion_only)]
+
     print("  query-level")
-    summarize("all queries", all_q)
-    summarize("no-motion cases excluded", motion_only)
-    summarize("no-motion cases only", no_motion_only)
+    for label, keep in subsets:
+        summarize(label, keep)
     print("  episode-level (both cameras must be right)")
-    summarize("all queries", all_q, episode_level=True)
-    summarize("no-motion cases excluded", motion_only, episode_level=True)
-    summarize("no-motion cases only", no_motion_only, episode_level=True)
+    for label, keep in subsets:
+        summarize(label, keep, episode_level=True)
 
     per_class_hits: dict[str, list[int]] = defaultdict(list)
     per_class_tot: dict[str, list[int]] = defaultdict(list)
@@ -125,8 +132,12 @@ def report(eval_dir: Path, include_unreliable: bool = False) -> None:
                 per_class_tot[c].append(tot[c])
         baseline.append(100.0 * no_motion / max(1, len(t["results"])))
 
-    print(f"\n  always-\"no motion\" baseline: {sum(baseline)/len(baseline):.1f}% "
-          f"on all queries, 0.0% with no-motion cases excluded")
+    if has_no_motion:
+        print(f"\n  always-\"no motion\" baseline: {sum(baseline)/len(baseline):.1f}% "
+              f"on all queries, 0.0% with no-motion cases excluded")
+    else:
+        print("\n  no no-motion queries in this eval; chance over four "
+              "directions is 25.0%")
     print(f"\n  {'expected':12s} {'recall':>18s}   most common answers")
     for c in CLASSES:
         if c not in per_class_tot:

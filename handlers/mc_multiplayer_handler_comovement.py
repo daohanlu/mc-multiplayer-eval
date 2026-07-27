@@ -51,7 +51,15 @@ DEADZONE = 0.75
 class MinecraftCoMovementHandler(EpisodeTypeHandler):
     """Both bots move at once; each camera is judged on its own."""
 
-    DATASET_NAMES = ["coMovementEval", "coMovementWithDividerEval"]
+    DATASET_NAMES = [
+        "coMovementEval",
+        "coMovementWithDividerEval",
+        # Same construction, minus the cancelling action pairs: both bots always
+        # take the *same* action, so relative motion is never zero and every
+        # answer is directional. Nothing here needs special-casing — the
+        # geometry decides the answer either way.
+        "coMovementAlwaysRelativeMotionEval",
+    ]
 
     def get_prompt(self, query_type: str = "co_movement") -> str:
         """Screen-relative phrasing, chosen by A/B against ground truth.

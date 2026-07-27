@@ -1,0 +1,108 @@
+{
+  "coMovementAlwaysRelativeMotionEval [ground truth]": [
+    {
+      "name": "translation_exact",
+      "n": 64,
+      "errors": 0,
+      "overall": 100.0,
+      "balanced": 100.0,
+      "recalls": {
+        "closer": 100.0,
+        "farther": 100.0,
+        "left": 100.0,
+        "right": 100.0
+      },
+      "combo": {
+        "back+back": [
+          16,
+          16
+        ],
+        "forward+forward": [
+          16,
+          16
+        ],
+        "left+left": [
+          16,
+          16
+        ],
+        "right+right": [
+          16,
+          16
+        ]
+      },
+      "overall_mean": 100.0,
+      "overall_sd": 0.0,
+      "per_trial": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "confusion": {
+        "closer": {
+          "closer": 16
+        },
+        "farther": {
+          "farther": 16
+        },
+        "right": {
+          "right": 16
+        },
+        "left": {
+          "left": 16
+        }
+      }
+    },
+    {
+      "name": "ignore_landmarks",
+      "n": 64,
+      "errors": 0,
+      "overall": 100.0,
+      "balanced": 100.0,
+      "recalls": {
+        "closer": 100.0,
+        "farther": 100.0,
+        "left": 100.0,
+        "right": 100.0
+      },
+      "combo": {
+        "back+back": [
+          16,
+          16
+        ],
+        "forward+forward": [
+          16,
+          16
+        ],
+        "left+left": [
+          16,
+          16
+        ],
+        "right+right": [
+          16,
+          16
+        ]
+      },
+      "overall_mean": 100.0,
+      "overall_sd": 0.0,
+      "per_trial": [
+        100.0,
+        100.0,
+        100.0
+      ],
+      "confusion": {
+        "closer": {
+          "closer": 16
+        },
+        "farther": {
+          "farther": 16
+        },
+        "right": {
+          "right": 16
+        },
+        "left": {
+          "left": 16
+        }
+      }
+    }
+  ]
+}
