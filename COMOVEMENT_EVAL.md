@@ -78,6 +78,49 @@ really testing: whether the model separates ego-motion from relative motion.
 motion" scores 50%. Report the per-class breakdown, not just the aggregate —
 `score_comovement.py` does this.
 
+## The prompt was chosen by A/B, not by taste
+
+translationEval's wording — *"did the player being shown move closer, farther,
+to the left, or to the right on-screen?"* — reads as a question about the
+world. That is a fair reading: the other player really is walking in every
+episode. It cost most of the "no motion" class.
+
+Measured over all 64 GT queries per variant (`prompt_ab_comovement.py`):
+
+| Prompt | coMovementEval | | coMovementWithDivider | |
+|---|---|---|---|---|
+| | overall | no motion | overall | no motion |
+| translation-style baseline | 78.1% | 56.2% | 51.6% | 3.1% |
+| screen-relative | 85.9% | 71.9% | 54.7% | 9.4% |
+| **screen-relative + ignore landmarks** | **98.4%** | **96.9%** | 53.1% | 6.2% |
+
+All four motion classes stayed at 100% for every variant, so nothing was traded
+away to buy the "no motion" gain.
+
+Two things the prompt deliberately does **not** do:
+
+* It says nothing about the action structure. A line like *"if both players
+  walk the same way, answer no motion"* would hand over the answer for half the
+  queries and inflate the score without measuring anything.
+* It does not mention the divider, so the same prompt is used for both
+  datasets and they stay comparable.
+
+Judge prompt changes on **balanced accuracy across the five classes**, not
+overall: with half the queries being "no motion", a prompt that merely biases
+toward it gains several points while getting worse.
+
+### The divider variant has a visual confound
+
+The prompt fix barely moves the divider numbers, and its errors are almost all
+`farther`. The likely cause is occlusion rather than reasoning: the divider is
+a static block between the bots, so when both move the same way the observer
+closes on the block, and it hides progressively more of the other player. The
+player's on-screen size is unchanged — the geometry says "no motion" — but more
+of them is covered, which reads as receding.
+
+That makes the divider set a materially different (and harder) test than the
+open-ground one, not just a reskin. Treat its numbers separately.
+
 ## Generated videos
 
 Not yet available. One thing is already handled: the generated path in

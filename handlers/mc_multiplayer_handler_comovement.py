@@ -54,16 +54,39 @@ class MinecraftCoMovementHandler(EpisodeTypeHandler):
     DATASET_NAMES = ["coMovementEval", "coMovementWithDividerEval"]
 
     def get_prompt(self, query_type: str = "co_movement") -> str:
-        # Same answer vocabulary as translationEval so the two are comparable.
-        # "no motion" is spelled out because it is the correct answer half the
-        # time here, and a model that has only seen the translation phrasing
-        # tends to assume something must have moved.
+        """Screen-relative phrasing, chosen by A/B against ground truth.
+
+        translationEval's wording ("did the player move ... on-screen?") reads
+        as a question about the world, which is a reasonable reading when the
+        other player is visibly walking in every episode. It cost most of the
+        "no motion" class: 56% recall here, and 3% on the divider variant,
+        where a static block gives the model something to measure against.
+
+        Making the frame of reference explicit — compare position and size
+        *within the picture*, ignore blocks and landmarks, "no motion" holds
+        even when the scenery moves — took "no motion" recall from 56% to 97%
+        with all four motion classes still at 100% (prompt_ab_comovement.py,
+        64 GT queries per variant).
+
+        Deliberately says nothing about the action structure. A line such as
+        "if both players walk the same way, answer no motion" would give away
+        the answer for half the queries and inflate the score without
+        measuring anything. The answer vocabulary matches translationEval so
+        the two evals stay comparable.
+        """
         return (
-            "Here are Minecraft screenshots showing another player on the screen. "
-            "Both players may be moving at the same time. "
-            "Between the first frame and the second frame, did the player being shown "
-            "move closer, farther, to the left, or to the right on-screen? "
-            "If the other player stayed in the same place on-screen, answer \"no motion\". "
+            "These are two screenshots from one player's camera, taken at two different "
+            "moments. Another player is visible in both. "
+            "The camera itself may have moved between the two screenshots, so the "
+            "ground, the sky and any blocks or structures may shift between the two "
+            "images. Ignore all of that. Do not judge the other player's position "
+            "relative to any block, structure or landmark. "
+            "Judge only how the other player appears within the picture itself: "
+            "compare their position in the frame and how large they appear, in the "
+            "first screenshot versus the second. "
+            "If the other player appears at the same place in the frame and at the "
+            "same size in both screenshots, answer \"no motion\", even if the scenery "
+            "around them has moved. "
             "Answer with a single word from \"closer\", \"farther\", \"left\", \"right\", or \"no motion\"."
         )
 
