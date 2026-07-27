@@ -581,7 +581,10 @@ def run_evaluation(handler, video_pairs: List[VideoPair], output_file: Optional[
             metadata={
                 "prompt": prompt,
                 "handler": handler.__class__.__name__,
-                "using_generated": generated_path is not None,
+                # generated_subdir covers both --generated and
+                # --generated-subdir; generated_path alone missed the latter and
+                # stamped generated runs as ground truth.
+                "using_generated": generated_subdir is not None,
                 **meta
             }
         )

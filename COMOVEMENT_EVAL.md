@@ -138,9 +138,70 @@ Consequences, already wired in:
 The collected results stay in `results_json_comovement/real/` as the evidence
 for this call, not as numbers to quote.
 
-## Generated videos
+## Results on generated videos
 
-Not yet available. One thing is already handled: the generated path in
+Pulled from `gs://solaris-east5/outputs/neurips_eval_coMovement/co_movement/`
+into `generations_comovement/co_movement/` (32 clips, 1280x704, 257 frames —
+same geometry and length as every other generation in this repo). The bucket
+carries **no model label**; only one non-divider run exists, so it is scored
+here as `solaris`. The divider run in the same bucket was not evaluated.
+
+Gemini 3 Flash, thinking off, 3 trials, 64 queries:
+
+| | GT | generated |
+|---|---|---|
+| all queries | 95.3% +/- 1.3 | **69.3% +/- 0.7** |
+| no-motion cases excluded (n=32) | 100.0% +/- 0.0 | **96.9% +/- 0.0** |
+| no-motion cases only (n=32) | 90.6% +/- 2.6 | **41.7% +/- 1.5** |
+| episode-level, all queries | 90.6% +/- 2.6 | **63.5% +/- 1.5** |
+| episode-level, no-motion excluded | 100.0% +/- 0.0 | **93.8% +/- 0.0** |
+
+Reporting only the aggregate would be misleading in both directions here: the
+model is essentially perfect on the four directional classes and the entire gap
+to GT sits in the "no motion" half.
+
+The failure is not spread across the no-motion cases either — it is one
+mechanism, visible in the per-combo table:
+
+| alpha + bravo | expected | generated |
+|---|---|---|
+| forward + back | no motion | 83.3% |
+| back + forward | no motion | 83.3% |
+| left + right | no motion | **0.0%** |
+| right + left | no motion | **0.0%** |
+
+Every one of those 48 queries answers `right`. Front-back co-movement is held;
+lateral co-movement is not. The side-by-side comparisons under
+`frame_extraction_side_by_side/coMovementEval/solaris/` show it directly: when
+both bots strafe together the generated partner drifts across the frame and
+grows, while in GT they stay put.
+
+The lateral combos are also the eval's hardest cases for the VLM on GT (87.5%
+and 75.0%), so some difficulty is intrinsic — but 0% against 87.5%/75.0% is far
+past that.
+
+### Alignment was checked before trusting the numbers
+
+Generated frame 0 corresponds to GT frame `frame1 + 1` here, as everywhere
+else. Two checks: the frame-difference profile of generated frame 0 against the
+whole GT clip has its knee at GT frame ~48 (`frame1`), and the generated clips
+match the other evals' pipeline exactly in resolution and length. The 96.9% on
+directional classes is itself corroboration — a shifted offset would have cost
+the closer/farther classes first.
+
+Two bugs found while validating, both fixed:
+
+* `visualization_helper.py` labelled the first comparison frame with
+  `meta['frame1']` (episode start) rather than the frame actually extracted.
+  Equal for every other handler; off by ~38 frames for co-movement. The images
+  were regenerated.
+* `run_eval.py` set `using_generated` from `generated_path`, which is `None`
+  when `--generated-subdir` is used, so generated runs were stamped as ground
+  truth. Fixed, and the flag corrected in the three trial files already written.
+
+## Generated videos: mechanics
+
+One thing is already handled: the generated path in
 `extract_query_frames` used to hardcode generated frame 0 as the "before"
 image, which is the episode start rather than the pre-test frame this eval
 needs. It now honours `query.frame_index` when that is later than the episode
@@ -150,10 +211,6 @@ generated frames before and after the change.
 
 `metadata["frame1"]` still means *episode start* (generated frame 0 is
 `frame1 + 1`), so offset arithmetic elsewhere is unaffected.
-
-When generations land, confirm the generated clips start at the sneak like the
-other evals. If they instead start at the tested chunk, `frame1` must change to
-match, and the numbers should be rebuilt.
 
 `run_all_evals.py` knows the eval types `co_movement` and `co_movement_divider`
 but leaves them out of `ENABLED_EVAL_TYPES` — with no generations they would be
@@ -167,4 +224,12 @@ python3 run_eval.py \
     mc_multiplayer_v2_eval_new_sneak_combined_simplified_naming/coMovementEval \
     --num-trials 3 --results-dir results_json_comovement
 python3 score_comovement.py                        # per-class breakdown
+
+# generated
+gsutil -m cp -r gs://solaris-east5/outputs/neurips_eval_coMovement/co_movement \
+    generations_comovement/
+python3 run_eval.py \
+    mc_multiplayer_v2_eval_new_sneak_combined_simplified_naming/coMovementEval \
+    --generated-subdir generations_comovement/co_movement --model-name solaris \
+    --num-trials 3 --results-dir results_json_comovement
 ```

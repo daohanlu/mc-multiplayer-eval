@@ -52,11 +52,51 @@ def report(eval_dir: Path, include_unreliable: bool = False) -> None:
           f"vlm={trials[0].get('vlm_model_name')}, "
           f"thinking={trials[0].get('thinking_enabled')}) ===")
 
-    accs = [t["accuracy"] for t in trials]
-    mean = sum(accs) / len(accs)
-    var = sum((a - mean) ** 2 for a in accs) / len(accs)
-    print(f"  overall accuracy: {mean:.1f}% +/- {var ** 0.5:.1f}   "
-          f"per-trial {['%.1f' % a for a in accs]}")
+    def summarize(label: str, keep, episode_level: bool = False) -> None:
+        """Mean +/- sd over trials, restricted to results matching ``keep``.
+
+        With ``episode_level`` the unit is an (episode, instance) pair and it
+        counts only if *every* query in it is right — the same AND-semantics the
+        paper tables use. Both cameras of a co-movement pair share an expected
+        class, so the subsets stay well-defined at episode level too.
+        """
+        per_trial, n = [], 0
+        for t in trials:
+            rs = [r for r in t["results"] if keep(r)]
+            if not rs:
+                return
+            if episode_level:
+                eps: dict[tuple, bool] = {}
+                for r in rs:
+                    k = (r["metadata"]["episode"], r["metadata"]["instance"])
+                    eps[k] = eps.get(k, True) and bool(r["correct"])
+                per_trial.append(100.0 * sum(eps.values()) / len(eps))
+                n = len(eps)
+            else:
+                per_trial.append(100.0 * sum(bool(r["correct"]) for r in rs) / len(rs))
+                n = len(rs)
+        m = sum(per_trial) / len(per_trial)
+        sd = (sum((a - m) ** 2 for a in per_trial) / len(per_trial)) ** 0.5
+        print(f"  {label:38s} {m:5.1f}% +/- {sd:.1f}   n={n:3d}   "
+              f"per-trial {['%.1f' % a for a in per_trial]}")
+
+    # Half the queries are "no motion" by construction, so the headline number
+    # blends two very different things: whether the model reads a direction of
+    # relative motion, and whether it can tell there was none. Report both the
+    # combined figure and the motion-only subset, where the always-"no motion"
+    # strategy scores 0 and chance over four directions is 25%.
+    all_q = lambda r: True
+    motion_only = lambda r: r["expected"] != "no motion"
+    no_motion_only = lambda r: r["expected"] == "no motion"
+
+    print("  query-level")
+    summarize("all queries", all_q)
+    summarize("no-motion cases excluded", motion_only)
+    summarize("no-motion cases only", no_motion_only)
+    print("  episode-level (both cameras must be right)")
+    summarize("all queries", all_q, episode_level=True)
+    summarize("no-motion cases excluded", motion_only, episode_level=True)
+    summarize("no-motion cases only", no_motion_only, episode_level=True)
 
     per_class_hits: dict[str, list[int]] = defaultdict(list)
     per_class_tot: dict[str, list[int]] = defaultdict(list)
@@ -85,7 +125,8 @@ def report(eval_dir: Path, include_unreliable: bool = False) -> None:
                 per_class_tot[c].append(tot[c])
         baseline.append(100.0 * no_motion / max(1, len(t["results"])))
 
-    print(f"  always-\"no motion\" baseline: {sum(baseline)/len(baseline):.1f}%")
+    print(f"\n  always-\"no motion\" baseline: {sum(baseline)/len(baseline):.1f}% "
+          f"on all queries, 0.0% with no-motion cases excluded")
     print(f"\n  {'expected':12s} {'recall':>18s}   most common answers")
     for c in CLASSES:
         if c not in per_class_tot:

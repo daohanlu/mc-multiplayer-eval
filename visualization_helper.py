@@ -172,8 +172,7 @@ def create_side_by_side_comparison(
     # Determine frame info for labels
     # Note: is_turn_to_look is optional (defaults to False if not present)
     is_turn_to_look = meta.get('is_turn_to_look', False)
-    frame1_idx = meta['frame1']  # Required field
-    
+
     # Build list of (gt_frame, gen_frame, label) tuples
     frame_pairs = []
     
@@ -196,10 +195,15 @@ def create_side_by_side_comparison(
     elif "frame1" in gt_frames and "frame2" in gt_frames:
         # Translation: two frames (frame2 stored in query.second_frame_index)
         frame2_idx = query.second_frame_index
+        # Label the frame that was actually extracted. That is
+        # ``query.frame_index``, not ``meta['frame1']`` — the two are equal for
+        # every handler whose "before" frame is the episode start, but
+        # co-movement queries the second movement chunk, so labelling with
+        # frame1 there put the episode-start number on a much later frame.
         frame_pairs.append((
             gt_frames["frame1"],
             gen_frames["frame1"],
-            f"{variant.capitalize()} @ frame {frame1_idx}"
+            f"{variant.capitalize()} @ frame {query.frame_index}"
         ))
         frame_pairs.append((
             gt_frames["frame2"],
