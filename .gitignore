@@ -64,6 +64,9 @@ human-eval/videos/
 human-eval/data/
 human-eval/Model Generations on Eval/
 
+# Regenerated on demand by export_vlm_frames.py
+vlm_frames_export/
+
 # Other data files
 *.mp4
 *.avi
