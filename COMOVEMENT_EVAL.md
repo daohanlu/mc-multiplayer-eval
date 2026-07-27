@@ -180,6 +180,44 @@ The lateral combos are also the eval's hardest cases for the VLM on GT (87.5%
 and 75.0%), so some difficulty is intrinsic — but 0% against 87.5%/75.0% is far
 past that.
 
+### The prompt is not what makes the motion-only number high
+
+96.9% on the directional classes is well above the paper's Movement column
+(flagship `translationEval`, 67.7% episode-level), which invites the worry that
+the screen-relative prompt is doing the work. It is not — re-running the same
+32 generated motion queries under the older wordings, 3 trials each:
+
+| Prompt on generated motion-only queries | overall |
+|---|---|
+| `translation_exact` (translationEval's prompt, byte-for-byte) | **100.0% +/- 0.0** |
+| `baseline` (what shipped with this handler) | **100.0% +/- 0.0** |
+| `screen_relative` | **100.0% +/- 0.0** |
+| `ignore_landmarks` (current) | 95.8% +/- 1.5 |
+
+The current prompt is if anything slightly *worse* here: its "if they look the
+same, answer no motion" clause costs a few `farther` cases. Everything the
+screen-relative wording bought was in the no-motion half, which is what it was
+chosen for. Reproduce with:
+
+```bash
+python3 prompt_ab_comovement.py --datasets coMovementEval \
+    --generated-subdir generations_comovement/co_movement \
+    --exclude-no-motion --trials 3 \
+    --variants translation_exact baseline screen_relative ignore_landmarks
+```
+
+Nor is it easier geometry. Scoring translationEval's queries through this
+handler's projection (which reproduces its labels 64/64) gives a mean
+dominant-axis displacement of **7.11 blocks**, against **4.74** for
+co-movement's front/back cases and **6.04** for its lateral ones — co-movement's
+motion cases carry *less* relative displacement, not more.
+
+So the gap to the Movement column is not the prompt and not the geometry. The
+untested difference is the generations themselves: `results_json/generated/
+flagship_translationEval` is from the January generation set and eval vintage,
+while these clips were rendered this week. Comparing the two as if they were
+one experiment is not safe.
+
 ### Alignment was checked before trusting the numbers
 
 Generated frame 0 corresponds to GT frame `frame1 + 1` here, as everywhere

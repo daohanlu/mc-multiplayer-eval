@@ -10,7 +10,14 @@ The metric that matters is not overall accuracy — half the queries are
 getting worse. Per-class recall is reported for exactly that reason, along with
 the balanced mean over the five classes.
 
+Runs on ground truth by default, or on a generation with --generated-subdir.
+--exclude-no-motion drops the half of the queries whose answer is "no motion",
+which is what you want when comparing prompts on the directional classes alone.
+
     python3 prompt_ab_comovement.py --datasets coMovementEval coMovementWithDividerEval
+    python3 prompt_ab_comovement.py --datasets coMovementEval \
+        --generated-subdir generations_comovement/co_movement \
+        --exclude-no-motion --trials 3 --variants translation_exact baseline ignore_landmarks
 """
 
 from __future__ import annotations
@@ -35,6 +42,16 @@ ANSWER_LINE = ('Answer with a single word from "closer", "farther", "left", '
                '"right", or "no motion".')
 
 PROMPTS: dict[str, str] = {
+    # translationEval's prompt, byte-for-byte — the wording behind the paper's
+    # Movement column. Included so a co-movement number can be compared against
+    # the Movement number without the prompt being a confound.
+    "translation_exact": (
+        "Here are Minecraft screenshots showing another player on the screen. "
+        "Between the first frame and the second frame, did the player being shown "
+        "move closer, farther, to the left, or to the right on-screen? "
+        + ANSWER_LINE
+    ),
+
     # What shipped with the handler. Asks whether the player "moved", which
     # invites a world-frame reading — and with a landmark in shot the model
     # answers relative to the landmark.
@@ -84,15 +101,24 @@ PROMPTS: dict[str, str] = {
 }
 
 
-def build_items(dataset: str, limit: int) -> list[dict]:
-    """Extract every query's frames once."""
+def build_items(dataset: str, limit: int,
+                generated_subdir: Path | None = None,
+                exclude_no_motion: bool = False) -> list[dict]:
+    """Extract every query's frames once.
+
+    ``video_id`` counts pairs in discovery order, exactly as run_eval does, so
+    generated clips line up with the ground-truth pair they were rendered from.
+    """
     handler = identify_handler(dataset)
     pairs = find_mc_video_pairs(DATASET_BASE / dataset / "test")[:limit]
     items = []
-    for pair in pairs:
+    for video_id, pair in enumerate(pairs):
         for q in handler.extract_keyframes(pair):
-            frames = extract_query_frames(query=q, generated_subdir=None,
-                                          current_video_id=0,
+            if exclude_no_motion and q.expected_answer == "no motion":
+                continue
+            frames = extract_query_frames(query=q,
+                                          generated_subdir=generated_subdir,
+                                          current_video_id=video_id,
                                           frame1_idx=q.metadata["frame1"])
             items.append({
                 "expected": q.expected_answer,
@@ -150,32 +176,52 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=32, help="video pairs")
     ap.add_argument("--variants", nargs="+", default=list(PROMPTS))
     ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--generated-subdir", type=Path,
+                    help="score a generation instead of ground truth")
+    ap.add_argument("--exclude-no-motion", action="store_true",
+                    help="drop the queries whose answer is 'no motion'")
+    ap.add_argument("--trials", type=int, default=1,
+                    help="repeat each variant N times and report mean +/- sd")
     ap.add_argument("--out", type=Path, default=Path("logs/prompt_ab.json"))
     args = ap.parse_args()
 
     if not os.environ.get("GEMINI_API_KEY"):
         raise SystemExit("GEMINI_API_KEY not set")
+    if args.generated_subdir and not args.generated_subdir.exists():
+        raise SystemExit(f"no such generated subdir: {args.generated_subdir}")
 
+    source = str(args.generated_subdir) if args.generated_subdir else "ground truth"
     everything = {}
     for dataset in args.datasets:
-        print(f"\nextracting frames for {dataset} ...", flush=True)
-        items = build_items(dataset, args.limit)
+        print(f"\nextracting frames for {dataset} ({source}) ...", flush=True)
+        items = build_items(dataset, args.limit,
+                            generated_subdir=args.generated_subdir,
+                            exclude_no_motion=args.exclude_no_motion)
         print(f"  {len(items)} queries "
               f"({sum(i['expected'] == 'no motion' for i in items)} are 'no motion')")
 
         results = []
         for name in args.variants:
-            res = run_variant(name, PROMPTS[name], items, args.workers)
+            trials = [run_variant(name, PROMPTS[name], items, args.workers)
+                      for _ in range(args.trials)]
+            res = trials[0]
+            overalls = [t["overall"] for t in trials]
+            mean = sum(overalls) / len(overalls)
+            sd = (sum((o - mean) ** 2 for o in overalls) / len(overalls)) ** 0.5
+            res["overall_mean"], res["overall_sd"] = mean, sd
+            res["per_trial"] = overalls
             results.append(res)
             print(f"\n  --- {dataset} / {name}")
-            print(f"      overall {res['overall']:5.1f}%   "
-                  f"balanced {res['balanced']:5.1f}%"
+            print(f"      overall {mean:5.1f}% +/- {sd:.1f}   "
+                  f"balanced {res['balanced']:5.1f}%   n={res['n']}"
                   + (f"   errors {res['errors']}" if res["errors"] else ""))
+            if args.trials > 1:
+                print(f"      per-trial {['%.1f' % o for o in overalls]}")
             for c, r in res["recalls"].items():
                 top = ", ".join(f"{k}={v}" for k, v in
                                 res["confusion"][c].most_common(3))
-                print(f"      {c:11s} {r:6.1f}%   {top}")
-        everything[dataset] = [
+                print(f"      {c:11s} {r:6.1f}%   {top}   (trial 1)")
+        everything[f"{dataset} [{source}]"] = [
             {k: v for k, v in r.items() if k != "confusion"} | {
                 "confusion": {c: dict(cc) for c, cc in r["confusion"].items()},
                 "combo": {f"{a}+{b}": v for (a, b), v in r["combo"].items()},
