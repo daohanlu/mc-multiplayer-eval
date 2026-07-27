@@ -34,6 +34,10 @@ EVAL_TYPE_MAPPING = {
     "both_look_away": "bothLookAwayEval",
     "one_looks_away_long": "oneLooksAwayEval_long",
     "both_look_away_long": "bothLookAwayEval_long",
+    # Both bots move at once. The generated subdir key must match whatever the
+    # generation run emits (step_{N}_multiplayer_v2_eval_co_movement[...]).
+    "co_movement": "coMovementEval",
+    "co_movement_divider": "coMovementWithDividerEval",
 }
 
 # Which eval types to actually run (comment out to skip)
@@ -46,6 +50,10 @@ ENABLED_EVAL_TYPES = [
     "turn_to_look_opposite",
     "one_looks_away",
     "both_look_away",
+    # Not enabled by default: no generations exist for these yet, so they would
+    # be skipped for every model. Pass --eval-types co_movement explicitly.
+    # "co_movement",
+    # "co_movement_divider",
 ]
 
 

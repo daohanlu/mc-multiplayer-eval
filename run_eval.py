@@ -126,8 +126,17 @@ def extract_query_frames(
                 frames["frame1"] = extract_frame_from_generated(generated_video, 0, 0, variant, direct_frame_idx=0)
                 frames["frame2"] = extract_frame_from_generated(generated_video, 0, 0, variant, direct_frame_idx=max_gen_frame)
             else:
-                # Use frame1_idx + 1 as first frame since generated video starts there
-                frames["frame1"] = extract_frame_from_generated(generated_video, frame1_idx + 1, frame1_idx, variant)
+                # Generated frame 0 is GT frame1_idx + 1, so that is the default
+                # first frame. Handlers whose "before" frame is later than the
+                # episode start — co-movement queries the second movement chunk,
+                # after a shared approach — set query.frame_index accordingly and
+                # it is honoured here. For every other two-frame handler
+                # query.frame_index == frame1_idx, so this is a no-op (verified
+                # across all 64 translationEval queries).
+                first_gt_frame = (query.frame_index
+                                  if query.frame_index > frame1_idx
+                                  else frame1_idx + 1)
+                frames["frame1"] = extract_frame_from_generated(generated_video, first_gt_frame, frame1_idx, variant)
                 frames["frame2"] = extract_frame_from_generated(generated_video, frame2_idx, frame1_idx, variant)
         else:
             frames["frame1"] = extract_frame(query.video_path, query.frame_index)
@@ -218,7 +227,8 @@ def identify_handler(folder_name: str, summary_json_path: str = None):
         MinecraftStructureBuildingHandler,
         MinecraftStructureNoPlaceHandler,
         MinecraftTurnToLookHandler,
-        MinecraftTurnToLookOppositeHandler
+        MinecraftTurnToLookOppositeHandler,
+        MinecraftCoMovementHandler
     )
 
     # List of all handler classes (order doesn't matter for exact matching)
@@ -229,6 +239,7 @@ def identify_handler(folder_name: str, summary_json_path: str = None):
         MinecraftBothLookAwayHandler,
         MinecraftTurnToLookHandler,
         MinecraftTurnToLookOppositeHandler,
+        MinecraftCoMovementHandler,
     ]
 
     # Structure handlers require summary_json_path
