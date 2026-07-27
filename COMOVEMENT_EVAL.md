@@ -6,8 +6,8 @@ Two new datasets pulled from
 
 | Dataset | Pairs | Queries | Notes |
 |---|---|---|---|
-| `coMovementEval` | 32 | 64 | open ground |
-| `coMovementWithDividerEval` | 32 | 64 | a divider between the bots |
+| `coMovementEval` | 32 | 64 | open ground — **this is the one to report** |
+| `coMovementWithDividerEval` | 32 | 64 | a divider between the bots — **excluded, see below** |
 
 Each is 16 episodes x 2 instances, 32 pairs — the same size as the existing
 evals, so the default 32-pair cap in `run_eval.py` takes all of them.
@@ -109,17 +109,34 @@ Judge prompt changes on **balanced accuracy across the five classes**, not
 overall: with half the queries being "no motion", a prompt that merely biases
 toward it gains several points while getting worse.
 
-### The divider variant has a visual confound
+### coMovementWithDividerEval is excluded — do not report it
 
-The prompt fix barely moves the divider numbers, and its errors are almost all
-`farther`. The likely cause is occlusion rather than reasoning: the divider is
-a static block between the bots, so when both move the same way the observer
-closes on the block, and it hides progressively more of the other player. The
-player's on-screen size is unchanged — the geometry says "no motion" — but more
-of them is covered, which reads as receding.
+**Use `coMovementEval` only.** The divider set is not a reskin of it and its
+numbers are not trustworthy.
 
-That makes the divider set a materially different (and harder) test than the
-open-ground one, not just a reskin. Treat its numbers separately.
+Under the same prompt that takes the regular eval's "no motion" recall from 56%
+to 91%, the divider set sits at 7.3% — barely above chance overall (53.6% vs a
+50% baseline) — and **84 of its 89 errors answer `farther`**. That lopsidedness
+is the tell: a reasoning failure would spread errors across the classes.
+
+The cause looks like occlusion, not reasoning. The divider is a static block
+between the bots, so when both move the same way the observer closes on the
+block and it hides progressively more of the other player. On-screen size is
+unchanged, which is why the geometry says "no motion", but more of the player
+is covered and that reads as receding. Its "no motion" class is therefore
+measuring how much the block hides, not whether the model separates ego-motion
+from relative motion. No prompt fixes a property of the stimulus.
+
+Consequences, already wired in:
+
+* `score_comovement.py` skips it and prints why; `--include-unreliable`
+  overrides.
+* `run_all_evals.py` leaves `co_movement_divider` out of `ENABLED_EVAL_TYPES`.
+* The handler still supports the dataset, so an explicit run works if the
+  stimulus is ever regenerated without the confound.
+
+The collected results stay in `results_json_comovement/real/` as the evidence
+for this call, not as numbers to quote.
 
 ## Generated videos
 

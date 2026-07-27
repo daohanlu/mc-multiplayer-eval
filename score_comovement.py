@@ -18,6 +18,17 @@ from pathlib import Path
 
 CLASSES = ["closer", "farther", "left", "right", "no motion"]
 
+# Datasets whose numbers should not be reported. The divider variant has an
+# occlusion confound — see COMOVEMENT_EVAL.md — so its "no motion" class is
+# measuring how much of the player the block hides, not the model's grasp of
+# relative motion. Scored only when explicitly asked for.
+UNRELIABLE = {
+    "coMovementWithDividerEval":
+        "occlusion confound: the static divider hides progressively more of "
+        "the other player as the observer closes on it, so unchanged on-screen "
+        "size still reads as 'farther'. Do not report these numbers.",
+}
+
 
 def load_trials(eval_dir: Path) -> list[dict]:
     return [json.loads(p.read_text())
@@ -25,10 +36,16 @@ def load_trials(eval_dir: Path) -> list[dict]:
                             key=lambda p: int(p.stem.split("_")[1]))]
 
 
-def report(eval_dir: Path) -> None:
+def report(eval_dir: Path, include_unreliable: bool = False) -> None:
     trials = load_trials(eval_dir)
     if not trials:
         print(f"  no trials in {eval_dir}")
+        return
+
+    if eval_dir.name in UNRELIABLE and not include_unreliable:
+        print(f"\n=== {eval_dir.name}  [EXCLUDED] ===")
+        print(f"  {UNRELIABLE[eval_dir.name]}")
+        print("  Pass --include-unreliable to score it anyway.")
         return
 
     print(f"\n=== {eval_dir.name} ({len(trials)} trial(s), "
@@ -88,6 +105,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--results-dir", type=Path,
                     default=Path("results_json_comovement"))
+    ap.add_argument("--include-unreliable", action="store_true",
+                    help="also score datasets flagged in UNRELIABLE")
     args = ap.parse_args()
 
     roots = sorted((args.results_dir / "real").glob("coMovement*"))
@@ -95,7 +114,7 @@ def main() -> None:
     if not roots:
         raise SystemExit(f"no co-movement results under {args.results_dir}")
     for r in roots:
-        report(r)
+        report(r, include_unreliable=args.include_unreliable)
     print()
 
 
