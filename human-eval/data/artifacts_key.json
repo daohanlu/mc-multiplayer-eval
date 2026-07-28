@@ -1,0 +1,515 @@
+{
+  "task": "artifacts",
+  "shuffle_seed": 20260726,
+  "categories": [
+    "Movement",
+    "Grounding",
+    "Building"
+  ],
+  "items": [
+    {
+      "id": "a0001",
+      "category": "Building",
+      "model": "causvid_dmd",
+      "model_display": "Pre-DMD (Self-Forcing Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Building/Pre-DMD (Self-Forcing Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0002",
+      "category": "Grounding",
+      "model": "causvid_dmd",
+      "model_display": "Pre-DMD (Self-Forcing Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Grounding/Pre-DMD (Self-Forcing Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0003",
+      "category": "Movement",
+      "model": "flagship",
+      "model_display": "Solaris Default",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Movement/Solaris Default/video_2_gen.mp4"
+    },
+    {
+      "id": "a0004",
+      "category": "Movement",
+      "model": "concat_c",
+      "model_display": "Frame Concat (Training Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Movement/Frame Concat (Training Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0005",
+      "category": "Grounding",
+      "model": "concat_c",
+      "model_display": "Frame Concat (Training Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Grounding/Frame Concat (Training Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0006",
+      "category": "Building",
+      "model": "causvid_regression",
+      "model_display": "ODE Reg (Self-Forcing Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Building/ODE Reg (Self-Forcing Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0007",
+      "category": "Building",
+      "model": "concat_c",
+      "model_display": "Frame Concat (Training Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Building/Frame Concat (Training Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0008",
+      "category": "Movement",
+      "model": "causvid_dmd",
+      "model_display": "Pre-DMD (Self-Forcing Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Movement/Pre-DMD (Self-Forcing Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0009",
+      "category": "Grounding",
+      "model": "no_player_attn_sf",
+      "model_display": "Independent (Training Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Grounding/Independent (Training Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0010",
+      "category": "Grounding",
+      "model": "from_scratch",
+      "model_display": "Solaris without Pretrain (Training Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Grounding/Solaris without Pretrain (Training Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0011",
+      "category": "Grounding",
+      "model": "causvid_regression",
+      "model_display": "ODE Reg (Self-Forcing Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Grounding/ODE Reg (Self-Forcing Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0012",
+      "category": "Movement",
+      "model": "no_kv_cache_backprop",
+      "model_display": "No KV Back Prop (Self-Forcing Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Movement/No KV Back Prop (Self-Forcing Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0013",
+      "category": "Building",
+      "model": "causvid_dmd",
+      "model_display": "Pre-DMD (Self-Forcing Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Building/Pre-DMD (Self-Forcing Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0014",
+      "category": "Building",
+      "model": "no_kv_cache_backprop",
+      "model_display": "No KV Back Prop (Self-Forcing Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Building/No KV Back Prop (Self-Forcing Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0015",
+      "category": "Building",
+      "model": "from_scratch",
+      "model_display": "Solaris without Pretrain (Training Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Building/Solaris without Pretrain (Training Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0016",
+      "category": "Movement",
+      "model": "no_kv_cache_backprop",
+      "model_display": "No KV Back Prop (Self-Forcing Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Movement/No KV Back Prop (Self-Forcing Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0017",
+      "category": "Grounding",
+      "model": "concat_c",
+      "model_display": "Frame Concat (Training Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Grounding/Frame Concat (Training Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0018",
+      "category": "Building",
+      "model": "flagship",
+      "model_display": "Solaris Default",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Building/Solaris Default/video_0_gen.mp4"
+    },
+    {
+      "id": "a0019",
+      "category": "Grounding",
+      "model": "no_kv_cache_backprop",
+      "model_display": "No KV Back Prop (Self-Forcing Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Grounding/No KV Back Prop (Self-Forcing Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0020",
+      "category": "Movement",
+      "model": "causvid_dmd",
+      "model_display": "Pre-DMD (Self-Forcing Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Movement/Pre-DMD (Self-Forcing Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0021",
+      "category": "Building",
+      "model": "from_scratch",
+      "model_display": "Solaris without Pretrain (Training Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Building/Solaris without Pretrain (Training Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0022",
+      "category": "Building",
+      "model": "no_player_attn_sf",
+      "model_display": "Independent (Training Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Building/Independent (Training Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0023",
+      "category": "Movement",
+      "model": "no_kv_cache_backprop",
+      "model_display": "No KV Back Prop (Self-Forcing Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Movement/No KV Back Prop (Self-Forcing Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0024",
+      "category": "Movement",
+      "model": "flagship",
+      "model_display": "Solaris Default",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Movement/Solaris Default/video_0_gen.mp4"
+    },
+    {
+      "id": "a0025",
+      "category": "Movement",
+      "model": "flagship",
+      "model_display": "Solaris Default",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Movement/Solaris Default/video_1_gen.mp4"
+    },
+    {
+      "id": "a0026",
+      "category": "Movement",
+      "model": "causvid_regression",
+      "model_display": "ODE Reg (Self-Forcing Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Movement/ODE Reg (Self-Forcing Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0027",
+      "category": "Grounding",
+      "model": "causvid_regression",
+      "model_display": "ODE Reg (Self-Forcing Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Grounding/ODE Reg (Self-Forcing Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0028",
+      "category": "Building",
+      "model": "concat_c",
+      "model_display": "Frame Concat (Training Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Building/Frame Concat (Training Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0029",
+      "category": "Grounding",
+      "model": "flagship",
+      "model_display": "Solaris Default",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Grounding/Solaris Default/video_0_gen.mp4"
+    },
+    {
+      "id": "a0030",
+      "category": "Building",
+      "model": "concat_c",
+      "model_display": "Frame Concat (Training Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Building/Frame Concat (Training Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0031",
+      "category": "Building",
+      "model": "causvid_regression",
+      "model_display": "ODE Reg (Self-Forcing Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Building/ODE Reg (Self-Forcing Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0032",
+      "category": "Building",
+      "model": "no_kv_cache_backprop",
+      "model_display": "No KV Back Prop (Self-Forcing Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Building/No KV Back Prop (Self-Forcing Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0033",
+      "category": "Grounding",
+      "model": "no_kv_cache_backprop",
+      "model_display": "No KV Back Prop (Self-Forcing Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Grounding/No KV Back Prop (Self-Forcing Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0034",
+      "category": "Grounding",
+      "model": "from_scratch",
+      "model_display": "Solaris without Pretrain (Training Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Grounding/Solaris without Pretrain (Training Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0035",
+      "category": "Building",
+      "model": "no_kv_cache_backprop",
+      "model_display": "No KV Back Prop (Self-Forcing Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Building/No KV Back Prop (Self-Forcing Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0036",
+      "category": "Movement",
+      "model": "causvid_regression",
+      "model_display": "ODE Reg (Self-Forcing Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Movement/ODE Reg (Self-Forcing Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0037",
+      "category": "Grounding",
+      "model": "causvid_dmd",
+      "model_display": "Pre-DMD (Self-Forcing Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Grounding/Pre-DMD (Self-Forcing Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0038",
+      "category": "Movement",
+      "model": "no_player_attn_sf",
+      "model_display": "Independent (Training Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Movement/Independent (Training Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0039",
+      "category": "Building",
+      "model": "no_player_attn_sf",
+      "model_display": "Independent (Training Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Building/Independent (Training Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0040",
+      "category": "Building",
+      "model": "causvid_regression",
+      "model_display": "ODE Reg (Self-Forcing Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Building/ODE Reg (Self-Forcing Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0041",
+      "category": "Movement",
+      "model": "no_player_attn_sf",
+      "model_display": "Independent (Training Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Movement/Independent (Training Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0042",
+      "category": "Building",
+      "model": "no_player_attn_sf",
+      "model_display": "Independent (Training Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Building/Independent (Training Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0043",
+      "category": "Grounding",
+      "model": "causvid_regression",
+      "model_display": "ODE Reg (Self-Forcing Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Grounding/ODE Reg (Self-Forcing Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0044",
+      "category": "Movement",
+      "model": "from_scratch",
+      "model_display": "Solaris without Pretrain (Training Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Movement/Solaris without Pretrain (Training Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0045",
+      "category": "Grounding",
+      "model": "causvid_dmd",
+      "model_display": "Pre-DMD (Self-Forcing Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Grounding/Pre-DMD (Self-Forcing Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0046",
+      "category": "Grounding",
+      "model": "from_scratch",
+      "model_display": "Solaris without Pretrain (Training Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Grounding/Solaris without Pretrain (Training Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0047",
+      "category": "Movement",
+      "model": "concat_c",
+      "model_display": "Frame Concat (Training Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Movement/Frame Concat (Training Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0048",
+      "category": "Grounding",
+      "model": "no_player_attn_sf",
+      "model_display": "Independent (Training Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Grounding/Independent (Training Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0049",
+      "category": "Movement",
+      "model": "from_scratch",
+      "model_display": "Solaris without Pretrain (Training Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Movement/Solaris without Pretrain (Training Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0050",
+      "category": "Grounding",
+      "model": "flagship",
+      "model_display": "Solaris Default",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Grounding/Solaris Default/video_1_gen.mp4"
+    },
+    {
+      "id": "a0051",
+      "category": "Grounding",
+      "model": "no_player_attn_sf",
+      "model_display": "Independent (Training Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Grounding/Independent (Training Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0052",
+      "category": "Movement",
+      "model": "from_scratch",
+      "model_display": "Solaris without Pretrain (Training Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Movement/Solaris without Pretrain (Training Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0053",
+      "category": "Movement",
+      "model": "causvid_dmd",
+      "model_display": "Pre-DMD (Self-Forcing Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Movement/Pre-DMD (Self-Forcing Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0054",
+      "category": "Building",
+      "model": "flagship",
+      "model_display": "Solaris Default",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Building/Solaris Default/video_1_gen.mp4"
+    },
+    {
+      "id": "a0055",
+      "category": "Movement",
+      "model": "no_player_attn_sf",
+      "model_display": "Independent (Training Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Movement/Independent (Training Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0056",
+      "category": "Building",
+      "model": "from_scratch",
+      "model_display": "Solaris without Pretrain (Training Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Building/Solaris without Pretrain (Training Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0057",
+      "category": "Building",
+      "model": "causvid_dmd",
+      "model_display": "Pre-DMD (Self-Forcing Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Building/Pre-DMD (Self-Forcing Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0058",
+      "category": "Movement",
+      "model": "causvid_regression",
+      "model_display": "ODE Reg (Self-Forcing Ablation)",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Movement/ODE Reg (Self-Forcing Ablation)/video_2_gen.mp4"
+    },
+    {
+      "id": "a0059",
+      "category": "Grounding",
+      "model": "no_kv_cache_backprop",
+      "model_display": "No KV Back Prop (Self-Forcing Ablation)",
+      "video_index": 1,
+      "source": "Model Generations on Eval/Grounding/No KV Back Prop (Self-Forcing Ablation)/video_1_gen.mp4"
+    },
+    {
+      "id": "a0060",
+      "category": "Grounding",
+      "model": "flagship",
+      "model_display": "Solaris Default",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Grounding/Solaris Default/video_2_gen.mp4"
+    },
+    {
+      "id": "a0061",
+      "category": "Building",
+      "model": "flagship",
+      "model_display": "Solaris Default",
+      "video_index": 2,
+      "source": "Model Generations on Eval/Building/Solaris Default/video_2_gen.mp4"
+    },
+    {
+      "id": "a0062",
+      "category": "Grounding",
+      "model": "concat_c",
+      "model_display": "Frame Concat (Training Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Grounding/Frame Concat (Training Ablation)/video_0_gen.mp4"
+    },
+    {
+      "id": "a0063",
+      "category": "Movement",
+      "model": "concat_c",
+      "model_display": "Frame Concat (Training Ablation)",
+      "video_index": 0,
+      "source": "Model Generations on Eval/Movement/Frame Concat (Training Ablation)/video_0_gen.mp4"
+    }
+  ]
+}

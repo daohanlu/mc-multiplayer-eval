@@ -1,0 +1,292 @@
+{
+  "task": "artifacts",
+  "question": "Does this video contain clear visual artifacts?",
+  "instruction": "Judge each view on its own and report only clear visual artifacts. Two things do NOT count: disagreement between the two players' views about the shared world, and memory failure (the world changing when a player looks away and back). Both are expected in this data and measured separately.",
+  "options": [
+    {
+      "value": "none",
+      "label": "No artifacts",
+      "key": "1",
+      "help": "Each view looks clean on its own, even if the two views disagree with each other."
+    },
+    {
+      "value": "character",
+      "label": "Character artifacts",
+      "key": "2",
+      "help": "Character disappearing, duplicating, morphing, or unrecognizable."
+    },
+    {
+      "value": "building",
+      "label": "Building artifacts",
+      "key": "3",
+      "help": "Puts down no blocks or multiple blocks when attempting to build."
+    },
+    {
+      "value": "other",
+      "label": "Other artifacts",
+      "key": "4",
+      "help": "Any other clear corruption."
+    }
+  ],
+  "guide_examples": [
+    {
+      "option": "other",
+      "image": "frames/guide_other.png",
+      "caption": "The entire frame has degraded into a soft smear: the grass, the item icons in the hotbar and the name tags above the players are all blurred and unreadable. The corruption covers the whole picture rather than being confined to a character or a build, so it counts as <em>Other artifacts</em>."
+    }
+  ],
+  "items": [
+    {
+      "id": "a0001",
+      "video": "videos/a0001.mp4"
+    },
+    {
+      "id": "a0002",
+      "video": "videos/a0002.mp4"
+    },
+    {
+      "id": "a0003",
+      "video": "videos/a0003.mp4"
+    },
+    {
+      "id": "a0004",
+      "video": "videos/a0004.mp4"
+    },
+    {
+      "id": "a0005",
+      "video": "videos/a0005.mp4"
+    },
+    {
+      "id": "a0006",
+      "video": "videos/a0006.mp4"
+    },
+    {
+      "id": "a0007",
+      "video": "videos/a0007.mp4"
+    },
+    {
+      "id": "a0008",
+      "video": "videos/a0008.mp4"
+    },
+    {
+      "id": "a0009",
+      "video": "videos/a0009.mp4"
+    },
+    {
+      "id": "a0010",
+      "video": "videos/a0010.mp4"
+    },
+    {
+      "id": "a0011",
+      "video": "videos/a0011.mp4"
+    },
+    {
+      "id": "a0012",
+      "video": "videos/a0012.mp4"
+    },
+    {
+      "id": "a0013",
+      "video": "videos/a0013.mp4"
+    },
+    {
+      "id": "a0014",
+      "video": "videos/a0014.mp4"
+    },
+    {
+      "id": "a0015",
+      "video": "videos/a0015.mp4"
+    },
+    {
+      "id": "a0016",
+      "video": "videos/a0016.mp4"
+    },
+    {
+      "id": "a0017",
+      "video": "videos/a0017.mp4"
+    },
+    {
+      "id": "a0018",
+      "video": "videos/a0018.mp4"
+    },
+    {
+      "id": "a0019",
+      "video": "videos/a0019.mp4"
+    },
+    {
+      "id": "a0020",
+      "video": "videos/a0020.mp4"
+    },
+    {
+      "id": "a0021",
+      "video": "videos/a0021.mp4"
+    },
+    {
+      "id": "a0022",
+      "video": "videos/a0022.mp4"
+    },
+    {
+      "id": "a0023",
+      "video": "videos/a0023.mp4"
+    },
+    {
+      "id": "a0024",
+      "video": "videos/a0024.mp4"
+    },
+    {
+      "id": "a0025",
+      "video": "videos/a0025.mp4"
+    },
+    {
+      "id": "a0026",
+      "video": "videos/a0026.mp4"
+    },
+    {
+      "id": "a0027",
+      "video": "videos/a0027.mp4"
+    },
+    {
+      "id": "a0028",
+      "video": "videos/a0028.mp4"
+    },
+    {
+      "id": "a0029",
+      "video": "videos/a0029.mp4"
+    },
+    {
+      "id": "a0030",
+      "video": "videos/a0030.mp4"
+    },
+    {
+      "id": "a0031",
+      "video": "videos/a0031.mp4"
+    },
+    {
+      "id": "a0032",
+      "video": "videos/a0032.mp4"
+    },
+    {
+      "id": "a0033",
+      "video": "videos/a0033.mp4"
+    },
+    {
+      "id": "a0034",
+      "video": "videos/a0034.mp4"
+    },
+    {
+      "id": "a0035",
+      "video": "videos/a0035.mp4"
+    },
+    {
+      "id": "a0036",
+      "video": "videos/a0036.mp4"
+    },
+    {
+      "id": "a0037",
+      "video": "videos/a0037.mp4"
+    },
+    {
+      "id": "a0038",
+      "video": "videos/a0038.mp4"
+    },
+    {
+      "id": "a0039",
+      "video": "videos/a0039.mp4"
+    },
+    {
+      "id": "a0040",
+      "video": "videos/a0040.mp4"
+    },
+    {
+      "id": "a0041",
+      "video": "videos/a0041.mp4"
+    },
+    {
+      "id": "a0042",
+      "video": "videos/a0042.mp4"
+    },
+    {
+      "id": "a0043",
+      "video": "videos/a0043.mp4"
+    },
+    {
+      "id": "a0044",
+      "video": "videos/a0044.mp4"
+    },
+    {
+      "id": "a0045",
+      "video": "videos/a0045.mp4"
+    },
+    {
+      "id": "a0046",
+      "video": "videos/a0046.mp4"
+    },
+    {
+      "id": "a0047",
+      "video": "videos/a0047.mp4"
+    },
+    {
+      "id": "a0048",
+      "video": "videos/a0048.mp4"
+    },
+    {
+      "id": "a0049",
+      "video": "videos/a0049.mp4"
+    },
+    {
+      "id": "a0050",
+      "video": "videos/a0050.mp4"
+    },
+    {
+      "id": "a0051",
+      "video": "videos/a0051.mp4"
+    },
+    {
+      "id": "a0052",
+      "video": "videos/a0052.mp4"
+    },
+    {
+      "id": "a0053",
+      "video": "videos/a0053.mp4"
+    },
+    {
+      "id": "a0054",
+      "video": "videos/a0054.mp4"
+    },
+    {
+      "id": "a0055",
+      "video": "videos/a0055.mp4"
+    },
+    {
+      "id": "a0056",
+      "video": "videos/a0056.mp4"
+    },
+    {
+      "id": "a0057",
+      "video": "videos/a0057.mp4"
+    },
+    {
+      "id": "a0058",
+      "video": "videos/a0058.mp4"
+    },
+    {
+      "id": "a0059",
+      "video": "videos/a0059.mp4"
+    },
+    {
+      "id": "a0060",
+      "video": "videos/a0060.mp4"
+    },
+    {
+      "id": "a0061",
+      "video": "videos/a0061.mp4"
+    },
+    {
+      "id": "a0062",
+      "video": "videos/a0062.mp4"
+    },
+    {
+      "id": "a0063",
+      "video": "videos/a0063.mp4"
+    }
+  ]
+}

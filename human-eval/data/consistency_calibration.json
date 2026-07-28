@@ -1,0 +1,21 @@
+{
+  "note": "Ground-truth (real, non-generated) example pairs. Shown before the task; not scored.",
+  "examples": [
+    {
+      "id": "cal_same",
+      "image_a": "frames/cal_same_a.png",
+      "image_b": "frames/cal_same_b.png",
+      "verdict": "Same scenery",
+      "answer": "same",
+      "explanation": "Both players are looking at the same part of the world. The camera position and angle differ \u2014 notice the trees and the ridge line appear in both, just from slightly different spots. A difference in viewpoint alone never makes a pair &ldquo;different&rdquo;."
+    },
+    {
+      "id": "cal_different",
+      "image_a": "frames/cal_different_a.png",
+      "image_b": "frames/cal_different_b.png",
+      "verdict": "Different scenery",
+      "answer": "different",
+      "explanation": "The players are facing opposite directions, so they are looking at unrelated parts of the world: a large rock formation on one side, open grassland on the other. Note that the sky, the biome and the on-screen HUD look alike in both \u2014 that is <em>not</em> enough to call them the same. Judge by the landmarks and terrain."
+    }
+  ]
+}
