@@ -1,0 +1,650 @@
+{
+  "task": "consistency_independent",
+  "annotator": "Georgy",
+  "total": 128,
+  "instruction_version": 1,
+  "answered": 128,
+  "updated": "2026-07-28T00:03:19.468Z",
+  "answers": {
+    "i0050": {
+      "at": "2026-07-27T23:59:04.384Z",
+      "value": "different",
+      "index": 0
+    },
+    "i0070": {
+      "at": "2026-07-27T23:59:05.688Z",
+      "value": "different",
+      "index": 1
+    },
+    "i0004": {
+      "at": "2026-07-27T23:59:07.505Z",
+      "value": "different",
+      "index": 2
+    },
+    "i0107": {
+      "at": "2026-07-27T23:59:08.735Z",
+      "value": "different",
+      "index": 3
+    },
+    "i0042": {
+      "at": "2026-07-27T23:59:11.839Z",
+      "value": "different",
+      "index": 4
+    },
+    "i0047": {
+      "at": "2026-07-27T23:59:13.100Z",
+      "value": "different",
+      "index": 5
+    },
+    "i0078": {
+      "at": "2026-07-27T23:59:15.437Z",
+      "value": "different",
+      "index": 6
+    },
+    "i0068": {
+      "at": "2026-07-27T23:59:17.628Z",
+      "value": "same",
+      "index": 7
+    },
+    "i0009": {
+      "at": "2026-07-27T23:59:19.175Z",
+      "value": "different",
+      "index": 8
+    },
+    "i0029": {
+      "at": "2026-07-27T23:59:20.554Z",
+      "value": "different",
+      "index": 9
+    },
+    "i0045": {
+      "at": "2026-07-27T23:59:22.218Z",
+      "value": "different",
+      "index": 10
+    },
+    "i0016": {
+      "at": "2026-07-27T23:59:24.738Z",
+      "value": "same",
+      "index": 11
+    },
+    "i0020": {
+      "at": "2026-07-27T23:59:26.090Z",
+      "value": "different",
+      "index": 12
+    },
+    "i0041": {
+      "at": "2026-07-27T23:59:27.034Z",
+      "value": "different",
+      "index": 13
+    },
+    "i0071": {
+      "at": "2026-07-27T23:59:29.062Z",
+      "value": "different",
+      "index": 14
+    },
+    "i0058": {
+      "at": "2026-07-27T23:59:30.437Z",
+      "value": "different",
+      "index": 15
+    },
+    "i0083": {
+      "at": "2026-07-27T23:59:32.359Z",
+      "value": "different",
+      "index": 16
+    },
+    "i0038": {
+      "at": "2026-07-27T23:59:33.605Z",
+      "value": "different",
+      "index": 17
+    },
+    "i0023": {
+      "at": "2026-07-27T23:59:36.723Z",
+      "value": "different",
+      "index": 18
+    },
+    "i0116": {
+      "at": "2026-07-27T23:59:38.345Z",
+      "value": "different",
+      "index": 19
+    },
+    "i0037": {
+      "at": "2026-07-27T23:59:40.310Z",
+      "value": "different",
+      "index": 20
+    },
+    "i0074": {
+      "at": "2026-07-27T23:59:41.450Z",
+      "value": "different",
+      "index": 21
+    },
+    "i0077": {
+      "at": "2026-07-27T23:59:44.539Z",
+      "value": "different",
+      "index": 22
+    },
+    "i0051": {
+      "at": "2026-07-27T23:59:45.724Z",
+      "value": "different",
+      "index": 23
+    },
+    "i0079": {
+      "at": "2026-07-27T23:59:50.735Z",
+      "value": "different",
+      "index": 24
+    },
+    "i0092": {
+      "at": "2026-07-27T23:59:51.666Z",
+      "value": "different",
+      "index": 25
+    },
+    "i0027": {
+      "at": "2026-07-27T23:59:53.346Z",
+      "value": "different",
+      "index": 26
+    },
+    "i0097": {
+      "at": "2026-07-27T23:59:55.055Z",
+      "value": "different",
+      "index": 27
+    },
+    "i0012": {
+      "at": "2026-07-27T23:59:57.696Z",
+      "value": "different",
+      "index": 28
+    },
+    "i0086": {
+      "at": "2026-07-27T23:59:59.002Z",
+      "value": "different",
+      "index": 29
+    },
+    "i0125": {
+      "at": "2026-07-28T00:00:01.506Z",
+      "value": "different",
+      "index": 30
+    },
+    "i0033": {
+      "at": "2026-07-28T00:00:02.331Z",
+      "value": "different",
+      "index": 31
+    },
+    "i0003": {
+      "at": "2026-07-28T00:00:04.449Z",
+      "value": "different",
+      "index": 32
+    },
+    "i0101": {
+      "at": "2026-07-28T00:00:06.966Z",
+      "value": "different",
+      "index": 33
+    },
+    "i0052": {
+      "at": "2026-07-28T00:00:10.808Z",
+      "value": "different",
+      "index": 34
+    },
+    "i0109": {
+      "at": "2026-07-28T00:00:15.018Z",
+      "value": "different",
+      "index": 35
+    },
+    "i0084": {
+      "at": "2026-07-28T00:00:16.655Z",
+      "value": "different",
+      "index": 36
+    },
+    "i0017": {
+      "at": "2026-07-28T00:00:18.847Z",
+      "value": "same",
+      "index": 37
+    },
+    "i0001": {
+      "at": "2026-07-28T00:00:21.741Z",
+      "value": "different",
+      "index": 38
+    },
+    "i0110": {
+      "at": "2026-07-28T00:00:23.767Z",
+      "value": "different",
+      "index": 39
+    },
+    "i0049": {
+      "at": "2026-07-28T00:00:25.956Z",
+      "value": "different",
+      "index": 40
+    },
+    "i0105": {
+      "at": "2026-07-28T00:00:28.433Z",
+      "value": "different",
+      "index": 41
+    },
+    "i0122": {
+      "at": "2026-07-28T00:00:29.586Z",
+      "value": "different",
+      "index": 42
+    },
+    "i0006": {
+      "at": "2026-07-28T00:00:34.192Z",
+      "value": "different",
+      "index": 43
+    },
+    "i0095": {
+      "at": "2026-07-28T00:00:39.037Z",
+      "value": "different",
+      "index": 44
+    },
+    "i0060": {
+      "at": "2026-07-28T00:00:40.011Z",
+      "value": "different",
+      "index": 45
+    },
+    "i0011": {
+      "at": "2026-07-28T00:00:43.580Z",
+      "value": "different",
+      "index": 46
+    },
+    "i0098": {
+      "at": "2026-07-28T00:00:47.242Z",
+      "value": "different",
+      "index": 47
+    },
+    "i0073": {
+      "at": "2026-07-28T00:00:49.165Z",
+      "value": "different",
+      "index": 48
+    },
+    "i0057": {
+      "at": "2026-07-28T00:00:52.791Z",
+      "value": "different",
+      "index": 49
+    },
+    "i0108": {
+      "at": "2026-07-28T00:00:55.615Z",
+      "value": "different",
+      "index": 50
+    },
+    "i0022": {
+      "at": "2026-07-28T00:00:57.550Z",
+      "value": "different",
+      "index": 51
+    },
+    "i0025": {
+      "at": "2026-07-28T00:00:59.181Z",
+      "value": "different",
+      "index": 52
+    },
+    "i0127": {
+      "at": "2026-07-28T00:01:01.491Z",
+      "value": "same",
+      "index": 53
+    },
+    "i0115": {
+      "at": "2026-07-28T00:01:06.128Z",
+      "value": "same",
+      "index": 54
+    },
+    "i0019": {
+      "at": "2026-07-28T00:01:07.806Z",
+      "value": "different",
+      "index": 55
+    },
+    "i0054": {
+      "at": "2026-07-28T00:01:09.354Z",
+      "value": "different",
+      "index": 56
+    },
+    "i0064": {
+      "at": "2026-07-28T00:01:11.409Z",
+      "value": "different",
+      "index": 57
+    },
+    "i0036": {
+      "at": "2026-07-28T00:01:13.135Z",
+      "value": "different",
+      "index": 58
+    },
+    "i0002": {
+      "at": "2026-07-28T00:01:15.999Z",
+      "value": "different",
+      "index": 59
+    },
+    "i0126": {
+      "at": "2026-07-28T00:01:18.127Z",
+      "value": "different",
+      "index": 60
+    },
+    "i0102": {
+      "at": "2026-07-28T00:01:19.249Z",
+      "value": "different",
+      "index": 61
+    },
+    "i0005": {
+      "at": "2026-07-28T00:01:20.993Z",
+      "value": "different",
+      "index": 62
+    },
+    "i0015": {
+      "at": "2026-07-28T00:01:22.236Z",
+      "value": "different",
+      "index": 63
+    },
+    "i0046": {
+      "at": "2026-07-28T00:01:23.738Z",
+      "value": "different",
+      "index": 64
+    },
+    "i0021": {
+      "at": "2026-07-28T00:01:27.009Z",
+      "value": "different",
+      "index": 65
+    },
+    "i0034": {
+      "at": "2026-07-28T00:01:27.908Z",
+      "value": "different",
+      "index": 66
+    },
+    "i0093": {
+      "at": "2026-07-28T00:01:29.349Z",
+      "value": "different",
+      "index": 67
+    },
+    "i0112": {
+      "at": "2026-07-28T00:01:30.293Z",
+      "value": "different",
+      "index": 68
+    },
+    "i0030": {
+      "at": "2026-07-28T00:01:32.843Z",
+      "value": "same",
+      "index": 69
+    },
+    "i0088": {
+      "at": "2026-07-28T00:01:35.063Z",
+      "value": "different",
+      "index": 70
+    },
+    "i0117": {
+      "at": "2026-07-28T00:01:36.833Z",
+      "value": "different",
+      "index": 71
+    },
+    "i0028": {
+      "at": "2026-07-28T00:01:38.724Z",
+      "value": "different",
+      "index": 72
+    },
+    "i0121": {
+      "at": "2026-07-28T00:01:40.419Z",
+      "value": "different",
+      "index": 73
+    },
+    "i0065": {
+      "at": "2026-07-28T00:01:42.169Z",
+      "value": "different",
+      "index": 74
+    },
+    "i0010": {
+      "at": "2026-07-28T00:01:44.243Z",
+      "value": "different",
+      "index": 75
+    },
+    "i0024": {
+      "at": "2026-07-28T00:01:46.223Z",
+      "value": "different",
+      "index": 76
+    },
+    "i0104": {
+      "at": "2026-07-28T00:01:47.410Z",
+      "value": "different",
+      "index": 77
+    },
+    "i0061": {
+      "at": "2026-07-28T00:01:49.450Z",
+      "value": "different",
+      "index": 78
+    },
+    "i0035": {
+      "at": "2026-07-28T00:01:51.892Z",
+      "value": "different",
+      "index": 79
+    },
+    "i0087": {
+      "at": "2026-07-28T00:01:53.996Z",
+      "value": "different",
+      "index": 80
+    },
+    "i0008": {
+      "at": "2026-07-28T00:01:55.900Z",
+      "value": "different",
+      "index": 81
+    },
+    "i0106": {
+      "at": "2026-07-28T00:01:57.190Z",
+      "value": "different",
+      "index": 82
+    },
+    "i0044": {
+      "at": "2026-07-28T00:01:59.050Z",
+      "value": "different",
+      "index": 83
+    },
+    "i0085": {
+      "at": "2026-07-28T00:02:00.760Z",
+      "value": "different",
+      "index": 84
+    },
+    "i0113": {
+      "at": "2026-07-28T00:02:01.958Z",
+      "value": "different",
+      "index": 85
+    },
+    "i0082": {
+      "at": "2026-07-28T00:02:04.955Z",
+      "value": "different",
+      "index": 86
+    },
+    "i0040": {
+      "at": "2026-07-28T00:02:06.050Z",
+      "value": "different",
+      "index": 87
+    },
+    "i0062": {
+      "at": "2026-07-28T00:02:07.896Z",
+      "value": "different",
+      "index": 88
+    },
+    "i0043": {
+      "at": "2026-07-28T00:02:09.216Z",
+      "value": "same",
+      "index": 89
+    },
+    "i0055": {
+      "at": "2026-07-28T00:02:10.629Z",
+      "value": "same",
+      "index": 90
+    },
+    "i0039": {
+      "at": "2026-07-28T00:02:11.948Z",
+      "value": "different",
+      "index": 91
+    },
+    "i0091": {
+      "at": "2026-07-28T00:02:13.164Z",
+      "value": "different",
+      "index": 92
+    },
+    "i0081": {
+      "at": "2026-07-28T00:02:15.562Z",
+      "value": "different",
+      "index": 93
+    },
+    "i0099": {
+      "at": "2026-07-28T00:02:17.156Z",
+      "value": "different",
+      "index": 94
+    },
+    "i0118": {
+      "at": "2026-07-28T00:02:19.410Z",
+      "value": "different",
+      "index": 95
+    },
+    "i0128": {
+      "at": "2026-07-28T00:02:21.458Z",
+      "value": "different",
+      "index": 96
+    },
+    "i0075": {
+      "at": "2026-07-28T00:02:22.509Z",
+      "value": "different",
+      "index": 97
+    },
+    "i0031": {
+      "at": "2026-07-28T00:02:24.251Z",
+      "value": "same",
+      "index": 98
+    },
+    "i0119": {
+      "at": "2026-07-28T00:02:25.763Z",
+      "value": "different",
+      "index": 99
+    },
+    "i0090": {
+      "at": "2026-07-28T00:02:26.995Z",
+      "value": "different",
+      "index": 100
+    },
+    "i0048": {
+      "at": "2026-07-28T00:02:28.780Z",
+      "value": "different",
+      "index": 101
+    },
+    "i0053": {
+      "at": "2026-07-28T00:02:30.684Z",
+      "value": "same",
+      "index": 102
+    },
+    "i0067": {
+      "at": "2026-07-28T00:02:32.348Z",
+      "value": "different",
+      "index": 103
+    },
+    "i0114": {
+      "at": "2026-07-28T00:02:34.375Z",
+      "value": "different",
+      "index": 104
+    },
+    "i0080": {
+      "at": "2026-07-28T00:02:36.175Z",
+      "value": "different",
+      "index": 105
+    },
+    "i0111": {
+      "at": "2026-07-28T00:02:39.429Z",
+      "value": "different",
+      "index": 106
+    },
+    "i0063": {
+      "at": "2026-07-28T00:02:40.974Z",
+      "value": "different",
+      "index": 107
+    },
+    "i0007": {
+      "at": "2026-07-28T00:02:42.505Z",
+      "value": "different",
+      "index": 108
+    },
+    "i0124": {
+      "at": "2026-07-28T00:02:45.158Z",
+      "value": "different",
+      "index": 109
+    },
+    "i0026": {
+      "at": "2026-07-28T00:02:46.871Z",
+      "value": "different",
+      "index": 110
+    },
+    "i0014": {
+      "at": "2026-07-28T00:02:49.299Z",
+      "value": "different",
+      "index": 111
+    },
+    "i0096": {
+      "at": "2026-07-28T00:02:51.356Z",
+      "value": "different",
+      "index": 112
+    },
+    "i0123": {
+      "at": "2026-07-28T00:02:53.065Z",
+      "value": "different",
+      "index": 113
+    },
+    "i0032": {
+      "at": "2026-07-28T00:02:54.745Z",
+      "value": "different",
+      "index": 114
+    },
+    "i0103": {
+      "at": "2026-07-28T00:02:56.772Z",
+      "value": "different",
+      "index": 115
+    },
+    "i0069": {
+      "at": "2026-07-28T00:02:58.527Z",
+      "value": "same",
+      "index": 116
+    },
+    "i0072": {
+      "at": "2026-07-28T00:03:00.794Z",
+      "value": "different",
+      "index": 117
+    },
+    "i0120": {
+      "at": "2026-07-28T00:03:02.156Z",
+      "value": "different",
+      "index": 118
+    },
+    "i0094": {
+      "at": "2026-07-28T00:03:03.656Z",
+      "value": "different",
+      "index": 119
+    },
+    "i0059": {
+      "at": "2026-07-28T00:03:04.676Z",
+      "value": "different",
+      "index": 120
+    },
+    "i0100": {
+      "at": "2026-07-28T00:03:06.313Z",
+      "value": "different",
+      "index": 121
+    },
+    "i0018": {
+      "at": "2026-07-28T00:03:07.253Z",
+      "value": "different",
+      "index": 122
+    },
+    "i0076": {
+      "at": "2026-07-28T00:03:08.545Z",
+      "value": "different",
+      "index": 123
+    },
+    "i0089": {
+      "at": "2026-07-28T00:03:11.142Z",
+      "value": "different",
+      "index": 124
+    },
+    "i0066": {
+      "at": "2026-07-28T00:03:15.210Z",
+      "value": "different",
+      "index": 125
+    },
+    "i0056": {
+      "at": "2026-07-28T00:03:18.586Z",
+      "value": "different",
+      "index": 126
+    },
+    "i0013": {
+      "at": "2026-07-28T00:03:19.466Z",
+      "value": "different",
+      "index": 127
+    }
+  }
+}

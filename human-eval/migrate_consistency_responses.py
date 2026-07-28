@@ -25,6 +25,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 from pathlib import Path
 
@@ -100,7 +101,7 @@ def main() -> None:
         data["answered"] = len(migrated)
         data["total"] = len(new)
         data.setdefault("migrations", []).append({
-            "date": "2026-07-25",
+            "date": datetime.date.today().isoformat(),
             "reason": "consistency models changed "
                       f"{old_models} -> {new_models}",
             "carried": len(migrated),
@@ -121,7 +122,15 @@ def main() -> None:
     if args.dry_run:
         print("\n(dry run — nothing written)")
     else:
-        print("\nmigrated. Upload with: ./deploy.sh  (then restart the server)")
+        # deploy.sh excludes responses/ from its rsync, so it does NOT carry
+        # these rewritten files to the remote. They must be pushed explicitly,
+        # or the server keeps serving answers keyed to the old numbering.
+        print("\nmigrated. The remote still holds the OLD ids. Push in this order:")
+        print("  ./deploy.sh stop")
+        print("  ./deploy.sh                 # uploads the rebuilt task, NOT responses/")
+        print("  rsync -az ./responses/ \\")
+        print("      \"${REMOTE:-fred@69.30.0.74}:${REMOTE_DIR:-/nas2/fred/solaris-human-eval}/responses/\"")
+        print("  ./deploy.sh restart")
 
 
 if __name__ == "__main__":

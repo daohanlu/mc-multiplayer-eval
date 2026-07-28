@@ -298,6 +298,10 @@ Sanity check: replaying the VLM's own trial-1 responses through the scorer
 reproduces its recorded episode-level accuracy exactly (`flagship` 54.7% =
 35/64, `causvid_regression` 32.8% = 21/64).
 
+**`RESULTS.md`** holds the collected Consistency findings — the human/VLM
+ranking and margins, per-pair agreement, and the threshold caveat. Fetch before
+scoring: the committed `responses/` lag the live host.
+
 ## Files
 
 | Path | Purpose | In git |

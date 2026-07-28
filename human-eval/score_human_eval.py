@@ -31,6 +31,7 @@ RESPONSES = HERE / "responses"
 PAPER_CONSISTENCY = {
     "flagship": (56.8, 2.9),            # Tables 2 and 3
     "concat_c": (25.5, 3.2),            # Table 2, Frame concat
+    "no_player_attn_sf": (38.0, 1.5),   # Table 2, Independent
     "causvid_regression": (34.9, 1.5),  # Table 3, ODE Reg (kept for old runs)
 }
 
@@ -71,7 +72,7 @@ def load_responses(paths: list[Path]) -> dict[str, list[dict]]:
     for p in paths:
         data = json.loads(p.read_text())
         task = data.get("task")
-        if task not in {"consistency", "artifacts"}:
+        if task not in {"consistency", "consistency_independent", "artifacts"}:
             print(f"  skipping {p.name}: unknown task {task!r}")
             continue
         data["_file"] = p.name
@@ -82,9 +83,10 @@ def load_responses(paths: list[Path]) -> dict[str, list[dict]]:
 # --- consistency -----------------------------------------------------------
 
 
-def score_consistency(runs: list[dict], key: dict[str, dict]) -> None:
+def score_consistency(runs: list[dict], key: dict[str, dict],
+                      title: str = "CONSISTENCY — human vs VLM") -> None:
     print("\n" + "=" * 72)
-    print("CONSISTENCY — human vs VLM")
+    print(title)
     print("=" * 72)
 
     for run in runs:
@@ -132,15 +134,79 @@ def score_consistency(runs: list[dict], key: dict[str, dict]) -> None:
             print(f"  {model:22s} {qa:11.1f}% {ea:13.1f}% {len(eps):5d}   "
                   f"{pm:.1f} +/- {ps:.1f}{flag}")
 
-        # Only rank once both models actually have completed episodes —
-        # otherwise a partial run reports a comparison against nan.
+        # Only rank models that actually have completed episodes — otherwise a
+        # partial run reports a comparison against nan. Handles any model count,
+        # so adding a third model to CONSISTENCY_MODELS still prints a ranking.
         ranked = {m: v for m, v in by_model_ep.items() if v}
-        if len(ranked) == 2:
-            a, b = sorted(ranked, key=lambda m: -_acc(ranked[m]))
-            print(f"  -> humans rank {a} above {b} "
-                  f"({_acc(ranked[a]):.1f}% vs {_acc(ranked[b]):.1f}%)")
-        elif len(ranked) < 2:
+        if len(ranked) >= 2:
+            order = sorted(ranked, key=lambda m: -_acc(ranked[m]))
+            print("  -> humans rank " + " > ".join(
+                f"{m} ({_acc(ranked[m]):.1f}%)" for m in order))
+        else:
             print("  -> not enough completed episodes to rank yet")
+
+
+def score_pooled_independent(by_task: dict[str, list[dict]]) -> None:
+    """The 56.8 vs 38.0 comparison R3 asks about.
+
+    ``flagship`` lives in task 1 and ``no_player_attn_sf`` in task 3, so the two
+    sides come from different tasks. The stimuli and instructions are identical,
+    which is what makes the pooling legitimate — but the two sides were
+    collected in different sittings, so an annotator's threshold may have moved
+    between them. Read the per-annotator margins, not just the mean.
+    """
+    print("\n" + "=" * 72)
+    print("POOLED: Solaris Default (task 1) vs Independent (task 3)")
+    print("=" * 72)
+
+    keys = {"consistency": load_key("consistency"),
+            "consistency_independent": load_key("consistency_independent")}
+    by_annotator: dict[str, dict[str, list[bool]]] = defaultdict(
+        lambda: defaultdict(list))
+    episodes: dict[tuple, list[bool]] = defaultdict(list)
+
+    for task, runs in by_task.items():
+        if task not in keys:
+            continue
+        for run in runs:
+            who = run.get("annotator", "?")
+            for item_id, ans in run["answers"].items():
+                k = keys[task].get(item_id)
+                got = ANSWER_TO_EXPECTED.get(ans.get("value"))
+                if k is None or got is None:
+                    continue
+                episodes[(who, k["model"], k["eval"], k["episode"],
+                          k["instance"])].append(got == k["expected"])
+
+    for (who, model, _ev, _ep, _inst), oks in episodes.items():
+        if len(oks) == 2:                      # AND over both timestamps
+            by_annotator[who][model].append(all(oks))
+
+    print(f"  {'annotator':10s} {'Solaris Default':>16s} {'Independent':>12s} "
+          f"{'margin':>8s}   n_ep")
+    margins = []
+    for who in sorted(by_annotator):
+        row = by_annotator[who]
+        fl, ind = row.get("flagship", []), row.get("no_player_attn_sf", [])
+        if not fl or not ind:
+            print(f"  {who:10s} incomplete — "
+                  f"{len(fl)} flagship, {len(ind)} Independent episodes")
+            continue
+        m = _acc(fl) - _acc(ind)
+        margins.append(m)
+        print(f"  {who:10s} {_acc(fl):15.1f}% {_acc(ind):11.1f}% "
+              f"{m:+7.1f}   {len(fl)}/{len(ind)}")
+
+    if margins:
+        mean = sum(margins) / len(margins)
+        var = sum((x - mean) ** 2 for x in margins) / len(margins)
+        print(f"\n  mean margin {mean:+.1f} +/- {var ** 0.5:.1f} "
+              f"(pop sd over {len(margins)} annotators)")
+        print(f"  annotators ranking Solaris Default above Independent: "
+              f"{sum(1 for x in margins if x > 0)}/{len(margins)}")
+        pm, ps = PAPER_CONSISTENCY["flagship"]
+        im, _is = PAPER_CONSISTENCY["no_player_attn_sf"]
+        print(f"  paper (VLM): {pm:.1f} vs {im:.1f}, margin {pm - im:+.1f}")
 
 
 def _acc(oks: list[bool]) -> float:
@@ -236,6 +302,12 @@ def main() -> None:
 
     if "consistency" in by_task:
         score_consistency(by_task["consistency"], load_key("consistency"))
+    if "consistency_independent" in by_task:
+        score_consistency(by_task["consistency_independent"],
+                          load_key("consistency_independent"),
+                          title="CONSISTENCY (task 3, Independent) — human vs VLM")
+    if {"consistency", "consistency_independent"} <= set(by_task):
+        score_pooled_independent(by_task)
     if "artifacts" in by_task:
         score_artifacts(by_task["artifacts"], load_key("artifacts"))
     print()

@@ -39,7 +39,7 @@ from urllib.parse import unquote
 HERE = Path(__file__).resolve().parent
 RESPONSES = HERE / "responses"
 
-VALID_TASK = {"consistency", "artifacts"}
+VALID_TASK = {"consistency", "consistency_independent", "artifacts"}
 
 # Fields curated server-side that a client POST must not clobber. The browser
 # rewrites the whole file on every save and knows nothing about these, so

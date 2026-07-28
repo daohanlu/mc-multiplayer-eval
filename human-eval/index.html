@@ -60,6 +60,18 @@
         <a class="btn" href="artifacts.html" id="goA">Start</a>
         <a class="btn subtle" href="artifacts.html?review=1" id="revA" hidden>Review answers</a>
       </div>
+
+      <div class="card">
+        <h3>3 &middot; Scene consistency, second set</h3>
+        <div class="meta">Two screenshots at a time &middot; same or different scenery</div>
+        <div class="progress"><div class="track"><div class="fill"></div></div><span class="count">&ndash;</span></div>
+        <p class="hint" style="margin:14px 0">
+          The same task as 1, on a different set of clips. The worked examples
+          are the same, so you can skip them if you have done task 1.
+        </p>
+        <a class="btn" href="consistency.html?task=consistency_independent" id="goI">Start</a>
+        <a class="btn subtle" href="consistency.html?task=consistency_independent&amp;review=1" id="revI" hidden>Review answers</a>
+      </div>
     </div>
 
     <div class="card" style="margin-top:16px">
@@ -88,10 +100,11 @@ async function showTasks(name) {
 
   // Task versions must match the ones the task pages use, or the landing page
   // would read a different localStorage key and under-report progress.
-  const VERSIONS = { consistency: 2, artifacts: 3 };
+  const VERSIONS = { consistency: 4, consistency_independent: 1, artifacts: 3 };
 
   for (const [task, cardIdx, link, rev] of
-       [['consistency', 0, 'goC', 'revC'], ['artifacts', 1, 'goA', 'revA']]) {
+       [['consistency', 0, 'goC', 'revC'], ['artifacts', 1, 'goA', 'revA'],
+        ['consistency_independent', 2, 'goI', 'revI']]) {
     const card = document.querySelectorAll('.task-grid .card')[cardIdx];
     const bar = card.querySelector('.progress');
     try {

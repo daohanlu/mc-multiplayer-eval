@@ -108,13 +108,19 @@
 
 <script src="static/common.js"></script>
 <script>
-const TASK = 'consistency';
+// One page serves both consistency tasks. ?task=consistency_independent
+// selects task 3; no parameter means task 1, so existing links and any
+// open tab keep working. The name is whitelisted, because it picks the
+// manifest URL and is part of the localStorage key.
+const TASKS = ['consistency', 'consistency_independent'];
+const qsTask = new URLSearchParams(location.search).get('task');
+const TASK = TASKS.includes(qsTask) ? qsTask : 'consistency';
 // See Store: TASK_VERSION invalidates old answers, INSTRUCTION_VERSION only
 // records which wording a run was collected under.
 // v2: the model pair changed (causvid_regression -> concat_c), which renumbers
 // every item id. Stale localStorage must be ignored or a returning browser
 // would re-POST answers under ids that now mean something else.
-const TASK_VERSION = 2;
+const TASK_VERSION = 4;
 const INSTRUCTION_VERSION = 1;
 const name = requireName();
 document.getElementById('who').textContent = name;
@@ -288,7 +294,7 @@ document.addEventListener('keydown', e => {
 
 (async function init() {
  try {
-  spec = await loadJSON('data/consistency_items.json');
+  spec = await loadJSON(`data/${TASK}_items.json`);
   const cal = await loadJSON('data/consistency_calibration.json');
   renderCalibration(cal);
 

@@ -63,12 +63,29 @@ SUPPLEMENTARY = HERE / "Model Generations on Eval"
 
 # Task 1: Solaris Default vs Frame Concat — the paper reports these at
 # 56.8 +/- 2.9 (Table 2 and 3) and 25.5 +/- 3.2 (Table 2) on Consistency.
+# Independent (38.0, the row R3 asks about) is NOT here: it is task 3, so that
+# adding it does not renumber this task or re-open it for annotators who have
+# already finished. See INDEPENDENT_MODELS below.
 # Changing this list changes every item id, so existing answers must be
 # migrated by (model, eval, query_type, episode, instance) rather than by id —
 # see migrate_consistency_responses.py — and CONSISTENCY TASK_VERSION in
 # consistency.html must be bumped so stale localStorage is ignored.
 CONSISTENCY_MODELS = ["flagship", "concat_c"]
 CONSISTENCY_EVALS = ["turnToLookEval", "turnToLookOppositeEval"]
+
+# Task 3: Independent alone, the row the paper reports at 38.0 +/- 1.5
+# (Table 2). R3 asks about the 56.8 vs 38.0 gap specifically, which task 1 does
+# not cover. It is a separate task rather than a third model in task 1 for two
+# reasons: adding a model to task 1 renumbers every item id there, and it would
+# re-open a task that all annotators have already completed.
+#
+# Only Independent is here. Scoring the 56.8 vs 38.0 comparison pools these
+# answers with task 1's flagship answers, which are the same stimuli under the
+# same instructions — see score_human_eval.py.
+# 1 model x 2 evals x 32 episodes x 2 timestamps = 128 items.
+INDEPENDENT_TASK = "consistency_independent"
+INDEPENDENT_MODELS = ["no_player_attn_sf"]
+INDEPENDENT_ID_PREFIX = "i"
 
 # Task 2: everything in the supplementary folder except the two Consistency
 # folders. Including those would give 7 x 5 x N instead of 7 x 3 x N.
@@ -283,10 +300,27 @@ def build_calibration(skip_frames: bool) -> None:
     print(f"  -> {len(examples)} GT calibration examples")
 
 
-def build_consistency(skip_frames: bool) -> None:
-    print("\n[task 1] consistency — extracting the VLM's exact screenshot pairs")
+def build_consistency(
+    skip_frames: bool,
+    *,
+    task: str = "consistency",
+    models: list[str] | None = None,
+    id_prefix: str = "c",
+    label: str = "task 1",
+    with_calibration: bool = True,
+) -> None:
+    """Build a consistency-style task.
+
+    Used for task 1 (``flagship`` vs ``concat_c``) and task 3 (``Independent``
+    alone). ``id_prefix`` must be unique per task, because stills are named
+    after the item id and ``frames/`` is shared — a shared prefix would make one
+    task overwrite the other's PNGs. The calibration pair is built once, by
+    task 1, and both pages load the same ``consistency_calibration.json``.
+    """
+    models = models if models is not None else CONSISTENCY_MODELS
+    print(f"\n[{label}] {task} — extracting the VLM's exact screenshot pairs")
     records: list[dict] = []
-    for model in CONSISTENCY_MODELS:
+    for model in models:
         for dataset_name in CONSISTENCY_EVALS:
             records.extend(collect_consistency_records(model, dataset_name))
 
@@ -294,17 +328,19 @@ def build_consistency(skip_frames: bool) -> None:
     rng.shuffle(records)
 
     if not skip_frames:
-        # Clear only this task's own stills. frames/ is shared — the artifacts
-        # guide example lives here too, and wiping the directory would delete it
-        # whenever consistency alone was rebuilt.
+        # Clear only this task's own stills. frames/ is shared — the other
+        # consistency task and the artifacts guide example live here too, and
+        # wiping the directory would delete them.
         OUT_FRAMES.mkdir(parents=True, exist_ok=True)
-        for stale in list(OUT_FRAMES.glob("c[0-9]*.png")) + \
-                list(OUT_FRAMES.glob("cal_*.png")):
-            stale.unlink()
+        stale = list(OUT_FRAMES.glob(f"{id_prefix}[0-9]*.png"))
+        if with_calibration:
+            stale += list(OUT_FRAMES.glob("cal_*.png"))
+        for path in stale:
+            path.unlink()
 
     items, key = [], []
     for i, rec in enumerate(records, 1):
-        item_id = f"c{i:04d}"
+        item_id = f"{id_prefix}{i:04d}"
         if not skip_frames:
             (OUT_FRAMES / f"{item_id}_a.png").write_bytes(rec["_alpha_png"])
             (OUT_FRAMES / f"{item_id}_b.png").write_bytes(rec["_bravo_png"])
@@ -317,9 +353,10 @@ def build_consistency(skip_frames: bool) -> None:
                                       if not k.startswith("_")}})
 
     OUT_DATA.mkdir(parents=True, exist_ok=True)
-    build_calibration(skip_frames=skip_frames)
-    _write_json(OUT_DATA / "consistency_items.json", {
-        "task": "consistency",
+    if with_calibration:
+        build_calibration(skip_frames=skip_frames)
+    _write_json(OUT_DATA / f"{task}_items.json", {
+        "task": task,
         "question": "Do these two screenshots show the same scenery?",
         "options": [
             {"value": "same", "label": "Same scenery", "key": "S"},
@@ -327,11 +364,11 @@ def build_consistency(skip_frames: bool) -> None:
         ],
         "items": items,
     })
-    _write_json(OUT_DATA / "consistency_key.json", {
-        "task": "consistency",
+    _write_json(OUT_DATA / f"{task}_key.json", {
+        "task": task,
         "strict_late_episode": True,
         "shuffle_seed": SHUFFLE_SEED,
-        "models": CONSISTENCY_MODELS,
+        "models": models,
         "evals": CONSISTENCY_EVALS,
         "items": key,
     })
@@ -512,13 +549,24 @@ def main() -> None:
         help="Reuse the PNGs already in frames/ (re-shuffles ids only). "
              "Only safe if the shuffle seed is unchanged.",
     )
-    parser.add_argument("--only", choices=["consistency", "artifacts"],
+    parser.add_argument("--only",
+                        choices=["consistency", "artifacts", "independent"],
                         help="Build just one task.")
     args = parser.parse_args()
 
-    if args.only != "artifacts":
+    if args.only in (None, "consistency"):
         build_consistency(skip_frames=args.skip_frames)
-    if args.only != "consistency":
+    if args.only in (None, "independent"):
+        # Task 3 reuses task 1's calibration pair, so it does not rebuild it.
+        build_consistency(
+            skip_frames=args.skip_frames,
+            task=INDEPENDENT_TASK,
+            models=INDEPENDENT_MODELS,
+            id_prefix=INDEPENDENT_ID_PREFIX,
+            label="task 3",
+            with_calibration=False,
+        )
+    if args.only in (None, "artifacts"):
         build_artifacts()
 
     (HERE / "responses").mkdir(exist_ok=True)
