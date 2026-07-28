@@ -16,7 +16,7 @@ which is what you want when comparing prompts on the directional classes alone.
 
     python3 prompt_ab_comovement.py --datasets coMovementEval coMovementWithDividerEval
     python3 prompt_ab_comovement.py --datasets coMovementEval \
-        --generated-subdir generations_comovement/co_movement \
+        --generated-subdir generations_comovement/solaris/co_movement \
         --exclude-no-motion --trials 3 --variants translation_exact baseline ignore_landmarks
 """
 

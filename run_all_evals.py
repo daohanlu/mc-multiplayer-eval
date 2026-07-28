@@ -54,9 +54,11 @@ ENABLED_EVAL_TYPES = [
     "turn_to_look_opposite",
     "one_looks_away",
     "both_look_away",
-    # Not enabled by default: generations exist only for the default model, and
-    # under subdir names the automatic lookup does not match, so these would be
-    # skipped for every model. Run them with an explicit --eval-types plus
+    # Not enabled by default: the generations live under subdir names the
+    # automatic lookup does not match, so these would be skipped for every
+    # model. co_movement_relative has generations for the whole ablation set —
+    # run it with `./comovement_rel_models.sh eval`. The other two exist only
+    # for the default model; run them with an explicit --eval-types plus
     # --generated-subdir (see COMOVEMENT_EVAL.md).
     # "co_movement_relative",   <- the reported one
     # "co_movement",

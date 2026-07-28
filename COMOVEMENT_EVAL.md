@@ -54,7 +54,52 @@ trial. That is sampling noise, not GT being harder than generation — but it is
 why generated prints *above* GT, and a gap that small in that direction should
 not be read as a result. Report this as "solved", not as a score to compare
 against other numbers at the top end. The ablations are where it should still
-spread.
+spread — and they do; see below.
+
+### Ablations
+
+Every model in the ablation set was re-generated on this eval, one bucket each
+under `gs://solaris-east5/outputs/`. `comovement_rel_models.sh` records the
+mapping — model key, bucket, and the checkpoint that run's `run.log` restores —
+and runs both the download and the eval. Use it rather than retyping paths.
+
+Same conditions throughout: Gemini 3 Flash, thinking off, 3 trials, 64 queries,
+the shipped default prompt. No VLM errors in any run.
+
+| Model | query-level | episode-level |
+|---|---|---|
+| Solaris (`solaris`) | **100.0% +/- 0.0** | **100.0% +/- 0.0** |
+| Causal FT no KV-BP (`no_kv_cache_backprop`) | **100.0% +/- 0.0** | **100.0% +/- 0.0** |
+| Frame concat (`concat_c`) | 93.8% +/- 0.0 | 90.6% +/- 0.0 |
+| Solaris w/o pretrain (`from_scratch`) | 80.7% +/- 2.9 | 65.6% +/- 4.4 |
+| ODE Reg (`causvid_regression`) | 69.8% +/- 1.9 | 57.3% +/- 1.5 |
+| Causal FT Pre-DMD (`causvid_dmd`) | 62.5% +/- 0.0 | 62.5% +/- 0.0 |
+| Independent (`no_player_attn_sf`) | 42.7% +/- 1.9 | 19.8% +/- 2.9 |
+
+Chance is 25% at query level. GT is 99.5%, so the judge is not the limit
+anywhere on this table.
+
+The eval separates the models over a 57-point range, which is what the
+`coMovementEval` version could not do once its no-motion half dominated the
+aggregate. Two readings worth keeping:
+
+* **Independent sits below the point of ordering the classes correctly.** At
+  42.7% it is above chance but its errors are structural, not noisy: `closer`
+  and `right` both recall 25.0%, and the answers it draws instead are `farther`
+  (33 of 48) and `closer` (26 of 48). With no cross-player attention there is
+  nothing to place the partner, so the partner's apparent motion is whatever the
+  observer's own camera implies.
+* **Lateral relative motion is the axis that breaks first.** `causvid_dmd`
+  scores 100% on both front-back combos and **0/48** on `right + right`, with
+  zero variance across trials. Checked by eye rather than inferred: in GT the
+  partner ends far to the left of frame, in the `solaris` generation it is
+  clearly left of centre, and in the `causvid_dmd` generation it stays centred
+  and merely shrinks — so "farther" is a correct reading of the video the model
+  produced. Same shape as the flagship's lateral failure on `coMovementEval`.
+
+`no_kv_cache_backprop` matching the flagship at a flat 100% is the expected
+result for a saturated eval, not evidence that the two are equivalent. This
+eval cannot separate models at the top end.
 
 ### Why this dataset uses translationEval's prompt
 
@@ -212,7 +257,7 @@ for this call, not as numbers to quote.
 ## Results on generated videos
 
 Pulled from `gs://solaris-east5/outputs/neurips_eval_coMovement/co_movement/`
-into `generations_comovement/co_movement/` (32 clips, 1280x704, 257 frames —
+into `generations_comovement/solaris/co_movement/` (32 clips, 1280x704, 257 frames —
 same geometry and length as every other generation in this repo). The bucket
 carries **no model label**; only one non-divider run exists, so it is scored
 here as `solaris`. The divider run in the same bucket was not evaluated.
@@ -272,7 +317,7 @@ chosen for. Reproduce with:
 
 ```bash
 python3 prompt_ab_comovement.py --datasets coMovementEval \
-    --generated-subdir generations_comovement/co_movement \
+    --generated-subdir generations_comovement/solaris/co_movement \
     --exclude-no-motion --trials 3 \
     --variants translation_exact baseline screen_relative ignore_landmarks
 ```
@@ -330,21 +375,24 @@ skipped for every model. Pass `--eval-types co_movement` explicitly.
 The reported eval, `coMovementAlwaysRelativeMotionEval`:
 
 ```bash
-DS=mc_multiplayer_v2_eval_new_sneak_combined_simplified_naming
-gsutil -m cp -r \
-    gs://solaris-central1/solaris/data/neurips_eval_coMovement/coMovementAlwaysRelativeMotionEval \
-    "$DS"/
-gsutil -m cp -r \
-    gs://solaris-east5/outputs/neurips_eval_coMovement_rel/co_movement_rel \
-    generations_comovement/
+./comovement_rel_models.sh list       # model -> bucket -> checkpoint
+./comovement_rel_models.sh download   # ground truth + every model's generations
+./comovement_rel_models.sh eval       # 3 trials per model, run concurrently
 
+DS=mc_multiplayer_v2_eval_new_sneak_combined_simplified_naming
 python3 run_eval.py "$DS"/coMovementAlwaysRelativeMotionEval \
-    --num-trials 3 --results-dir results_json_comovement
-python3 run_eval.py "$DS"/coMovementAlwaysRelativeMotionEval \
-    --generated-subdir generations_comovement/co_movement_rel --model-name solaris \
-    --num-trials 3 --results-dir results_json_comovement
+    --num-trials 3 --results-dir results_json_comovement    # ground truth
 
 python3 score_comovement.py     # per-class breakdown for every co-movement eval
+```
+
+`comovement_rel_models.sh eval` takes model keys to run a subset, and writes one
+log per model under `logs/`. A single model by hand is:
+
+```bash
+python3 run_eval.py "$DS"/coMovementAlwaysRelativeMotionEval \
+    --generated-subdir generations_comovement/solaris/co_movement_rel \
+    --model-name solaris --num-trials 3 --results-dir results_json_comovement
 ```
 
 The diagnostic sets (`coMovementEval`, and `coMovementWithDividerEval` behind
@@ -356,6 +404,6 @@ Prompt A/B, on ground truth or on a generation:
 
 ```bash
 python3 prompt_ab_comovement.py --datasets coMovementAlwaysRelativeMotionEval \
-    --generated-subdir generations_comovement/co_movement_rel --trials 3 \
+    --generated-subdir generations_comovement/solaris/co_movement_rel --trials 3 \
     --variants translation_exact baseline screen_relative ignore_landmarks
 ```
