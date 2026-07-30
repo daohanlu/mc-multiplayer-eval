@@ -12,10 +12,10 @@ Two answers:
   `no_player_attn_sf` (92.7), `concat_c` (85.4) and `causvid_regression` (64.1)
   invent camera motion. Solaris's own weakness is magnitude: it turns the right
   way but only 0.68–0.72 of the commanded angle.
-* **Per player** — Solaris, `no_player_attn_sf` and `no_kv_cache_backprop` score
-  Alpha and Bravo within ~2 points of each other. `concat_c` differs by 18–20
-  points, so its concatenation scheme does not give both players the same
-  quality. Every model's view responds to its own player's actions and to
+* **Per player** — Solaris scores Alpha and Bravo within 1 point of each other on
+  all three measures, and `no_kv_cache_backprop` within 2. `concat_c` differs by
+  14 to 18 points, so its concatenation scheme does not give both players the
+  same quality. Every model's view responds to its own player's actions and to
   nothing else.
 
 ## Provenance
@@ -175,30 +175,62 @@ ranking the architectures.
 # Part 3 — Keyboard
 
 Multinomial logistic regression over the flow summary of a 5-frame window,
-trained on ground-truth video only, episodes split so no episode appears in both
-halves. 21,504 training frames; classes `none` 19,030, `forward` 1,408, `back`
-402, `left` 329, `right` 335.
+trained on ground-truth video only.
 
-**IDM on held-out ground-truth video: 95.9% accuracy, 96.9% balanced.** Per class:
-`none` 95.9, `forward` 93.5, `back` 100.0, `left` 96.3, `right` 98.8.
+### How much data, and which split
 
-Balanced accuracy is the mean per-class recall, so the `none` class cannot carry
-it. Chance is 20.0.
+| | Episodes | Frames | of which carry a key press |
+|---|---|---|---|
+| Train | 42 | 21,504 | 2,474 |
+| Held out | 22 | 11,264 | 1,318 |
+
+Train classes: `none` 19,030, `forward` 1,408, `back` 402, `left` 329,
+`right` 335. Held-out classes: `none` 9,946, `forward` 682, `back` 141,
+`left` 246, `right` 249.
+
+The split is by episode, every third one held out. Alpha and Bravo of one episode
+share a stem and therefore the same side of the split, so the two players never
+straddle it, and the 5-frame window never crosses it either.
+
+**The training signal is small — 2,474 labelled key-press frames.** That is the
+real size of this model, not the 21,504 figure, which is nine parts `none`.
+
+| Split | Accuracy | Balanced |
+|---|---|---|
+| Train episodes | 95.9% | 98.5% |
+| **Held out** | **95.9%** | **96.9%** |
+
+**Every ceiling quoted anywhere is the held-out number.** The 1.6-point balanced
+gap says the model is reading motion rather than memorising scenes. Per-class
+held-out recall: `none` 95.9, `forward` 93.5, `back` 100.0, `left` 96.3,
+`right` 98.8. Balanced accuracy is the mean per-class recall, so the `none` class
+cannot carry it; chance is 20.0.
+
+### Results, held-out episodes only
+
+Every row below is scored on the same 22 held-out episodes as the ceiling. The
+IDM never saw generated video of any episode, so scoring the models on all 64
+would not leak directly — but a train episode's *ground truth* shares its scene,
+so restricting to held-out episodes keeps every row like for like.
 
 | Model | Alpha bal% | Bravo bal% | Alpha acc% | Bravo acc% | pred none% |
 |---|---|---|---|---|---|
 | **ground truth (ceiling)** | **97.4** | **96.4** | 96.1 | 95.8 | 85.1 |
-| `flagship` | 75.2 | 73.0 | 93.5 | 93.1 | 87.2 |
-| `no_player_attn_sf` | 74.5 | 74.0 | 90.8 | 90.7 | 84.0 |
-| `concat_c` | 81.7 | 61.8 | 92.5 | 88.6 | 84.7 |
-| `from_scratch` | 75.4 | 78.8 | 89.8 | 90.3 | 82.7 |
-| `causvid_regression` | 70.6 | 56.2 | 91.5 | 73.0 | 77.0 |
-| `causvid_dmd` | 64.8 | 59.8 | 90.7 | 89.4 | 85.6 |
-| `no_kv_cache_backprop` | **88.3** | **88.6** | 94.7 | 94.0 | 85.4 |
+| `flagship` | 73.3 | 72.6 | 92.4 | 93.5 | 87.2 |
+| `no_player_attn_sf` | 68.4 | 72.3 | 89.0 | 90.8 | 84.2 |
+| `concat_c` | 77.7 | 60.1 | 91.3 | 88.2 | 85.1 |
+| `from_scratch` | 73.1 | 78.4 | 89.3 | 90.2 | 82.8 |
+| `causvid_regression` | 66.7 | 53.4 | 90.0 | 72.2 | 76.7 |
+| `causvid_dmd` | 59.7 | 61.8 | 88.4 | 89.7 | 85.7 |
+| `no_kv_cache_backprop` | **84.1** | **86.3** | 93.8 | 93.8 | 85.5 |
+
+Scoring instead on all 64 episodes, which triples the sample, moves the numbers a
+few points and changes no ranking: `flagship` 75.2 / 73.0, `no_kv_cache_backprop`
+88.3 / 88.6, `concat_c` 81.7 / 61.8. `report_keys.py` prints both tables.
 
 On `translationEval` alone, where the bot presses one movement key at a time and
 never turns, the ceiling rises to 99.3 balanced and every model rises with it
-(`flagship` 82.5 / 81.4, `no_kv_cache_backprop` 94.4 / 95.5). The pooled table
+(`flagship` 80.0 / 84.7, `no_kv_cache_backprop` 90.7 / 95.2). The pooled table
 above includes `structureEval`, where walking, turning and pitching happen at
 once, and that is what costs everyone roughly ten points.
 
@@ -209,13 +241,13 @@ breakdown exists to produce.
 
 | Model | camera event% | camera still% | keyboard bal% |
 |---|---|---|---|
-| `no_player_attn_sf` | 0.4 | 3.7 | 0.5 |
-| `no_kv_cache_backprop` | 0.5 | 0.0 | 0.3 |
-| `causvid_regression` | 0.6 | 25.1 | 14.4 |
-| `flagship` | 1.0 | 0.5 | 2.2 |
-| `from_scratch` | 1.5 | 1.4 | 3.4 |
-| `causvid_dmd` | 11.9 | 0.2 | 5.0 |
-| `concat_c` | **18.4** | **13.7** | **19.9** |
+| `no_player_attn_sf` | 0.4 | 3.7 | 3.9 |
+| `no_kv_cache_backprop` | 0.5 | 0.0 | 2.2 |
+| `causvid_regression` | 0.6 | 25.1 | 13.3 |
+| `flagship` | 1.0 | 0.5 | 0.7 |
+| `from_scratch` | 1.5 | 1.4 | 5.3 |
+| `causvid_dmd` | 11.9 | 0.2 | 2.1 |
+| `concat_c` | **18.4** | **13.7** | **17.6** |
 
 `concat_c` is the only model that is large on all three. Note that a small gap is
 not by itself a virtue — `no_player_attn_sf` is symmetric because it renders each
@@ -226,7 +258,7 @@ frame concatenation makes one of them worse.
 
 Across the 7 models, camera `event%` and the paper's Movement axis rank almost
 independently (Spearman rho = +0.04, n = 7). Keyboard balanced accuracy tracks it
-a little better (+0.46, p = 0.29, not significant at this n).
+a little better (+0.61, p = 0.15, not significant at this n).
 
 That is the expected result, not a problem. Movement asks whether a player ended
 up correctly placed *relative to the other player*, which is a multiplayer

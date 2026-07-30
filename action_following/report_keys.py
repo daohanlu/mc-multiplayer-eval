@@ -109,7 +109,9 @@ def main() -> None:
         print("no cache yet")
         return
 
-    # Split by episode so no episode contributes to both halves.
+    # Split by episode so no episode contributes to both halves. Alpha and Bravo
+    # of one episode share a stem, so the two players never straddle the split
+    # either, and the 5-frame window never crosses it.
     stems = sorted({(d, s) for d, s, _, _, _ in blocks})
     test_stems = set(stems[::3])
 
@@ -126,9 +128,14 @@ def main() -> None:
     print("KEYBOARD ACTION-FOLLOWING, PER PLAYER")
     print("=" * 92)
     print(f"datasets: {', '.join(datasets)}")
-    print(f"IDM training frames {len(ytr)}, ground-truth test frames {len(yte)}")
+    print(f"episodes: {len(stems) - len(test_stems)} train / {len(test_stems)} "
+          f"held out, of {len(stems)}  (split by episode, every 3rd held out)")
+    print(f"frames:   {len(ytr)} train / {len(yte)} held out")
     print("class counts (train): " +
           ", ".join(f"{CLASSES[c]}={int((ytr == c).sum())}" for c in range(len(CLASSES))))
+    print(f"  non-'none' training frames: {int((ytr > 0).sum())}")
+    print("class counts (held out): " +
+          ", ".join(f"{CLASSES[c]}={int((yte == c).sum())}" for c in range(len(CLASSES))))
 
     clf = make_pipeline(
         StandardScaler(),
@@ -136,26 +143,33 @@ def main() -> None:
     )
     clf.fit(xtr, ytr)
     pte = clf.predict(xte)
-    print(f"\nIDM on held-out GROUND-TRUTH video: "
-          f"accuracy {100 * (pte == yte).mean():.1f}%, "
+    ptr = clf.predict(xtr)
+    print(f"\nIDM on TRAIN episodes:    accuracy {100 * (ptr == ytr).mean():.1f}%, "
+          f"balanced {balanced_accuracy(ytr, ptr):.1f}%")
+    print(f"IDM on HELD-OUT episodes: accuracy {100 * (pte == yte).mean():.1f}%, "
           f"balanced {balanced_accuracy(yte, pte):.1f}%   <- the ceiling")
-    print("  per class recall: " + ", ".join(
+    print("  The two are close, so the model is not memorising episodes.")
+    print("  Every ceiling quoted below is the held-out number, never the train one.")
+    print("  per class recall, held out: " + ", ".join(
         f"{CLASSES[c]} {100 * (pte[yte == c] == c).mean():.1f}%"
         for c in range(len(CLASSES)) if (yte == c).sum()))
 
+    print("\nAll rows below are scored on the HELD-OUT episodes only, the same")
+    print("ones the ceiling uses, so every row sees the same scenes. The IDM never")
+    print("saw generated video of any episode, but a train episode's ground truth")
+    print("shares its scene, so scoring generated clips there would not be like")
+    print("for like. The all-episode numbers are printed afterwards for reference.")
     print(f"\n{'model':<24}{'alpha bal%':>12}{'bravo bal%':>12}{'alpha acc%':>12}"
           f"{'bravo acc%':>12}{'pred none%':>12}{'n frames':>10}")
-    rows = [("ground truth (ceiling)", "flagship", "gt", True)]
-    rows += [(MODEL_LABEL[m], m, "gen", False) for m in MODEL_ORDER]
-    for label, model, source, held_out_only in rows:
+    rows = [("ground truth (ceiling)", "flagship", "gt")]
+    rows += [(MODEL_LABEL[m], m, "gen") for m in MODEL_ORDER]
+    for label, model, source in rows:
         blocks_m = gather(datasets, model, source)
         if not blocks_m:
             continue
         per = defaultdict(lambda: ([], []))
         for dataset, stem, player, x, y in blocks_m:
-            # The ground-truth row must not include the episodes the model was
-            # fitted on, or it reports its own training accuracy.
-            if held_out_only and (dataset, stem) not in test_stems:
+            if (dataset, stem) not in test_stems:
                 continue
             keep = y >= 0
             per[player][0].append(x[keep])
@@ -176,6 +190,28 @@ def main() -> None:
                      if preds else float("nan"))
         print(f"{label:<24}{a[0]:12.1f}{b[0]:12.1f}{a[1]:12.1f}{b[1]:12.1f}"
               f"{none_rate:12.1f}{n_total:10d}")
+
+    print(f"\n{'model (all episodes)':<24}{'alpha bal%':>12}{'bravo bal%':>12}"
+          f"{'n frames':>10}")
+    for label, model in [(MODEL_LABEL[m], m) for m in MODEL_ORDER]:
+        blocks_m = gather(datasets, model, "gen")
+        if not blocks_m:
+            continue
+        per = defaultdict(lambda: ([], []))
+        for _, _, player, x, y in blocks_m:
+            keep = y >= 0
+            per[player][0].append(x[keep])
+            per[player][1].append(y[keep])
+        cells, n_total = {}, 0
+        for player in ("alpha", "bravo"):
+            if not per[player][0]:
+                continue
+            x = np.concatenate(per[player][0])
+            y = np.concatenate(per[player][1])
+            cells[player] = balanced_accuracy(y, clf.predict(x))
+            n_total += len(y)
+        print(f"{label:<24}{cells.get('alpha', float('nan')):12.1f}"
+              f"{cells.get('bravo', float('nan')):12.1f}{n_total:10d}")
 
     print("\nBalanced accuracy is the mean per-class recall, so the 'none' class,")
     print("which is about 90 percent of frames, cannot carry the number.")
