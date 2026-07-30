@@ -189,6 +189,67 @@ is far below that ceiling — `no_kv_cache_backprop` 68.5, `no_player_attn_sf`
 Run it with `report_camera.py --axis pitch --datasets structureEval`. Do not pool
 pitch into the yaw tables; the two axes have different ceilings.
 
+# Part 1b — The same question, with the VPT IDM Matrix-Game uses
+
+Matrix-Game reports its inverse dynamics model as trained on 1,962 hours of
+Minecraft with 90.6% keypress accuracy and R² 0.97 on mouse movement. **Those are
+VPT's own published figures** (Baker et al., 2022), and OpenAI released that
+model, so we run the identical one rather than approximate it. `setup_vpt_idm.sh`
+fetches it; `vpt_idm.py` runs it; `report_vpt.py` pools the output.
+
+**It reads our render.** On ground-truth video of the same episodes the IDM
+recovers the commanded yaw at r = 0.83–0.91 with 99.3% stillness on no-command
+frames, despite our 640×352 at fov 77 against VPT's 640×360 at fov 70, and a
+different Minecraft version. That was the thing in doubt, and it is settled.
+
+| Model | dir acc A/B | still A/B | gain A/B | **vs GT** A/B |
+|---|---|---|---|---|
+| **ground truth (ceiling)** | 78.6 / 75.0 | 99.3 / 99.3 | 0.91 / 0.84 | 1.00 / 1.00 |
+| `flagship` | 85.4 / 84.0 | 99.5 / 98.9 | 0.76 / 0.79 | **0.84 / 0.93** |
+| `no_player_attn_sf` | 92.5 / 87.0 | 96.0 / 97.8 | 1.02 / 0.93 | 1.13 / 1.11 |
+| `concat_c` | 87.8 / 86.1 | 90.0 / 98.9 | 0.85 / 0.89 | 0.94 / 1.05 |
+| `from_scratch` | 88.3 / 79.5 | 98.3 / 98.8 | 0.94 / 0.84 | 1.04 / 0.99 |
+| `causvid_regression` | 75.8 / 62.2 | 93.8 / 97.5 | 0.67 / 0.54 | 0.74 / 0.64 |
+| `causvid_dmd` | 47.5 / 54.9 | 99.2 / 99.1 | 0.42 / 0.51 | 0.46 / 0.61 |
+| `no_kv_cache_backprop` | 84.9 / 82.7 | 99.6 / 99.7 | 0.76 / 0.78 | 0.84 / 0.92 |
+
+**Read the "vs GT" column for magnitude, not the raw gain.** The IDM's camera
+head saturates at 10 deg/frame and our bots command 8.594, so 62–67% of
+ground-truth turn frames already read at the ceiling. It can therefore see a
+model turning *less* than ground truth but not one turning more, and absolute
+gain is compressed at the top for every row alike.
+
+## Two independent estimators agree
+
+| Model | VPT IDM A/B | analytic A/B |
+|---|---|---|
+| `flagship` | 0.84 / 0.93 | 0.71 / 0.77 |
+| `no_player_attn_sf` | 1.13 / 1.11 | 1.09 / 1.06 |
+| `concat_c` | 0.94 / 1.05 | 0.95 / 0.55 |
+| `from_scratch` | 1.04 / 0.99 | 0.87 / 0.85 |
+| `causvid_regression` | 0.74 / 0.64 | 0.62 / 0.71 |
+| `causvid_dmd` | 0.46 / 0.61 | 0.32 / 0.44 |
+| `no_kv_cache_backprop` | 0.84 / 0.92 | 0.79 / 0.82 |
+
+Both normalised by their own ground-truth row. **Pearson r = +0.81 over the 14
+model-player cells.** The two share no code, no training data and no assumptions
+— one is closed-form geometry with a known camera, the other a 1,962-hour neural
+network — so the agreement is evidence about the models, not about either
+estimator.
+
+**`flagship` under-rotates, and this is the honest headline.** Both estimators put
+it below ground truth on magnitude, 0.84/0.93 and 0.71/0.77. The two disagree on
+how much, so the defensible claim is the direction and the ordering, not a point
+value. It is a property of this model rather than of the measurement:
+`no_player_attn_sf` and `from_scratch` sit at or above ground truth on both.
+
+Two caveats worth stating before anyone quotes the direction column.
+`flagship` scores *above* the ground-truth ceiling on direction accuracy
+(85.4 vs 78.6). That is not the model beating reality; generated turns are
+smoother and more exaggerated, which the IDM reads more confidently than it reads
+a slow real turn. And pooling `structureEval` into this table pulls every row
+down, ground truth included, because yaw, pitch and walking happen at once there.
+
 # Part 2 — Cross-player specificity
 
 Each player's view held against the **other** player's camera commands, on the

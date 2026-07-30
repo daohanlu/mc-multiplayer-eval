@@ -80,3 +80,5 @@ vlm_frames_export/
 .DS_Store
 Thumbs.db
 action_following/cache/
+action_following/vpt_raw*.npz
+action_following/vpt*.log
