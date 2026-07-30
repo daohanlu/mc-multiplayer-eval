@@ -109,6 +109,22 @@ def main() -> None:
     pct, k, n = match(maj_v, human_panel, scope)
     print(f"  {'VLM majority of 3':<22}{pct:8.1f}%{k:+9.2f}{n:7d}")
 
+    print("\n## Panel-size control\n")
+    print("  A human row above is scored against the other four annotators; the")
+    print("  VLM is never in the panel, so its row uses all five. Scoring the VLM")
+    print("  against four-annotator panels instead removes that asymmetry.\n")
+    subs = [match(maj_v, majority_excluding(
+        {k: v for k, v in st.human.items() if k != drop}, None, scope), scope)
+        for drop in annotators]
+    pcts = [s[0] for s in subs]
+    ks = [s[1] for s in subs]
+    full = match(maj_v, human_panel, scope)
+    print(f"  {'vs 5 annotators':<28}{full[0]:8.1f}%{full[1]:+9.2f}")
+    print(f"  {'vs 4, mean of the 5':<28}{sum(pcts) / len(pcts):8.1f}%"
+          f"{sum(ks) / len(ks):+9.2f}   range {min(pcts):.1f}-{max(pcts):.1f}%")
+    print("\n  Size matching moves the judge up, not down, so the five-annotator")
+    print("  number quoted in the response is the conservative one.")
+
     print("\n## Per model, for the record\n")
     print("  Kappa per model is not evidence about the judge. On Frame Concat")
     print("  both sides answer 'different' to nearly everything, so chance")

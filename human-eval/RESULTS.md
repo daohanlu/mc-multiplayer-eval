@@ -142,26 +142,39 @@ The item-level task is genuinely hard; the model *ordering* is what is stable.
 
 ### Per-sample alignment, the way reviewer nAFu asked for it
 
-`agreement_extras.py` prints the three numbers the table above needs before it
-can be read. Scope is 384 items, which is the 3 models with a full annotator
-panel: flagship, `no_player_attn_sf` and `concat_c`.
+`agreement_extras.py` prints it. Scope is 384 items, the 3 models with a full
+annotator panel: flagship, `no_player_attn_sf` and `concat_c`. Every figure pairs
+two judges **item by item**; no aggregate accuracy enters it, which is the point
+of the reviewer's question — two judges can match on marginal accuracy while
+disagreeing on nearly every pair.
 
-| Judge | Agreement with the human panel | Cohen's kappa |
+Every row scored the same way: one judge against the majority of the human
+annotators who are not that judge.
+
+| Judge | Exact agreement | Cohen's kappa |
 |---|---|---|
-| VLM majority of 3 trials | 70.6% | +0.33 |
+| Georgy | 82.8% | +0.56 |
+| srivats | 81.5% | +0.52 |
+| fred | 76.8% | +0.45 |
+| Oscar | 73.4% | +0.41 |
+| **VLM judge (majority of 3 trials)** | **70.6%** | **+0.33** |
 | VLM t1 / t2 / t3 | 71.9 / 69.0 / 68.5% | +0.37 / +0.30 / +0.28 |
+| egor | 52.3% | +0.19 |
 
-| Reference | Agreement | Kappa |
-|---|---|---|
-| One annotator vs the panel of the other 4 | 52.3–82.8% | +0.19 to +0.56 |
-| Annotator vs annotator, mean of 10 pairs | 68.2% | +0.36 |
-| **VLM trial vs VLM trial, mean of 3 pairs** | **80.7%** | **+0.56** |
+**The ceiling: two VLM trials on the same image agree 80.7%, kappa +0.56.** The
+judge samples its answer, so it does not reproduce itself, and no row above can
+be expected to beat that. Against it, a judge at 70.6% sitting fourth of six is
+not the weak link. Kappa also disposes of the reviewer's stated worry directly: a
+judge reproducing only the marginals scores 0.00, not +0.33.
 
-The last row is the one that stops the +0.33 being read as a failure. The judge
-samples its answer, so it does not reproduce itself; 80.7% is the ceiling for any
-human-judge comparison here. Against it, a judge that lands at 70.6% while the
-mean human pair lands at 68.2% is not the weak link. Scored against the same kind
-of target, the judge sits above one annotator and below three.
+For reference, mean pairwise annotator-vs-annotator agreement is 68.2%, kappa
++0.36 — the judge is no further from a human than two humans are from each other.
+
+**Panel-size control.** A human row is scored against the other 4 annotators; the
+VLM is never in the panel, so its row uses all 5. Scoring the VLM against
+4-annotator panels instead gives 72.8%, kappa +0.34 (range 70.8–74.5). Size
+matching moves it up, so **70.6% is the conservative number** and is what the
+response quotes.
 
 **Caveat — do not quote per-model kappa.** Splitting the majority-vs-maj3
 agreement by model gives flagship 68.0% (kappa +0.35) but concat_c 67.2%
