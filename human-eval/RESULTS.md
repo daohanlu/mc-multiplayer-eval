@@ -143,51 +143,56 @@ The item-level task is genuinely hard; the model *ordering* is what is stable.
 ### Per-sample alignment, the way reviewer nAFu asked for it
 
 `agreement_extras.py` prints it. Scope is 384 items, the 3 models with a full
-annotator panel: flagship, `no_player_attn_sf` and `concat_c`. Every figure pairs
-two judges **item by item**; no aggregate accuracy enters it, which is the point
-of the reviewer's question — two judges can match on marginal accuracy while
-disagreeing on nearly every pair.
+annotator panel: flagship, `no_player_attn_sf` and `concat_c`. Every figure
+compares two answers **item by item**; no aggregate accuracy enters it, which is
+the point of the reviewer's question — the VLM judge and a human annotator can
+match on marginal accuracy while disagreeing on nearly every pair.
 
-Every row is one judge scored against each individual annotator who is not that
-judge, averaged over those pairings. No consensus label is built, so no vote and
+Two terms only, here and in the response: the **VLM judge** and the **human
+annotators**. A human annotator is never called a judge.
+
+A human annotator row is that human annotator compared with each of the other
+four, one at a time, then averaged. The VLM judge row is the VLM judge compared
+with each of the five the same way. No consensus label is built, so no vote and
 no tie-breaking rule can move a row.
 
-| Judge | Exact agreement | Cohen's kappa | pairings |
+| Compared with the human annotators | Exact agreement | Cohen's kappa | pairings |
 |---|---|---|---|
-| srivats | 71.5% | +0.40 | 4 |
-| Georgy | 71.5% | +0.39 | 4 |
-| Oscar | 70.7% | +0.39 | 4 |
-| fred | 69.7% | +0.36 | 4 |
+| human annotator srivats | 71.5% | +0.40 | 4 |
+| human annotator Georgy | 71.5% | +0.39 | 4 |
+| human annotator Oscar | 70.7% | +0.39 | 4 |
+| human annotator fred | 69.7% | +0.36 | 4 |
 | **VLM judge (majority of 3 trials)** | **66.9%** | **+0.29** | 5 |
-| VLM t1 / t2 / t3 | 66.2 / 65.4 / 65.6% | +0.28 / +0.26 / +0.25 | 5 |
-| egor | 57.7% | +0.24 | 4 |
+| VLM judge, t1 / t2 / t3 | 66.2 / 65.4 / 65.6% | +0.28 / +0.26 / +0.25 | 5 |
+| human annotator egor | 57.7% | +0.24 | 4 |
 
-**The ceiling: two VLM trials on the same image agree 80.7%, kappa +0.56.** The
-judge samples its answer, so it does not reproduce itself, and no row above can
-be expected to beat that. Against it, a judge at 66.9% sitting fifth of six — and
-1.3 points under the 68.2% two annotators average against each other — is not the
-weak link. Kappa also disposes of the reviewer's stated worry directly: a judge
-reproducing only the marginals scores 0.00, not +0.29.
+**The ceiling: two VLM judge trials on the same image agree 80.7%, kappa +0.56.**
+The VLM judge samples its answer, so it does not reproduce itself, and no row
+above can be expected to beat that. Against it, a VLM judge at 66.9% sitting
+fifth of six — and 1.3 points under the 68.2% two human annotators average
+against each other — is not the weak link. Cohen's kappa also disposes of the
+reviewer's stated worry directly: a VLM judge reproducing only the marginals
+scores 0.00, not +0.29.
 
 ### Do not use the majority-vote version of this table
 
-An earlier draft scored each judge against the **majority answer** of the
-annotators who are not that judge. **That was wrong and is not quotable.** A
-human row's panel is the other 4 annotators, which is even, so 2–2 ties occur on
-54 to 90 of the 384 items and get broken by convention. The VLM's panel is all 5,
-which is odd, so it never ties.
+An earlier draft scored every row against the **majority answer** of the human
+annotators other than that row. **That was wrong and is not quotable.** A human
+annotator's panel is the other 4, which is even, so 2–2 ties occur on 54 to 90 of
+the 384 items and get broken by convention. The VLM judge's panel is all 5, which
+is odd, so it never ties.
 
-| Judge | tie → "no" | tie → "yes" | tied items |
+| Row | tie → "no" | tie → "yes" | tied items |
 |---|---|---|---|
 | Georgy | 82.8% | 68.8% | 80 |
 | srivats | 81.5% | 71.1% | 90 |
 | fred | 76.8% | 70.3% | 83 |
 | Oscar | 73.4% | 74.7% | 65 |
 | egor | 52.3% | 60.2% | 54 |
-| VLM majority of 3 | 70.6% | n/a | 0 |
+| VLM judge, majority of 3 | 70.6% | n/a | 0 |
 
-Flipping the convention moves a human row by up to 14 points and leaves the VLM
-row untouched, so the rows were never comparable. `pool_human_eval.majority`
+Flipping the convention moves a human annotator row by up to 14 points and leaves
+the VLM judge row untouched, so the rows were never comparable. `pool_human_eval.majority`
 resolves ties to "no" and documents the assumption that "both current panels are
 odd" — true of its own callers, false for the leave-one-out panels used here.
 The pairwise table above has no such dependency.

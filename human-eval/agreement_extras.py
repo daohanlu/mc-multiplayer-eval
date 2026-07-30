@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 """The per-sample agreement numbers reviewer nAFu asked for, and their context.
 
-``pool_human_eval.py`` already prints each annotator against the VLM judge.
-Three more numbers are needed before that table can be read, and all three are
-about what a *high* score could even have been:
+Two terms only, throughout: the **VLM judge** and the **human annotators**.
+Nothing here calls a human annotator a judge.
 
-* the judge against itself, across its three trials, which caps any cross-judge
-  agreement;
-* each annotator against the other four, which is the like-for-like comparison
-  with "judge against the panel";
-* the mean pairwise human-human kappa, not only its range.
+The headline table compares the VLM judge with each human annotator, one at a
+time, and averages; a human annotator row is that annotator against the other
+four, built the same way. Two supporting numbers say what a high score could even
+have been: the VLM judge against itself across its three trials, which caps any
+VLM-to-human agreement, and the mean pairwise agreement between two human
+annotators.
+
+An earlier version scored everything against the *majority answer* of the human
+annotators who were not that rater. That is kept below and marked not to be used:
+a human annotator's panel of four is even, so 2-2 ties fall on 54 to 90 of the
+384 items and are resolved by convention, while the VLM judge's panel of five
+never ties. The convention moves a human row by up to 14 points and the VLM row
+not at all.
 
     python3 human-eval/agreement_extras.py
 """
@@ -112,23 +119,27 @@ def main() -> None:
     print(f"  {'range':<24}{min(vals):8.1f}-{max(vals):.1f}%"
           f"   kappa {min(ks):+.2f} to {max(ks):+.2f}\n")
 
-    print("## Each judge against every individual annotator  <- the headline\n")
-    print("  One judge scored against each annotator who is not that judge,")
-    print("  averaged over those pairings. No consensus label is built, so no")
-    print("  vote and no tie-breaking convention can move a row. This is also")
-    print("  the literal form of the reviewer's question: judge against")
-    print("  annotator, sample by sample.\n")
-    print(f"  {'judge':<22}{'agree':>9}{'kappa':>9}{'pairs':>7}")
+    print("## VLM judge and human annotators, pairwise  <- the headline\n")
+    print("  A human annotator row is that human annotator compared with each")
+    print("  of the other four, one at a time, then averaged. The VLM judge row")
+    print("  is the VLM judge compared with each of the five the same way. No")
+    print("  consensus label is built, so no vote and no tie-breaking convention")
+    print("  can move a row. This is also the literal form of the reviewer's")
+    print("  question: VLM judge against human annotator, sample by sample.\n")
+    print(f"  {'compared with the human annotators':<36}"
+          f"{'agree':>9}{'kappa':>9}{'pairs':>7}")
     rows = []
     for who in annotators:
         ms = [match(st.human[who], st.human[o], scope) for o in annotators if o != who]
         rows.append((who, sum(m[0] for m in ms) / len(ms),
                      sum(m[1] for m in ms) / len(ms), len(ms)))
     for who, pct, k, n in sorted(rows, key=lambda r: -r[1]):
-        print(f"  {who:<22}{pct:8.1f}%{k:+9.2f}{n:7d}")
-    for label, ans in [("VLM majority of 3", maj_v)] + [(t, st.vlm[t]) for t in trials]:
+        print(f"  {'human annotator ' + who:<36}{pct:8.1f}%{k:+9.2f}{n:7d}")
+    vlm_rows = [("VLM judge (majority of 3 trials)", maj_v)]
+    vlm_rows += [(f"VLM judge, {t}", st.vlm[t]) for t in trials]
+    for label, ans in vlm_rows:
         ms = [match(ans, st.human[o], scope) for o in annotators]
-        print(f"  {label:<22}{sum(m[0] for m in ms) / len(ms):8.1f}%"
+        print(f"  {label:<36}{sum(m[0] for m in ms) / len(ms):8.1f}%"
               f"{sum(m[1] for m in ms) / len(ms):+9.2f}{len(ms):7d}")
 
     print("\n## The same thing against a majority-vote panel, and why it is not used\n")
@@ -150,10 +161,11 @@ def main() -> None:
     pct, k, n = match(maj_v, human_panel, scope)
     print(f"  {'VLM majority of 3':<22}{pct:8.1f}%{'n/a':>9}{0:7d}   (odd panel)")
 
-    print("\n## Panel-size control\n")
-    print("  A human row above is scored against the other four annotators; the")
-    print("  VLM is never in the panel, so its row uses all five. Scoring the VLM")
-    print("  against four-annotator panels instead removes that asymmetry.\n")
+    print("\n## Panel-size control, also for the demoted table\n")
+    print("  A second reason the majority-vote table is not comparable across")
+    print("  rows: a human annotator is scored against the other four, while the")
+    print("  VLM judge is never in the panel and so is scored against all five.")
+    print("  Size matching the VLM judge to four-annotator panels:\n")
     subs = [match(maj_v, majority_excluding(
         {k: v for k, v in st.human.items() if k != drop}, None, scope), scope)
         for drop in annotators]
@@ -163,8 +175,7 @@ def main() -> None:
     print(f"  {'vs 5 annotators':<28}{full[0]:8.1f}%{full[1]:+9.2f}")
     print(f"  {'vs 4, mean of the 5':<28}{sum(pcts) / len(pcts):8.1f}%"
           f"{sum(ks) / len(ks):+9.2f}   range {min(pcts):.1f}-{max(pcts):.1f}%")
-    print("\n  Size matching moves the judge up, not down, so the five-annotator")
-    print("  number quoted in the response is the conservative one.")
+    print("\n  Neither figure is quoted anywhere. The pairwise table is.")
 
     print("\n## Per model, for the record\n")
     print("  Kappa per model is not evidence about the judge. On Frame Concat")
