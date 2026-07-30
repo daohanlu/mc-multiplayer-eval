@@ -216,8 +216,10 @@ wrong one. Under a recall-style column both looked *better* than `flagship`.
 
 **Keyboard accuracy.** (forward, back, empty) and (left, right, empty) as
 multi-class groups, average precision across them. Matrix-Game's other two groups
-— (attack, empty) and (jump, empty) — are not exercised by our bots, so they are
-omitted rather than padded with two trivially perfect scores. Computed from our
+are (attack, empty) and (jump, empty). Neither key is pressed once in the 32,768
+frames scored here — `translationEval` and `structureEval` both record `attack` 0
+and `jump` 0 — so both groups are omitted rather than padded with two scores that
+would be perfect by default and would lift every row equally. Computed from our
 own IDM, on held-out episodes.
 
 | Model | Keyboard accuracy | No false presses |
