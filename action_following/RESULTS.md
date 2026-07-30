@@ -131,6 +131,52 @@ than against 1.0.
 `structureEval` is the hardest: it is the only set where the bot turns, pitches
 and walks at once, and it is where `flagship`'s RotErr blows out to 97 degrees.
 
+## Temporal tolerance, and why it does not matter much
+
+The eval sets are recorded, not simulated, so a command does not change the
+picture on the same frame. `measure_latency.py` measures that delay instead of
+assuming it. The frame alignment already removes the recorder's fixed one-frame
+lag — established by lining the recorded `yaw` up against measured pixel shift —
+so what follows is the jitter left around it.
+
+| Source | best global lag | onset median | onset p90 | within ±3 |
+|---|---|---|---|---|
+| ground truth | 0 | 0 | 1 | 85.1% |
+| `flagship` | +1 | 1 | 3 | — |
+| `no_player_attn_sf` | 0 | 0 | 1 | — |
+| `concat_c` | +1 | 0 | 6 | — |
+| `causvid_dmd` | +1 | 2 | 6 | — |
+| all 7 pooled | — | 0 | — | 82.2% |
+
+"Onset" is the first frame at which the rendered view passes the deadband,
+relative to the frame the command arrived. On ground truth it lands at −1, 0 or
++1 for 70% of events. **This confirms the 0–2 frame visual delay in the dataset.**
+Generated clips sit about one frame later than ground truth; `causvid_dmd`, which
+barely moves at all, is the slowest at a median of 2.
+
+`EVENT_SLACK = 3` is set from that. But the event metric sums rotation across the
+whole event rather than testing a single frame, so it is nearly insensitive to
+the choice:
+
+| slack | GT | `flagship` | `no_player_attn_sf` | `concat_c` | `causvid_dmd` |
+|---|---|---|---|---|---|
+| ±1 | 97.0 | 88.7 | 97.2 | 83.7 | 41.1 |
+| ±2 | 97.2 | 88.9 | 97.0 | 84.2 | 41.4 |
+| **±3** | **97.2** | **89.2** | **96.9** | **84.0** | **41.1** |
+| ±5 | 97.2 | 89.2 | 96.9 | 84.2 | 41.2 |
+| ±8 | 97.2 | 89.2 | 96.9 | 83.9 | 41.2 |
+
+Nothing moves by more than 0.6 points across an eightfold change in tolerance,
+and no ranking changes at all. **The tolerance is not a knob that any conclusion
+turns on.**
+
+The other two metrics handle the delay differently. `still%` is per frame with no
+slack, which is why the ground-truth row is 99.3 rather than 100 — the residual
+jitter shows up there. `frame%` is per frame with no slack either, and its
+ground-truth ceiling of 81.5 is mostly this delay; quote it only beside that
+ceiling. The keyboard IDM reads a 5-frame window, so ±2 frames of context is
+built into its features.
+
 ## Pitch
 
 The bots drive pitch in `structureEval` only, on 324 Alpha frames against 3,512
@@ -173,6 +219,15 @@ leak between them by construction. It rules out a failure mode rather than
 ranking the architectures.
 
 # Part 3 — Keyboard
+
+**Scope: WASD only.** The 5 classes are `none`, `forward`, `back`, `left`,
+`right`. Block placement, attack, use, mine, jump, sneak and sprint are *not*
+modelled. A flow-based estimator reads global motion, and those actions either
+move too few pixels to register (placing a block) or do not change the view at
+all in these eval sets. A frame holding `forward` and `sprint` together is
+labelled `forward`; a frame holding two of the four directions is dropped, not
+guessed. The cache stores all 11 recorded keys, so widening the class set later
+needs no re-extraction — only `CLASSES` in `report_keys.py`.
 
 Multinomial logistic regression over the flow summary of a 5-frame window,
 trained on ground-truth video only.

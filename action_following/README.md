@@ -44,7 +44,10 @@ and its noise on frames with no camera command is under 0.001 radians per frame,
 which is 150 times smaller than the commanded rate. Every table carries that
 ground-truth row, so estimator error and model error stay separate.
 
-**Keys, with a small learned model.** A key press cannot be read off analytically.
+**Keys, with a small learned model. WASD only.** The classes are `none`,
+`forward`, `back`, `left` and `right`. Building, attack, jump and sneak are not
+modelled: a flow-based estimator reads global motion, and those move too few
+pixels to register. A key press cannot be read off analytically either.
 On an open plain a sideways step and a small camera turn produce nearly the same
 flow field, and the parallax that separates them lives in the few metres of
 ground at the bottom of the frame. So this half follows the literature: a
@@ -77,6 +80,7 @@ was the gap, and it is the gap this directory fills.
 | `af_flow.py` | Point tracking, the rotation and translation estimators, and the flow summary. |
 | `extract_motion.py` | Runs the estimator over every clip and caches one `.npz` per (dataset, model, episode, player). |
 | `calibrate_fov.py` | Sweeps the assumed field of view on ground-truth video and reports the gain at each one. |
+| `measure_latency.py` | Measures how many frames the rendered view lags a command, which is what sets the tolerance. |
 | `report_camera.py` | The per-player camera tables, including cross-player specificity. |
 | `report_keys.py` | The learned inverse dynamics model and the per-player keyboard tables. |
 | `RESULTS.md` | The numbers, and how to read them. |
@@ -88,6 +92,7 @@ python3 action_following/extract_motion.py --workers 10   # about 70 minutes
 python3 action_following/report_camera.py
 python3 action_following/report_camera.py --axis pitch --datasets structureEval
 python3 action_following/report_keys.py
+python3 action_following/measure_latency.py
 ```
 
 `cache/` is derived and is not committed.

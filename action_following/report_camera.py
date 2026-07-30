@@ -57,7 +57,13 @@ from af_data import ROOT  # noqa: E402
 
 CACHE = ROOT / "action_following" / "cache"
 DEADBAND = 0.02  # radians per frame
-EVENT_SLACK = 3  # frames of timing slack each side of a turn event
+# Frames of timing slack each side of a turn event. Set from measurement, not
+# taste: `measure_latency.py` puts the ground-truth onset delay at a median of 0
+# frames and a 90th percentile of 1, with generated clips about a frame later.
+# The metric sums rotation across a whole event rather than testing one frame, so
+# it barely depends on this: sweeping 1 to 8 moves any model by under 0.6 points
+# and reorders nothing.
+EVENT_SLACK = 3
 
 # 0 is yaw, 1 is pitch. The bots drive yaw in every eval set; only structureEval
 # also drives pitch, and it does so on about a fifth as many frames.
