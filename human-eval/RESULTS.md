@@ -140,6 +140,29 @@ The item-level task is genuinely hard; the model *ordering* is what is stable.
 > is "fair", 0.50 is "moderate"). The rebuttal quotes it for artifacts only, and
 > states the 52.4% chance level inline so the number explains itself.
 
+### Per-sample alignment, the way reviewer nAFu asked for it
+
+`agreement_extras.py` prints the three numbers the table above needs before it
+can be read. Scope is 384 items, which is the 3 models with a full annotator
+panel: flagship, `no_player_attn_sf` and `concat_c`.
+
+| Judge | Agreement with the human panel | Cohen's kappa |
+|---|---|---|
+| VLM majority of 3 trials | 70.6% | +0.33 |
+| VLM t1 / t2 / t3 | 71.9 / 69.0 / 68.5% | +0.37 / +0.30 / +0.28 |
+
+| Reference | Agreement | Kappa |
+|---|---|---|
+| One annotator vs the panel of the other 4 | 52.3–82.8% | +0.19 to +0.56 |
+| Annotator vs annotator, mean of 10 pairs | 68.2% | +0.36 |
+| **VLM trial vs VLM trial, mean of 3 pairs** | **80.7%** | **+0.56** |
+
+The last row is the one that stops the +0.33 being read as a failure. The judge
+samples its answer, so it does not reproduce itself; 80.7% is the ceiling for any
+human-judge comparison here. Against it, a judge that lands at 70.6% while the
+mean human pair lands at 68.2% is not the weak link. Scored against the same kind
+of target, the judge sits above one annotator and below three.
+
 **Caveat — do not quote per-model kappa.** Splitting the majority-vs-maj3
 agreement by model gives flagship 68.0% (kappa +0.35) but concat_c 67.2%
 (kappa **+0.09**). Agreement on concat_c is near-total in raw terms only because
@@ -466,10 +489,12 @@ re-collecting.
 # Scripts
 
 `score_human_eval.py` prints the per-annotator tables and the paper numbers
-alongside. It does **not** pool across annotators — every pooled figure in this
-document (pooled clean rates, majority votes, margin t-test, agreement matrices,
-Fleiss kappa, bootstrap CIs, Spearman correlations, the threshold tables) came
-from throwaway analysis scripts that are not checked in.
+alongside. It does **not** pool across annotators. `pool_human_eval.py` is the
+pooled analysis: majority votes, the margin t-test, agreement matrices, Fleiss
+kappa, bootstrap CIs, Spearman correlations, panel AUROC and the threshold
+tables. `agreement_extras.py` adds the three reference points for per-sample
+alignment — judge against itself, annotator against annotator, and each judge
+against a panel that does not contain it.
 
 Everything here is derivable from the two keys plus `responses/` plus the strict
 results tree. The join keys are:
@@ -480,3 +505,6 @@ results tree. The join keys are:
 
 Worth folding into `score_human_eval.py` if this analysis gets repeated: a
 pooled-across-annotators mode is the one thing every question above needed.
+
+Action-following, which is a different question about the same generations, lives
+in `action_following/`.

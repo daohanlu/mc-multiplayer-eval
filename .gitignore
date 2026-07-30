@@ -79,3 +79,4 @@ vlm_frames_export/
 # Misc
 .DS_Store
 Thumbs.db
+action_following/cache/

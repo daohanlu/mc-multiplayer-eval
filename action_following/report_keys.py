@@ -1,0 +1,192 @@
+#!/usr/bin/env python3
+"""Keyboard action-following, per player, with a learned inverse dynamics model.
+
+The camera can be read off the video analytically, because a turn moves every
+ray by the same angle. A key press cannot. On an open Minecraft plain a sideways
+step and a small camera turn produce almost the same flow field, and the
+parallax that separates them lives in the few metres of ground at the bottom of
+the frame. Matrix-Game, Oasis and WorldMem all resolve this the same way: train
+an inverse dynamics model to read the action back out of the video, then score
+its prediction against the action that was actually sent.
+
+This module does that at the scale available here. The model is multinomial
+logistic regression over the flow summary of a five-frame window. It is trained
+only on *ground-truth* video, and only on the episodes held out from the test
+split, so the number it reaches on ground-truth test episodes is the ceiling for
+every generated number below it.
+
+    python3 action_following/report_keys.py
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from af_data import ROOT  # noqa: E402
+
+CACHE = ROOT / "action_following" / "cache"
+
+# Only the eval sets whose bots press movement keys.
+KEY_DATASETS = ["translationEval", "structureEval"]
+
+CLASSES = ["none", "forward", "back", "left", "right"]
+WINDOW = 2  # frames each side, so a five-frame context
+
+MODEL_LABEL = {
+    "flagship": "Solaris",
+    "no_player_attn_sf": "Independent",
+    "concat_c": "Frame Concat",
+    "from_scratch": "Solaris w/o pretrain",
+    "causvid_regression": "ODE Reg",
+    "causvid_dmd": "Causal FT Pre-DMD",
+    "no_kv_cache_backprop": "Causal FT no KV-BP",
+}
+MODEL_ORDER = list(MODEL_LABEL)
+
+
+def windowed(x: np.ndarray) -> np.ndarray:
+    """Stack each row with its neighbours, edge-padded."""
+    pads = [np.roll(x, k, axis=0) for k in range(-WINDOW, WINDOW + 1)]
+    out = np.concatenate(pads, axis=1)
+    out[:WINDOW] = out[WINDOW]
+    out[-WINDOW:] = out[-WINDOW - 1]
+    return out
+
+
+def label_frames(z) -> np.ndarray:
+    names = list(z["key_names"])
+    keys = z["keys"]
+    lab = np.zeros(keys.shape[1], dtype=np.int64)
+    active = np.zeros(keys.shape[1], dtype=np.int64)
+    for cls in CLASSES[1:]:
+        row = keys[names.index(cls)].astype(bool)
+        lab[row] = CLASSES.index(cls)
+        active += row
+    lab[active > 1] = -1  # a combination the five classes cannot express
+    return lab
+
+
+def gather(datasets, model, source):
+    """Return per-(dataset, episode, player) feature blocks and labels."""
+    out = []
+    for dataset in datasets:
+        d = CACHE / dataset / model
+        if not d.is_dir():
+            continue
+        for f in sorted(d.glob("*.npz")):
+            stem, player = f.stem.rsplit("_", 1)
+            z = np.load(f, allow_pickle=True)
+            x = windowed(np.nan_to_num(z[source]))
+            y = label_frames(z)
+            n = min(len(x), len(y))
+            out.append((dataset, stem, player, x[:n], y[:n]))
+    return out
+
+
+def balanced_accuracy(y, p) -> float:
+    accs = [float((p[y == c] == c).mean()) for c in np.unique(y)]
+    return 100 * float(np.mean(accs))
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--datasets", nargs="*", default=KEY_DATASETS)
+    args = ap.parse_args()
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.pipeline import make_pipeline
+
+    datasets = [d for d in args.datasets if (CACHE / d).is_dir()]
+    blocks = gather(datasets, "flagship", "gt")
+    if not blocks:
+        print("no cache yet")
+        return
+
+    # Split by episode so no episode contributes to both halves.
+    stems = sorted({(d, s) for d, s, _, _, _ in blocks})
+    test_stems = set(stems[::3])
+
+    def split(sel):
+        xs = [b[3] for b in blocks if ((b[0], b[1]) in test_stems) == sel]
+        ys = [b[4] for b in blocks if ((b[0], b[1]) in test_stems) == sel]
+        x, y = np.concatenate(xs), np.concatenate(ys)
+        keep = y >= 0
+        return x[keep], y[keep]
+
+    xtr, ytr = split(False)
+    xte, yte = split(True)
+    print("=" * 92)
+    print("KEYBOARD ACTION-FOLLOWING, PER PLAYER")
+    print("=" * 92)
+    print(f"datasets: {', '.join(datasets)}")
+    print(f"IDM training frames {len(ytr)}, ground-truth test frames {len(yte)}")
+    print("class counts (train): " +
+          ", ".join(f"{CLASSES[c]}={int((ytr == c).sum())}" for c in range(len(CLASSES))))
+
+    clf = make_pipeline(
+        StandardScaler(),
+        LogisticRegression(max_iter=3000, C=1.0, class_weight="balanced"),
+    )
+    clf.fit(xtr, ytr)
+    pte = clf.predict(xte)
+    print(f"\nIDM on held-out GROUND-TRUTH video: "
+          f"accuracy {100 * (pte == yte).mean():.1f}%, "
+          f"balanced {balanced_accuracy(yte, pte):.1f}%   <- the ceiling")
+    print("  per class recall: " + ", ".join(
+        f"{CLASSES[c]} {100 * (pte[yte == c] == c).mean():.1f}%"
+        for c in range(len(CLASSES)) if (yte == c).sum()))
+
+    print(f"\n{'model':<24}{'alpha bal%':>12}{'bravo bal%':>12}{'alpha acc%':>12}"
+          f"{'bravo acc%':>12}{'pred none%':>12}{'n frames':>10}")
+    rows = [("ground truth (ceiling)", "flagship", "gt", True)]
+    rows += [(MODEL_LABEL[m], m, "gen", False) for m in MODEL_ORDER]
+    for label, model, source, held_out_only in rows:
+        blocks_m = gather(datasets, model, source)
+        if not blocks_m:
+            continue
+        per = defaultdict(lambda: ([], []))
+        for dataset, stem, player, x, y in blocks_m:
+            # The ground-truth row must not include the episodes the model was
+            # fitted on, or it reports its own training accuracy.
+            if held_out_only and (dataset, stem) not in test_stems:
+                continue
+            keep = y >= 0
+            per[player][0].append(x[keep])
+            per[player][1].append(y[keep])
+        cells, n_total, preds = {}, 0, []
+        for player in ("alpha", "bravo"):
+            if not per[player][0]:
+                continue
+            x = np.concatenate(per[player][0])
+            y = np.concatenate(per[player][1])
+            p = clf.predict(x)
+            cells[player] = (balanced_accuracy(y, p), 100 * float((p == y).mean()))
+            preds.append(p)
+            n_total += len(y)
+        a = cells.get("alpha", (float("nan"),) * 2)
+        b = cells.get("bravo", (float("nan"),) * 2)
+        none_rate = (100 * float((np.concatenate(preds) == 0).mean())
+                     if preds else float("nan"))
+        print(f"{label:<24}{a[0]:12.1f}{b[0]:12.1f}{a[1]:12.1f}{b[1]:12.1f}"
+              f"{none_rate:12.1f}{n_total:10d}")
+
+    print("\nBalanced accuracy is the mean per-class recall, so the 'none' class,")
+    print("which is about 90 percent of frames, cannot carry the number.")
+    print("Chance level is 20.0 for five classes.")
+    print("\n'pred none%' is how often the model reads as standing still. The")
+    print("share of frames that really are still is the same for every row, so a")
+    print("high value there means the rendered view under-responds rather than")
+    print("that the estimator failed. Read it with the balanced column, not")
+    print("instead of it: a generated clip is also blurrier than real video, and")
+    print("some of the gap below the ground-truth row is that domain shift.")
+
+
+if __name__ == "__main__":
+    main()
