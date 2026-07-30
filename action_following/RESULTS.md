@@ -9,7 +9,7 @@ Two answers:
 * **Camera** — every model except `causvid_dmd` turns the commanded way on most
   turn events. What separates them is not direction but *restraint*: Solaris and
   the two Causal FT variants hold still on ~99% of no-command frames, while
-  `no_player_attn_sf` (92.7), `concat_c` (85.4) and `causvid_regression` (64.1)
+  `no_player_attn_sf` (91.6), `concat_c` (82.5) and `causvid_regression` (63.9)
   invent camera motion. Solaris's own weakness is magnitude: it turns the right
   way but only 0.68–0.72 of the commanded angle.
 * **Per player** — Solaris scores Alpha and Bravo within 1 point of each other on
@@ -66,27 +66,27 @@ absolute difference between total rendered and total commanded yaw per episode.
 
 | Model | event% | ev ratio | frame% | still% | gain | RotErr deg |
 |---|---|---|---|---|---|---|
-| **ground truth (ceiling)** | **97.6** | **1.002** | **81.5** | **99.3** | **0.863** | **12.7** |
-| `flagship` | 89.7 | 0.680 | 71.5 | **99.5** | 0.614 | 36.1 |
-| `no_player_attn_sf` | **97.1** | 1.042 | **92.7** | 92.7 | **0.937** | 42.6 |
-| `concat_c` | 93.2 | 1.007 | 87.3 | 85.4 | 0.817 | 79.1 |
-| `from_scratch` | 90.6 | 0.984 | 80.1 | 97.4 | 0.752 | 25.5 |
-| `causvid_regression` | 83.2 | 0.534 | 64.0 | 89.2 | 0.534 | 113.9 |
-| `causvid_dmd` | 35.1 | 0.052 | 35.8 | 99.5 | 0.275 | 89.2 |
-| `no_kv_cache_backprop` | 90.6 | 0.763 | 76.1 | **99.6** | 0.683 | **24.4** |
+| **ground truth (ceiling)** | 97.6 | 1.002 | 81.9 | 99.3 | 0.863 | 12.7 |
+| `flagship` | 89.7 | 0.680 | 71.6 | 99.5 | 0.614 | 36.1 |
+| `no_player_attn_sf` | 97.1 | 1.042 | 92.9 | 91.6 | 0.937 | 42.6 |
+| `concat_c` | 93.2 | 1.007 | 87.4 | 82.5 | 0.817 | 79.1 |
+| `from_scratch` | 90.6 | 0.984 | 80.5 | 97.3 | 0.752 | 25.5 |
+| `causvid_regression` | 83.2 | 0.534 | 64.4 | 89.0 | 0.534 | 113.9 |
+| `causvid_dmd` | 35.1 | 0.052 | 36.0 | 99.5 | 0.275 | 89.2 |
+| `no_kv_cache_backprop` | 90.6 | 0.763 | 76.3 | 99.6 | 0.683 | 24.4 |
 
 ### Bravo — 302 turn events, 3,219 commanded frames
 
 | Model | event% | ev ratio | frame% | still% | gain | RotErr deg |
 |---|---|---|---|---|---|---|
-| **ground truth (ceiling)** | **96.7** | **1.004** | **81.2** | **99.4** | **0.872** | **11.0** |
-| `flagship` | 88.7 | 0.717 | 73.5 | 99.0 | 0.671 | 33.0 |
-| `no_player_attn_sf` | **96.7** | 1.053 | **92.5** | 96.4 | **0.928** | 23.3 |
-| `concat_c` | 74.8 | 0.585 | 54.3 | 99.1 | 0.479 | **20.8** |
-| `from_scratch` | 92.1 | 0.962 | 77.3 | 98.8 | 0.745 | 18.0 |
-| `causvid_regression` | 83.8 | 0.563 | 71.2 | 64.1 | 0.620 | 256.9 |
-| `causvid_dmd` | 47.0 | 0.205 | 42.1 | 99.3 | 0.387 | 79.5 |
-| `no_kv_cache_backprop` | 90.1 | 0.772 | 75.3 | **99.6** | 0.711 | 24.1 |
+| **ground truth (ceiling)** | 96.7 | 1.004 | 81.2 | 99.4 | 0.872 | 11.0 |
+| `flagship` | 88.7 | 0.717 | 73.6 | 99.0 | 0.671 | 33.0 |
+| `no_player_attn_sf` | 96.7 | 1.053 | 92.7 | 95.7 | 0.928 | 23.3 |
+| `concat_c` | 74.8 | 0.585 | 54.5 | 99.0 | 0.479 | 20.8 |
+| `from_scratch` | 92.1 | 0.962 | 77.7 | 98.8 | 0.745 | 18.0 |
+| `causvid_regression` | 83.8 | 0.563 | 71.4 | 63.9 | 0.620 | 256.9 |
+| `causvid_dmd` | 47.0 | 0.205 | 42.2 | 99.3 | 0.387 | 79.5 |
+| `no_kv_cache_backprop` | 90.1 | 0.772 | 75.3 | 99.6 | 0.711 | 24.1 |
 
 ## How to read these
 
@@ -104,7 +104,7 @@ modes show their cost. `causvid_regression` reaches 83.8% turn accuracy on Bravo
 and still accumulates 256.9 degrees of error over a clip, because 36% of its
 still frames drift.
 
-**`frame%` has a low ceiling — 81.5, not 100.** Even on real video the strict
+**`frame%` has a low ceiling — 81.9, not 100.** Even on real video the strict
 per-frame comparison misses about a fifth of commanded frames, because the
 renderer and the action log are not perfectly in step and the estimator needs
 enough displacement to measure. This is exactly why `event%` is the headline.

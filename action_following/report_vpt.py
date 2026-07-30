@@ -32,7 +32,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from vpt_idm import YAW_COL, YAW_SIGN  # noqa: E402
 
 GT = "GROUND TRUTH"
-DEADBAND_DEG = 1.0
+
+# One threshold for everything: what counts as a turn, in the mouse metric, in
+# the no-false-turns column and in the Magnitude slope. Matrix-Game leaves theirs
+# unspecified ("a pre-defined threshold"); 1 deg/frame sits far below our
+# commanded 8.594 and far above the estimator noise floor, and nothing is
+# sensitive to it -- see the sweep in RESULTS.md.
+THRESHOLD_DEG = 1.0
 
 LABEL = {
     "flagship": "Solaris",
@@ -64,10 +70,7 @@ ANALYTIC_GAIN = {
 # match the commanded direction. That is not the same as asking how many
 # commanded turns were rendered: precision charges a model for turns it invents,
 # which is the failure mode a recall-style number misses entirely.
-MG_THRESHOLD_DEG = 1.0
-
-
-def _bins(yaw, pitch, thr=MG_THRESHOLD_DEG):
+def _bins(yaw, pitch, thr=THRESHOLD_DEG):
     return np.stack([np.sign(yaw) * (np.abs(yaw) >= thr),
                      np.sign(pitch) * (np.abs(pitch) >= thr)], axis=1)
 
@@ -129,12 +132,12 @@ def stats(pairs) -> dict:
     # difference to the slope -- 2.7% of turn frames fall below it and the
     # largest is 1 deg against a median command of 8.594 -- but a single
     # definition beats two.
-    moving = np.abs(c) >= MG_THRESHOLD_DEG
+    moving = np.abs(c) >= THRESHOLD_DEG
     still = np.abs(c) <= 1e-9
-    hit = (np.abs(p) >= DEADBAND_DEG) & (np.sign(p) == np.sign(c))
+    hit = (np.abs(p) >= THRESHOLD_DEG) & (np.sign(p) == np.sign(c))
     return {
         "dir": 100 * float(hit[moving].mean()),
-        "still": 100 * float((np.abs(p[still]) < DEADBAND_DEG).mean()),
+        "still": 100 * float((np.abs(p[still]) < THRESHOLD_DEG).mean()),
         # A single least-squares slope over the commanded frames, not a mean of
         # per-frame ratios: nothing is ever divided by a near-zero command.
         "gain": float(np.sum(p[moving] * c[moving]) / np.sum(c[moving] ** 2)),
@@ -153,7 +156,7 @@ def main() -> None:
     print("=" * 90)
     print("MOUSE ACTION-FOLLOWING, VPT INVERSE DYNAMICS MODEL (the one Matrix-Game uses)")
     print("=" * 90)
-    print(f"deadband {DEADBAND_DEG} deg/frame; commanded rate 8.594; IDM saturates at 10\n")
+    print(f"deadband {THRESHOLD_DEG} deg/frame; commanded rate 8.594; IDM saturates at 10\n")
     print(f"{'model':<24}{'dir acc A/B':>16}{'still A/B':>16}{'gain A/B':>16}"
           f"{'vs GT A/B':>16}")
     order = [GT] + [m for m in LABEL if (m, "alpha") in s]
@@ -176,7 +179,7 @@ def main() -> None:
 
     b = load_bins(args.npz)
     print("\n--- Matrix-Game's own mouse accuracy ---")
-    print(f"8 directions plus empty, threshold {MG_THRESHOLD_DEG} deg/frame,")
+    print(f"8 directions plus empty, threshold {THRESHOLD_DEG} deg/frame,")
     print("precision over all positive predictions.\n")
     print(f"{'model':<24}{'mouse acc A/B':>18}{'positive preds A/B':>22}")
     for name in [GT] + [m for m in LABEL if (m, "alpha") in s]:

@@ -28,10 +28,10 @@ Definitions, fixed once here so every table means the same thing.
 ``track%``      Fraction of tracked points that survived the forward-backward
                 check. A model whose frames were too corrupt to measure would
                 show a low value here, and none of them do.
-``deadband``    0.02 rad per frame, about 1.1 degrees. The commanded rate is
-                0.15 rad per frame, and the estimator's noise on still
-                ground-truth video is under 0.001, so the band separates the two
-                by a wide margin either way.
+``deadband``    1 degree per frame, the same threshold the VPT metrics use, so
+                both estimators agree on what counts as a turn. The commanded
+                rate is 8.594 deg per frame and this estimator's noise on still
+                ground-truth video is under 0.06, so the line sits far from both.
 
 Every number is reported for the ground-truth view as well. The ground-truth row
 is the ceiling: it is the same estimator on real Minecraft video of the same
@@ -56,7 +56,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from af_data import ROOT  # noqa: E402
 
 CACHE = ROOT / "action_following" / "cache"
-DEADBAND = 0.02  # radians per frame
+# The same 1 deg/frame threshold the VPT metrics use, in radians, so both
+# estimators agree on what counts as a turn. The commanded rate is 8.594 deg and
+# this estimator's noise on still ground-truth video is under 0.06 deg, so the
+# line sits far from both.
+DEADBAND = np.radians(1.0)
 # Frames of timing slack each side of a turn event. Set from measurement, not
 # taste: `measure_latency.py` puts the ground-truth onset delay at a median of 0
 # frames and a 90th percentile of 1, with generated clips about a frame later.
