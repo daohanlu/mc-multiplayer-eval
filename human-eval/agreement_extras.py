@@ -49,6 +49,12 @@ def match(a, b, scope):
     return pct, cohen_kappa(xa, xb), len(shared)
 
 
+def _pop(v):
+    """Mean and population sd, matching the paper's convention across trials."""
+    m = sum(v) / len(v)
+    return m, (sum((x - m) ** 2 for x in v) / len(v)) ** 0.5
+
+
 def _votes(st, names, iid):
     return Counter(st.human[n][iid] for n in names if iid in st.human[n])
 
@@ -135,12 +141,27 @@ def main() -> None:
                      sum(m[1] for m in ms) / len(ms), len(ms)))
     for who, pct, k, n in sorted(rows, key=lambda r: -r[1]):
         print(f"  {'human annotator ' + who:<36}{pct:8.1f}%{k:+9.2f}{n:7d}")
-    vlm_rows = [("VLM judge (majority of 3 trials)", maj_v)]
-    vlm_rows += [(f"VLM judge, {t}", st.vlm[t]) for t in trials]
-    for label, ans in vlm_rows:
-        ms = [match(ans, st.human[o], scope) for o in annotators]
-        print(f"  {label:<36}{sum(m[0] for m in ms) / len(ms):8.1f}%"
-              f"{sum(m[1] for m in ms) / len(ms):+9.2f}{len(ms):7d}")
+    # The paper scores each VLM trial separately and averages, reporting the
+    # population sd across trials. It never merges the trials into one answer,
+    # so neither does this. The majority-of-3 construct is printed afterwards
+    # only to show what quoting it would have bought.
+    per_trial = []
+    for t in trials:
+        ms = [match(st.vlm[t], st.human[o], scope) for o in annotators]
+        per_trial.append((sum(m[0] for m in ms) / len(ms),
+                          sum(m[1] for m in ms) / len(ms)))
+        print(f"  {'VLM judge, ' + t:<36}{per_trial[-1][0]:8.1f}%"
+              f"{per_trial[-1][1]:+9.2f}{len(annotators):7d}")
+    ma, sa = _pop([p[0] for p in per_trial])
+    mk, sk = _pop([p[1] for p in per_trial])
+    print(f"  {'VLM judge, 3 trials  <- quote this':<36}{ma:8.1f}%{mk:+9.2f}"
+          f"{len(annotators):7d}   +/- {sa:.1f} and {sk:.2f} over trials")
+    ms = [match(maj_v, st.human[o], scope) for o in annotators]
+    mv_pct = sum(m[0] for m in ms) / len(ms)
+    print(f"\n  For contrast only, majority of the 3 trials: {mv_pct:.1f}%, "
+          f"kappa {sum(m[1] for m in ms) / len(ms):+.2f}.")
+    print(f"  That is {mv_pct - ma:+.1f} points, and merging trials this way is")
+    print("  not what the paper does, so it is not quoted anywhere.")
 
     print("\n## The same thing against a majority-vote panel, and why it is not used\n")
     print("  A human row here is scored against the majority answer of the other")

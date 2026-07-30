@@ -156,23 +156,30 @@ four, one at a time, then averaged. The VLM judge row is the VLM judge compared
 with each of the five the same way. No consensus label is built, so no vote and
 no tie-breaking rule can move a row.
 
+**The VLM judge row follows the paper's convention**: score each of the 3 trials
+separately, average, and report the population sd across trials. The paper never
+merges the trials into one answer, so neither does this. Merging them into a
+majority-of-3 answer would give 66.9% and kappa +0.29 — **+1.1 points better** —
+which is exactly why it is not quoted: it is a judge configuration the paper does
+not evaluate, and it denoises the VLM judge in a way no human annotator row gets.
+
 | Compared with the human annotators | Exact agreement | Cohen's kappa | pairings |
 |---|---|---|---|
 | human annotator srivats | 71.5% | +0.40 | 4 |
 | human annotator Georgy | 71.5% | +0.39 | 4 |
 | human annotator Oscar | 70.7% | +0.39 | 4 |
 | human annotator fred | 69.7% | +0.36 | 4 |
-| **VLM judge (majority of 3 trials)** | **66.9%** | **+0.29** | 5 |
+| **VLM judge, 3 trials** | **65.7 +/- 0.3%** | **+0.26 +/- 0.01** | 5 |
 | VLM judge, t1 / t2 / t3 | 66.2 / 65.4 / 65.6% | +0.28 / +0.26 / +0.25 | 5 |
 | human annotator egor | 57.7% | +0.24 | 4 |
 
 **The ceiling: two VLM judge trials on the same image agree 80.7%, kappa +0.56.**
 The VLM judge samples its answer, so it does not reproduce itself, and no row
-above can be expected to beat that. Against it, a VLM judge at 66.9% sitting
-fifth of six — and 1.3 points under the 68.2% two human annotators average
+above can be expected to beat that. Against it, a VLM judge at 65.7% sitting
+fifth of six — and 2.5 points under the 68.2% two human annotators average
 against each other — is not the weak link. Cohen's kappa also disposes of the
 reviewer's stated worry directly: a VLM judge reproducing only the marginals
-scores 0.00, not +0.29.
+scores 0.00, not +0.26.
 
 ### Do not use the majority-vote version of this table
 
