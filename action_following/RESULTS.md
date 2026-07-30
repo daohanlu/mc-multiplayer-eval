@@ -219,6 +219,27 @@ ground-truth turn frames already read at the ceiling. It can therefore see a
 model turning *less* than ground truth but not one turning more, and absolute
 gain is compressed at the top for every row alike.
 
+## The keyboard head does not transfer, although the camera head does
+
+Run on ground-truth video, all 32 episodes, both players:
+
+| Eval set | commanded WASD frames | VPT predicted | exact match |
+|---|---|---|---|
+| `translationEval` | 2,252 | 32 | 30 (1.3%) |
+| `structureEval` | 1,540 | 427 | 265 (17.2%) |
+
+On `translationEval` the IDM fires almost no key at all — 32 predictions against
+2,252 commanded frames. It is not a plumbing failure: the head is live and does
+fire on `structureEval`, where it still only recovers 17%. Our bots strafe across
+open ground, so the parallax that separates a sideways step from a small camera
+turn lives in a thin band of near ground along the bottom of the frame, and the
+IDM's 128×128 input removes most of it. Our own WASD model works on the same
+clips (96.9% balanced, held out) because it reads that band explicitly, splitting
+flow between the upper and lower half of the view.
+
+**So keys stay with our own model and mouse comes from VPT.** Reproduce with
+`vpt_idm.py`, which now saves button predictions alongside the camera.
+
 ## Two independent estimators agree
 
 | Model | VPT IDM A/B | analytic A/B |

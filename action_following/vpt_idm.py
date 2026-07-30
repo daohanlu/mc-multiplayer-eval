@@ -60,6 +60,12 @@ YAW_COL = 1
 CHUNK = 128  # the IDM's context length
 
 CAMERA_DATASETS = ["rotationEval", "turnToLookEval", "turnToLookOppositeEval"]
+
+# Matrix-Game scores the keyboard as mutually exclusive groups. Only the two
+# movement groups are meaningful in our eval sets; the bots almost never jump or
+# attack, so those groups would be trivially near perfect.
+KEY_GROUPS = {"fb": ("forward", "back"), "lr": ("left", "right")}
+KEY_NAMES = ["forward", "back", "left", "right"]
 MODELS = ["flagship", "no_player_attn_sf", "concat_c", "from_scratch",
           "causvid_regression", "causvid_dmd", "no_kv_cache_backprop"]
 
@@ -98,22 +104,26 @@ def read_quadrants_rgb(path: Path):
             for k, v in out.items()}
 
 
-def predict_camera(agent, frames: np.ndarray) -> np.ndarray:
-    """Per-frame camera prediction in degrees, shape (N, 2).
+def predict(agent, frames: np.ndarray):
+    """Per-frame camera in degrees ``(N, 2)`` and WASD buttons ``(N, 4)``.
 
     MineRL orders the camera action as (pitch, yaw). The clip is fed in
     context-length chunks, as the reference script does, with the hidden state
     reset once per clip.
     """
     agent.reset()
-    out = []
+    cams, keys = [], []
     for i in range(0, len(frames), CHUNK):
         chunk = frames[i:i + CHUNK]
         if len(chunk) < 2:
             break
         pred = agent.predict_actions(chunk)
-        out.append(np.asarray(pred["camera"])[0])
-    return np.concatenate(out) if out else np.zeros((0, 2))
+        cams.append(np.asarray(pred["camera"])[0])
+        keys.append(np.stack([np.asarray(pred[k])[0].ravel()
+                              for k in KEY_NAMES], axis=1))
+    if not cams:
+        return np.zeros((0, 2)), np.zeros((0, 4))
+    return np.concatenate(cams), np.concatenate(keys)
 
 
 def commanded_deg(actions: list, gen0_gt_index: int, count: int) -> np.ndarray:
@@ -124,6 +134,17 @@ def commanded_deg(actions: list, gen0_gt_index: int, count: int) -> np.ndarray:
         if 0 <= k < len(actions):
             cam = actions[k]["action"]["camera"]
             out[i] = [np.degrees(float(cam[0])), np.degrees(float(cam[1]))]
+    return out
+
+
+def commanded_wasd(actions: list, gen0_gt_index: int, count: int) -> np.ndarray:
+    """Commanded WASD per frame, ``(N, 4)`` in ``KEY_NAMES`` order."""
+    out = np.zeros((count, 4), dtype=np.float64)
+    for i in range(count):
+        k = gen0_gt_index + i
+        if 0 <= k < len(actions):
+            a = actions[k]["action"]
+            out[i] = [float(bool(a.get(n, False))) for n in KEY_NAMES]
     return out
 
 
@@ -182,19 +203,21 @@ def main() -> None:
                     frames = quads[f"{player}_{src}"]
                     if len(frames) < 4:
                         continue
-                    cam = predict_camera(agent, frames)
+                    cam, btn = predict(agent, frames)
                     n = min(len(cam), len(frames))
                     cmd = commanded_deg(acts, ep.frame1 + 1, n)
+                    wasd = commanded_wasd(acts, ep.frame1 + 1, n)
                     key = (model if src == "gen" else "GROUND TRUTH", player)
-                    rows.setdefault(key, []).append((cam[:n], cmd[:n]))
+                    rows.setdefault(key, []).append(
+                        (cam[:n], cmd[:n], btn[:n], wasd[:n]))
             print(f"  {dataset} {model} ep{ep.episode}", flush=True)
 
     # Re-derive the column and sign from ground truth every run, and say so, so
     # a drift in either shows up instead of being silently absorbed.
     gt = rows.get(("GROUND TRUTH", "alpha")) or rows.get(("GROUND TRUTH", "bravo"))
     if gt:
-        pr = np.concatenate([c for c, _ in gt])
-        cm = np.concatenate([c for _, c in gt])
+        pr = np.concatenate([r[0] for r in gt])
+        cm = np.concatenate([r[1] for r in gt])
         with np.errstate(invalid="ignore"):
             cs = [np.corrcoef(pr[:, k], cm[:, 0])[0, 1] for k in (0, 1)]
         best = 0 if abs(np.nan_to_num(cs[0])) > abs(np.nan_to_num(cs[1])) else 1
@@ -213,8 +236,8 @@ def main() -> None:
     print(f"{'source':<24}{'player':<8}{'dir acc%':>10}{'still%':>9}{'gain':>8}"
           f"{'r':>8}{'n move':>9}")
     for (name, player), pairs in sorted(rows.items()):
-        pred = YAW_SIGN * np.concatenate([c[:, YAW_COL] for c, _ in pairs])
-        cmd = np.concatenate([c[:, 0] for _, c in pairs])
+        pred = YAW_SIGN * np.concatenate([r[0][:, YAW_COL] for r in pairs])
+        cmd = np.concatenate([r[1][:, 0] for r in pairs])
         s = score(pred, cmd)
         if not s:
             continue
@@ -222,10 +245,12 @@ def main() -> None:
               f"{s['gain']:8.3f}{s['r']:8.3f}{s['n_move']:9d}")
 
     if args.out:
-        np.savez_compressed(args.out, **{
-            f"{n}|{p}|{i}": np.stack([c, q])
-            for (n, p), pairs in rows.items()
-            for i, (c, q) in enumerate(pairs)})
+        flat = {}
+        for (n, p), pairs in rows.items():
+            for i, (cam, cmd, btn, wasd) in enumerate(pairs):
+                flat[f"cam|{n}|{p}|{i}"] = np.stack([cam, cmd])
+                flat[f"key|{n}|{p}|{i}"] = np.stack([btn, wasd])
+        np.savez_compressed(args.out, **flat)
         print(f"\nwrote {args.out}")
 
 

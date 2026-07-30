@@ -63,7 +63,9 @@ def load(paths):
     for p in paths:
         d = np.load(p)
         for k in d.files:
-            name, player, _ = k.split("|")
+            if not k.startswith("cam|"):
+                continue
+            _, name, player, _ = k.split("|")
             pred, cmd = d[k]
             acc[(name, player)].append((YAW_SIGN * pred[:, YAW_COL], cmd[:, 0]))
     return acc
