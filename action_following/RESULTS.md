@@ -261,6 +261,15 @@ different Minecraft version. That was the thing in doubt, and it is settled.
 | `causvid_dmd` | 47.5 / 54.9 | 99.2 / 99.1 | 0.42 / 0.51 | 0.46 / 0.61 |
 | `no_kv_cache_backprop` | 84.9 / 82.7 | 99.6 / 99.7 | 0.76 / 0.78 | 0.84 / 0.92 |
 
+**How Magnitude is computed.** A single least-squares slope of rendered turn
+angle on commanded turn angle per player, `sum(pred*cmd) / sum(cmd^2)`, taken
+over the frames the mouse metric's 1 deg/frame threshold marks as turns. It is
+not a mean of per-frame ratios, so no frame is ever divided by a near-zero
+command. The threshold is shared with the mouse metric for consistency and costs
+nothing: 2.7% of turn frames fall below it, the largest of those is 1 deg against
+a median command of 8.594, and applying it moves every gain by under 0.004 and no
+reported Magnitude at all.
+
 **Read the "vs GT" column for magnitude, not the raw gain.** The IDM's camera
 head saturates at 10 deg/frame and our bots command 8.594, so 62–67% of
 ground-truth turn frames already read at the ceiling. It can therefore see a

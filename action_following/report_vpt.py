@@ -124,13 +124,20 @@ def load(paths):
 def stats(pairs) -> dict:
     p = np.concatenate([a for a, _ in pairs])
     c = np.concatenate([b for _, b in pairs])
-    moving = np.abs(c) > 1e-9
-    still = ~moving
+    # "A turn was commanded" uses the same 1 deg/frame threshold as the mouse
+    # metric, so both columns agree on what counts as a turn. It makes almost no
+    # difference to the slope -- 2.7% of turn frames fall below it and the
+    # largest is 1 deg against a median command of 8.594 -- but a single
+    # definition beats two.
+    moving = np.abs(c) >= MG_THRESHOLD_DEG
+    still = np.abs(c) <= 1e-9
     hit = (np.abs(p) >= DEADBAND_DEG) & (np.sign(p) == np.sign(c))
     return {
         "dir": 100 * float(hit[moving].mean()),
         "still": 100 * float((np.abs(p[still]) < DEADBAND_DEG).mean()),
-        "gain": float(np.sum(p * c) / np.sum(c ** 2)),
+        # A single least-squares slope over the commanded frames, not a mean of
+        # per-frame ratios: nothing is ever divided by a near-zero command.
+        "gain": float(np.sum(p[moving] * c[moving]) / np.sum(c[moving] ** 2)),
         "n": int(moving.sum()),
         "sat": 100 * float((np.abs(p[moving]) >= 9.5).mean()),
     }
