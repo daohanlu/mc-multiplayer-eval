@@ -14,12 +14,28 @@ trained on 1,962 hours of Minecraft and reports 90.6% keyboard accuracy and an
 R-squared of 0.97 on mouse regression. We do not have that model, so we build
 the two halves separately and hold each to its own check.
 
-**Camera, analytically.** A camera turn moves every viewing ray by the same
-angle, whatever the depth of what the ray hits. So a rotation can be recovered
-from the video with no training at all: track points between consecutive frames,
-convert them to viewing rays with the known intrinsics, and take the median
-change in azimuth and elevation. A least-squares rotation is then refit on the
-points those medians agree with, which also recovers roll.
+**Camera, analytically. No learned component, no fitted parameter.** A camera
+turn moves every viewing ray by the same angle, whatever the depth of what the
+ray hits. This is the standard rotating-camera case of multi-view geometry: two
+views differing by a pure rotation are related by the infinite homography
+`K R K^-1`, independent of the scene. Because `K` is known here, `R` is solved
+for directly rather than by fitting a general homography and decomposing it.
+Every step is a textbook algorithm:
+
+| Step | Algorithm |
+| --- | --- |
+| Correspondences | Pyramidal Lucas-Kanade, with the forward-backward consistency check of Kalal et al. |
+| Initial yaw and pitch | Median change in ray azimuth and elevation, which is also the inlier test |
+| Refit, plus roll | Wahba's problem in the Kabsch SVD closed form |
+| Translation direction | Epipolar constraint with known rotation, linear in `t`, solved by null space |
+
+Structure from motion and SLAM are deliberately not used, although the
+camera-control literature normally reaches for them: COLMAP or GLOMAP behind
+`RotErr` and `TransErr`, DROID-SLAM behind GameWorld Score's object consistency.
+These eval clips are close to pure rotation, where the closed-form solution is
+exact for the case and steadier than an SfM pipeline on 256 frames of sky and
+grass. It is also the reason the estimator can be validated: with nothing fitted,
+running it on real video of the same episodes measures the estimator itself.
 
 The commanded rate is exactly 0.15 radians per frame, which is 3 radians per
 second at 20 ticks per second, so the estimate can be scored directly. On real

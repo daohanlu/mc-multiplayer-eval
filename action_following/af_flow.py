@@ -17,6 +17,27 @@ two kinds of column.
    on real Minecraft video before they are pointed at a generated clip.
    ``calibrate_fov.py`` does exactly that.
 
+   The model is the standard rotating-camera case of multi-view geometry: two
+   views of a camera that only rotates are related by the infinite homography
+   ``K R K^-1``, whatever the depth of the scene. ``K`` is known here, so ``R``
+   is solved for directly instead of fitting a general homography and
+   decomposing it. Each step is a textbook algorithm rather than anything new:
+
+   * pyramidal Lucas-Kanade for the correspondences, with the
+     forward-backward consistency check of Kalal et al.;
+   * the median change in ray azimuth and elevation as a robust initial yaw
+     and pitch, which doubles as the inlier test;
+   * Wahba's problem solved by the Kabsch SVD to refit ``R`` on the inliers,
+     which also recovers roll;
+   * for translation, the epipolar constraint with the rotation already known,
+     which is linear in the translation direction and solved by its null space.
+
+   Structure from motion and SLAM are deliberately not used, although the
+   camera-control literature normally reaches for them (COLMAP for RotErr,
+   DROID-SLAM for GameWorld Score's object consistency). These eval clips are
+   close to pure rotation, where the closed-form solution is exact and steadier
+   than an SfM pipeline on 256 frames of sky and grass.
+
 2. A raw flow summary: a robust global shift, an affine gradient, and the same
    shift split between the upper and lower half of the view. The split separates
    a camera turn from a sideways step. A yaw turn moves every pixel the same
@@ -119,7 +140,12 @@ def _rays(pts_xy: np.ndarray, f: float, cx: float, cy: float) -> np.ndarray:
 
 
 def _kabsch(a: np.ndarray, b: np.ndarray) -> np.ndarray:
-    """Rotation R minimising ||R a - b||, for unit vectors a and b."""
+    """Rotation R minimising ||R a - b|| for unit vectors a and b.
+
+    Wahba's problem, in the Kabsch closed form: SVD of the correlation matrix,
+    with the determinant correction that keeps the result a rotation rather than
+    a reflection.
+    """
     h = a.T @ b
     u, _, vt = np.linalg.svd(h)
     d = np.sign(np.linalg.det(vt.T @ u.T))
@@ -132,6 +158,9 @@ INLIER_RAD = 0.02  # about 1.1 degrees
 def estimate_rotation(p0: np.ndarray, p1: np.ndarray, f: float,
                       cx: float, cy: float) -> Tuple[float, float, float]:
     """Yaw, pitch and roll of the rotation that best explains a correspondence set.
+
+    Two standard pieces: a robust median initialisation on bearing angles, then
+    Wahba's problem solved by the Kabsch SVD on the inliers.
 
     A plain median of the pixel shift is biased. Under a yaw of ``a`` a pixel at
     horizontal offset ``x`` moves about ``f*a*(1 + x^2/f^2)``, so the edges of
@@ -173,6 +202,10 @@ def estimate_rotation(p0: np.ndarray, p1: np.ndarray, f: float,
 def estimate_translation(p0: np.ndarray, p1: np.ndarray, yaw: float, pitch: float,
                          roll: float, f: float, cx: float, cy: float):
     """Direction of the camera's own translation, once the rotation is removed.
+
+    This is the epipolar constraint with the rotation already known, which makes
+    it linear in the translation direction and solvable by a null space rather
+    than by the five-point algorithm.
 
     Depth is unknown, so only the direction is recoverable, not the distance.
     Rotate every ray of the first frame by the estimated rotation. What is left

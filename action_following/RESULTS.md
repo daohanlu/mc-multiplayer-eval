@@ -36,15 +36,22 @@ gets 436, which is not a comparison.
 
 ## Method in one paragraph
 
-Track points between consecutive frames with pyramidal Lucas-Kanade and a
-forward-backward check. Convert them to viewing rays with the known intrinsics. A
-camera turn adds the same amount to the azimuth of every ray whatever its depth,
-so the median per-point azimuth change is an unbiased estimate of yaw, and
-elevation gives pitch the same way. That estimator has no trained parameter, so
-it is scored on real Minecraft video of the same episodes first; that row is the
-ceiling in every table. Key presses cannot be read that way, so they follow the
-literature: a small inverse dynamics model trained on ground-truth video only,
-tested on held-out episodes.
+**The camera half is purely analytical: no learned component, no parameter fitted
+to our data.** It is the standard rotating-camera model of multi-view geometry —
+two views of a camera that only rotates are related by the infinite homography
+`K R K^-1`, whatever the scene depth — and `K` is known, so `R` is solved for
+directly. Correspondences come from pyramidal Lucas-Kanade with the
+forward-backward check of Kalal et al.; the initial yaw and pitch are the median
+change in ray azimuth and elevation, which doubles as the inlier test; `R` is
+refit on the inliers by solving Wahba's problem in the Kabsch SVD closed form.
+Structure from motion and SLAM are deliberately avoided, though `RotErr` normally
+uses COLMAP and GameWorld Score uses DROID-SLAM: these clips are near pure
+rotation, where the closed form is exact and steadier than SfM on 256 low-texture
+frames. Because nothing is fitted, running the estimator on real Minecraft video
+of the same episodes measures the estimator itself, and that row is the ceiling
+in every table. Key presses cannot be read this way, so they follow the
+literature instead: a small inverse dynamics model trained on ground-truth video
+only, tested on held-out episodes.
 
 # Part 1 — Camera, per player
 
