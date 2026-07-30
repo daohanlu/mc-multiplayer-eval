@@ -63,9 +63,15 @@ def load(paths):
     for p in paths:
         d = np.load(p)
         for k in d.files:
-            if not k.startswith("cam|"):
-                continue
-            _, name, player, _ = k.split("|")
+            # Runs before button prediction was added wrote "<model>|<player>|<i>";
+            # later runs prefix each entry with "cam|" or "key|".
+            parts = k.split("|")
+            if len(parts) == 4:
+                if parts[0] != "cam":
+                    continue
+                _, name, player, _ = parts
+            else:
+                name, player, _ = parts
             pred, cmd = d[k]
             acc[(name, player)].append((YAW_SIGN * pred[:, YAW_COL], cmd[:, 0]))
     return acc

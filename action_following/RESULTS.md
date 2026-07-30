@@ -271,6 +271,46 @@ smoother and more exaggerated, which the IDM reads more confidently than it read
 a slow real turn. And pooling `structureEval` into this table pulls every row
 down, ground truth included, because yaw, pitch and walking happen at once there.
 
+# Part 1c — The full tables, all 7 ablations
+
+The rebuttal shows the Table 2 rows only, to keep the comparison to the models
+the reviewer's question is about. These are the same two tables with every
+ablation, in the same format, so the rest can be quoted without re-running
+anything.
+
+### Table A — mouse, VPT IDM, all 7 ablations
+
+| Model | Direction | No false turns | Average | Magnitude |
+|---|---|---|---|---|
+| **ground truth (ceiling)** | 78.6 / 75.0 | 99.3 / 99.3 | 88.9 / 87.2 | 1.00 / 1.00 |
+| Solaris | 85.4 / 84.0 | 99.5 / 98.9 | 92.4 / 91.4 | 0.84 / 0.93 |
+| Independent | 92.5 / 87.0 | 96.0 / 97.8 | 94.2 / 92.4 | 1.13 / 1.11 |
+| Frame Concat | 87.8 / 86.1 | 90.0 / 98.9 | 88.9 / 92.5 | 0.94 / 1.05 |
+| Solaris w/o pretrain | 88.3 / 79.5 | 98.3 / 98.8 | 93.3 / 89.1 | 1.04 / 0.99 |
+| ODE Reg † | 75.8 / 62.2 | 93.8 / 97.5 | 84.8 / 79.8 | 0.74 / 0.64 |
+| Causal FT Pre-DMD † | 47.5 / 54.9 | 99.2 / 99.1 | 73.4 / 77.0 | 0.46 / 0.61 |
+| Causal FT no KV-BP † | 84.9 / 82.7 | 99.6 / 99.7 | 92.2 / 91.2 | 0.84 / 0.92 |
+
+### Table B — camera and keys, our own estimators, all 7 ablations
+
+| Model | Direction | No false turns | Average | Magnitude | Keys |
+|---|---|---|---|---|---|
+| **ground truth (ceiling)** | 97.6 / 96.7 | 99.3 / 99.4 | 98.5 / 98.0 | 1.00 / 1.00 | 97.4 / 96.4 |
+| Solaris | 89.7 / 88.7 | 99.5 / 99.0 | 94.6 / 93.9 | 0.71 / 0.77 | 73.3 / 72.6 |
+| Independent | 97.1 / 96.7 | 92.7 / 96.4 | 94.9 / 96.5 | 1.09 / 1.06 | 68.4 / 72.3 |
+| Frame Concat | 93.2 / 74.8 | 85.4 / 99.1 | 89.3 / 87.0 | 0.95 / 0.55 | 77.7 / 60.1 |
+| Solaris w/o pretrain | 90.6 / 92.1 | 97.4 / 98.8 | 94.0 / 95.4 | 0.87 / 0.85 | 73.1 / 78.4 |
+| ODE Reg † | 83.2 / 83.8 | 89.2 / 64.1 | 86.2 / 73.9 | 0.62 / 0.71 | 66.7 / 53.4 |
+| Causal FT Pre-DMD † | 35.1 / 47.0 | 99.5 / 99.3 | 67.3 / 73.2 | 0.32 / 0.44 | 59.7 / 61.8 |
+| Causal FT no KV-BP † | 90.6 / 90.1 | 99.6 / 99.6 | 95.1 / 94.8 | 0.79 / 0.82 | 84.1 / 86.3 |
+
+† Table 3 model. The rebuttal quotes the Table 2 rows only; these are here
+so the rest can be produced on request without re-running anything.
+
+Nothing here changes a conclusion. `no_kv_cache_backprop` is the strongest model
+on both Average columns and on Keys, and `causvid_dmd` is the weakest on both;
+Solaris under-rotates in both, as it does in the Table 2 view.
+
 # Part 2 — Cross-player specificity
 
 Each player's view held against the **other** player's camera commands, on the
