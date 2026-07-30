@@ -240,6 +240,39 @@ flow between the upper and lower half of the view.
 **So keys stay with our own model and mouse comes from VPT.** Reproduce with
 `vpt_idm.py`, which now saves button predictions alongside the camera.
 
+## What happens if the two tables are scored by one identical rule
+
+Table A judges each frame on its own; Table B groups a turn into an event with 3
+frames of slack. Re-scoring the analytic estimator under VPT's exact rule — per
+frame, no slack, 1.0° deadband — answers what the difference is worth.
+
+| Model | Direction, ours | Direction, VPT | gap |
+|---|---|---|---|
+| ground truth | 81.9 / 81.2 | 78.6 / 75.0 | +3.3 / +6.2 |
+| `flagship` | 71.6 / 73.6 | 85.4 / 84.0 | **+13.8 / +10.4** |
+| `no_player_attn_sf` | 92.9 / 92.7 | 92.5 / 87.0 | −0.4 / −5.7 |
+| `concat_c` | 87.4 / 54.5 | 87.8 / 86.1 | +0.4 / **+31.6** |
+| `from_scratch` | 80.5 / 77.7 | 88.3 / 79.5 | +7.8 / +1.8 |
+
+**The ground-truth rows converge to within a few points, and the model rows do
+not.** That is the useful part. The gap is not noise: across the 8 model-player
+cells it correlates with the magnitude disagreement at **r = +0.92**. The two
+estimators differ on Direction exactly where they differ on Magnitude.
+
+The mechanism is VPT's mu-law binning. A turn that goes the right way but only
+70% as far still lands in a non-zero bin, so VPT scores it a hit; our estimator
+measures the angle, so a weak turn can fall under the deadband and score a miss.
+`no_player_attn_sf`, which does not under-rotate, agrees across estimators to
+within half a point on Alpha. `flagship` and `concat_c`, which do, diverge most.
+
+**Consequence: VPT's Direction column is insensitive to under-rotation, and
+forcing both tables onto one rule would hide that rather than resolve it.** It
+would also manufacture an apparent contradiction — Solaris sits 7–9 points above
+the ground-truth row under VPT's rule and 8–10 points below it under ours — which
+is a statement about deadband sensitivity, not about the model. Keeping the two
+rules, each with its own ground-truth row, is the more honest presentation. It is
+also why Magnitude, not Direction, carries the under-rotation finding.
+
 ## Two independent estimators agree
 
 | Model | VPT IDM A/B | analytic A/B |
