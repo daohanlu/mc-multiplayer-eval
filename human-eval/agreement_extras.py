@@ -143,8 +143,8 @@ def main() -> None:
         print(f"  {'human annotator ' + who:<36}{pct:8.1f}%{k:+9.2f}{n:7d}")
     hm, hs = _pop([r[1] for r in rows])
     hkm, hks = _pop([r[2] for r in rows])
-    print(f"  {'Five human annotators':<36}{hm:8.1f}%{hkm:+9.2f}{len(rows):7d}"
-          f"   +/- {hs:.1f} and {hks:.2f} over annotators")
+    print(f"  {'All human annotators':<36}{hm:8.1f}%{hkm:+9.2f}{len(rows):7d}"
+          f"   +/- {hs:.1f} and {hks:.2f} over annotators (population sd)")
     # The paper scores each VLM trial separately and averages, reporting the
     # population sd across trials. It never merges the trials into one answer,
     # so neither does this. The majority-of-3 construct is printed afterwards
@@ -159,7 +159,7 @@ def main() -> None:
     ma, sa = _pop([p[0] for p in per_trial])
     mk, sk = _pop([p[1] for p in per_trial])
     print(f"  {'VLM judge, 3 trials  <- quote this':<36}{ma:8.1f}%{mk:+9.2f}"
-          f"{len(annotators):7d}   +/- {sa:.1f} and {sk:.2f} over trials")
+          f"{len(annotators):7d}   +/- {sa:.1f} and {sk:.2f} over trials (population sd)")
     ms = [match(maj_v, st.human[o], scope) for o in annotators]
     mv_pct = sum(m[0] for m in ms) / len(ms)
     print(f"\n  For contrast only, majority of the 3 trials: {mv_pct:.1f}%, "

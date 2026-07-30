@@ -170,13 +170,23 @@ not evaluate, and it denoises the VLM judge in a way no human annotator row gets
 | human annotator Oscar | 70.7% | +0.39 | 4 |
 | human annotator fred | 69.7% | +0.36 | 4 |
 | human annotator egor | 57.7% | +0.24 | 4 |
-| **Five human annotators** | **68.2 +/- 5.3%** | **+0.36 +/- 0.06** | 5 |
+| **All human annotators** | **68.2 +/- 5.3%** | **+0.36 +/- 0.06** | 5 |
 | **VLM judge, 3 trials** | **65.7 +/- 0.3%** | **+0.26 +/- 0.01** | 5 |
 | VLM judge, t1 / t2 / t3 | 66.2 / 65.4 / 65.6% | +0.28 / +0.26 / +0.25 | 5 |
 
-The "Five human annotators" row is the mean and population sd over the 5 rows
+`+/-` is the **population standard deviation**, over the 5 human annotators or
+the 3 VLM judge trials as the row indicates — the same `_pop_mean_std` convention
+as the paper's Consistency cells. **It is not a range.** The 5 human annotators
+run from 57.7% to 71.5%, so a range would read 64.6 +/- 6.9, with a different
+centre as well as a different width.
+
+The "All human annotators" row is the mean and population sd over the 5 rows
 above it. It equals the mean over the 10 distinct annotator pairs, since each
 pair is counted once in each of its two members' rows.
+
+Note the two sd's measure different things and are not comparable error bars:
+5.3 is spread across *people*, 0.3 is spread across *sampling runs of one model*.
+The VLM judge's tightness says its sampling is stable, not that it agrees better.
 
 **The ceiling: two VLM judge trials on the same image agree 80.7%, kappa +0.56.**
 The VLM judge samples its answer, so it does not reproduce itself, and no row
