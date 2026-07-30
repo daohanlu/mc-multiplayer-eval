@@ -141,6 +141,10 @@ def main() -> None:
                      sum(m[1] for m in ms) / len(ms), len(ms)))
     for who, pct, k, n in sorted(rows, key=lambda r: -r[1]):
         print(f"  {'human annotator ' + who:<36}{pct:8.1f}%{k:+9.2f}{n:7d}")
+    hm, hs = _pop([r[1] for r in rows])
+    hkm, hks = _pop([r[2] for r in rows])
+    print(f"  {'Five human annotators':<36}{hm:8.1f}%{hkm:+9.2f}{len(rows):7d}"
+          f"   +/- {hs:.1f} and {hks:.2f} over annotators")
     # The paper scores each VLM trial separately and averages, reporting the
     # population sd across trials. It never merges the trials into one answer,
     # so neither does this. The majority-of-3 construct is printed afterwards

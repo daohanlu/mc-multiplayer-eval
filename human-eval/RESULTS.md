@@ -169,9 +169,14 @@ not evaluate, and it denoises the VLM judge in a way no human annotator row gets
 | human annotator Georgy | 71.5% | +0.39 | 4 |
 | human annotator Oscar | 70.7% | +0.39 | 4 |
 | human annotator fred | 69.7% | +0.36 | 4 |
+| human annotator egor | 57.7% | +0.24 | 4 |
+| **Five human annotators** | **68.2 +/- 5.3%** | **+0.36 +/- 0.06** | 5 |
 | **VLM judge, 3 trials** | **65.7 +/- 0.3%** | **+0.26 +/- 0.01** | 5 |
 | VLM judge, t1 / t2 / t3 | 66.2 / 65.4 / 65.6% | +0.28 / +0.26 / +0.25 | 5 |
-| human annotator egor | 57.7% | +0.24 | 4 |
+
+The "Five human annotators" row is the mean and population sd over the 5 rows
+above it. It equals the mean over the 10 distinct annotator pairs, since each
+pair is counted once in each of its two members' rows.
 
 **The ceiling: two VLM judge trials on the same image agree 80.7%, kappa +0.56.**
 The VLM judge samples its answer, so it does not reproduce itself, and no row
