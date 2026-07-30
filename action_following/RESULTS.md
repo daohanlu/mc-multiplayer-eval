@@ -189,7 +189,53 @@ is far below that ceiling — `no_kv_cache_backprop` 68.5, `no_player_attn_sf`
 Run it with `report_camera.py --axis pitch --datasets structureEval`. Do not pool
 pitch into the yaw tables; the two axes have different ceilings.
 
-# Part 1b — The same question, with the VPT IDM Matrix-Game uses
+# Part 1a — Matrix-Game's own two metrics
+
+The rebuttal reports these, because they are what the reviewer asked for.
+
+**Mouse accuracy.** Camera movement binned into 8 directions plus empty by
+thresholding each axis at 1 deg/frame; the score is the **precision over all
+positive predictions**. This is not a recall-style "how many commanded turns were
+rendered" — it charges a model for turns it invents, and that changes the
+ranking. Computed from the VPT IDM.
+
+| Model | Mouse accuracy | positive predictions |
+|---|---|---|
+| ground truth | 78.1 / 78.4 | 3157 / 2770 |
+| `flagship` | **81.9 / 76.1** | 3298 / 3266 |
+| `no_player_attn_sf` | 57.0 / 65.9 | 5111 / 3849 |
+| `concat_c` | 36.0 / 76.4 | 7704 / 3303 |
+| `from_scratch` | 71.2 / 73.2 | 3914 / 3167 |
+| `causvid_regression` † | 42.5 / 55.1 | 5563 / 3213 |
+| `causvid_dmd` † | 60.0 / 63.4 | 2374 / 2465 |
+| `no_kv_cache_backprop` † | 83.7 / 85.0 | 3204 / 2858 |
+
+The positive-prediction counts are the story: `no_player_attn_sf` and `concat_c`
+fire 1.6x and 2.4x as often as ground truth on Alpha and are charged for every
+wrong one. Under a recall-style column both looked *better* than `flagship`.
+
+**Keyboard accuracy.** (forward, back, empty) and (left, right, empty) as
+multi-class groups, average precision across them. Matrix-Game's other two groups
+— (attack, empty) and (jump, empty) — are not exercised by our bots, so they are
+omitted rather than padded with two trivially perfect scores. Computed from our
+own IDM, on held-out episodes.
+
+| Model | Keyboard accuracy | No false presses |
+|---|---|---|
+| ground truth | 79.9 / 77.9 | 96.0 / 95.9 |
+| `flagship` | 60.4 / 64.5 | **96.0 / 96.7** |
+| `no_player_attn_sf` | 60.8 / 65.8 | 92.0 / 93.2 |
+| `concat_c` | 65.7 / 36.1 | 93.9 / 92.8 |
+| `from_scratch` | 53.5 / 51.7 | 91.8 / 91.9 |
+| `causvid_regression` † | 48.5 / 15.4 | 94.3 / 74.2 |
+| `causvid_dmd` † | 37.1 / 40.5 | 93.8 / 94.2 |
+| `no_kv_cache_backprop` † | 69.6 / 64.9 | 95.8 / 95.4 |
+
+"No false presses" is ours, not Matrix-Game's: the fraction of no-command frames
+read as no action. Precision alone does not charge a model for motion invented
+where nothing was asked.
+
+# Part 1b — Recall-style columns, and why they rank differently
 
 Matrix-Game reports its inverse dynamics model as trained on 1,962 hours of
 Minecraft with 90.6% keypress accuracy and R² 0.97 on mouse movement. **Those are

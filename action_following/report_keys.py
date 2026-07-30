@@ -90,6 +90,31 @@ def gather(datasets, model, source):
     return out
 
 
+# Matrix-Game scores the keyboard as mutually exclusive groups -- (forward,
+# back, empty), (left, right, empty), (attack, empty), (jump, empty) -- each a
+# multi-class problem, and reports the average precision across groups. Our bots
+# never attack and rarely jump, so only the two movement groups are scored and
+# that is stated rather than padded with two trivially perfect groups.
+MG_GROUPS = {"forward/back": ("forward", "back"), "left/right": ("left", "right")}
+
+
+def mg_group_precision(y, p) -> dict:
+    """Per-group precision over positive predictions, Matrix-Game style."""
+    out = {}
+    for name, members in MG_GROUPS.items():
+        idx = [CLASSES.index(m) for m in members]
+        pred_pos = np.isin(p, idx)
+        out[name] = (100 * float((p[pred_pos] == y[pred_pos]).mean())
+                     if pred_pos.sum() else float("nan"))
+    return out
+
+
+def no_false_presses(y, p) -> float:
+    """Of frames with no key commanded, the fraction read as no key."""
+    idle = y == 0
+    return 100 * float((p[idle] == 0).mean()) if idle.sum() else float("nan")
+
+
 def balanced_accuracy(y, p) -> float:
     accs = [float((p[y == c] == c).mean()) for c in np.unique(y)]
     return 100 * float(np.mean(accs))
@@ -159,8 +184,8 @@ def main() -> None:
     print("saw generated video of any episode, but a train episode's ground truth")
     print("shares its scene, so scoring generated clips there would not be like")
     print("for like. The all-episode numbers are printed afterwards for reference.")
-    print(f"\n{'model':<24}{'alpha bal%':>12}{'bravo bal%':>12}{'alpha acc%':>12}"
-          f"{'bravo acc%':>12}{'pred none%':>12}{'n frames':>10}")
+    print(f"\n{'model':<24}{'MG key acc A/B':>18}{'no false press A/B':>22}"
+          f"{'balanced A/B':>18}{'n frames':>10}")
     rows = [("ground truth (ceiling)", "flagship", "gt")]
     rows += [(MODEL_LABEL[m], m, "gen") for m in MODEL_ORDER]
     for label, model, source in rows:
@@ -181,15 +206,15 @@ def main() -> None:
             x = np.concatenate(per[player][0])
             y = np.concatenate(per[player][1])
             p = clf.predict(x)
-            cells[player] = (balanced_accuracy(y, p), 100 * float((p == y).mean()))
+            g = mg_group_precision(y, p)
+            cells[player] = (np.nanmean(list(g.values())), no_false_presses(y, p),
+                             balanced_accuracy(y, p))
             preds.append(p)
             n_total += len(y)
-        a = cells.get("alpha", (float("nan"),) * 2)
-        b = cells.get("bravo", (float("nan"),) * 2)
-        none_rate = (100 * float((np.concatenate(preds) == 0).mean())
-                     if preds else float("nan"))
-        print(f"{label:<24}{a[0]:12.1f}{b[0]:12.1f}{a[1]:12.1f}{b[1]:12.1f}"
-              f"{none_rate:12.1f}{n_total:10d}")
+        a = cells.get("alpha", (float("nan"),) * 3)
+        b = cells.get("bravo", (float("nan"),) * 3)
+        print(f"{label:<24}{a[0]:9.1f} /{b[0]:7.1f}{a[1]:13.1f} /{b[1]:7.1f}"
+              f"{a[2]:9.1f} /{b[2]:7.1f}{n_total:10d}")
 
     print(f"\n{'model (all episodes)':<24}{'alpha bal%':>12}{'bravo bal%':>12}"
           f"{'n frames':>10}")
