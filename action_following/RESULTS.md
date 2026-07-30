@@ -508,13 +508,13 @@ breakdown exists to produce.
 
 | Model | camera event% | camera still% | keyboard bal% |
 |---|---|---|---|
-| `no_player_attn_sf` | 0.4 | 3.7 | 3.9 |
+| `no_player_attn_sf` | 0.4 | 4.2 | 3.9 |
 | `no_kv_cache_backprop` | 0.5 | 0.0 | 2.2 |
 | `causvid_regression` | 0.6 | 25.1 | 13.3 |
 | `flagship` | 1.0 | 0.5 | 0.7 |
-| `from_scratch` | 1.5 | 1.4 | 5.3 |
+| `from_scratch` | 1.5 | 1.5 | 5.3 |
 | `causvid_dmd` | 11.9 | 0.2 | 2.1 |
-| `concat_c` | **18.4** | **13.7** | **17.6** |
+| `concat_c` | **18.4** | **16.5** | **17.6** |
 
 `concat_c` is the only model that is large on all three. Note that a small gap is
 not by itself a virtue — `no_player_attn_sf` is symmetric because it renders each
