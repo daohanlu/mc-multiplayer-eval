@@ -42,6 +42,26 @@ def match(a, b, scope):
     return pct, cohen_kappa(xa, xb), len(shared)
 
 
+def _votes(st, names, iid):
+    return Counter(st.human[n][iid] for n in names if iid in st.human[n])
+
+
+def _tied(st, names, iid) -> bool:
+    c = _votes(st, names, iid)
+    return c["yes"] == c["no"] and (c["yes"] or c["no"])
+
+
+def _panel(st, names, scope, tie: str):
+    """Per-item majority answer of ``names``, with ties resolved to ``tie``."""
+    out = {}
+    for iid in scope:
+        c = _votes(st, names, iid)
+        if not (c["yes"] or c["no"]):
+            continue
+        out[iid] = tie if c["yes"] == c["no"] else ("yes" if c["yes"] > c["no"] else "no")
+    return out
+
+
 def majority_excluding(panel, who, scope):
     out = {}
     for iid in scope:
@@ -92,22 +112,43 @@ def main() -> None:
     print(f"  {'range':<24}{min(vals):8.1f}-{max(vals):.1f}%"
           f"   kappa {min(ks):+.2f} to {max(ks):+.2f}\n")
 
-    print("## Each judge against a panel that does not contain it\n")
-    print("  Like for like: every row is one judge scored against the same kind")
-    print("  of target, the majority of the human annotators who are not that")
-    print("  judge. A human row uses the other four; a VLM row uses all five,")
-    print("  since the VLM is never in the panel.\n")
-    print(f"  {'judge':<22}{'agree':>9}{'kappa':>9}{'n':>7}")
+    print("## Each judge against every individual annotator  <- the headline\n")
+    print("  One judge scored against each annotator who is not that judge,")
+    print("  averaged over those pairings. No consensus label is built, so no")
+    print("  vote and no tie-breaking convention can move a row. This is also")
+    print("  the literal form of the reviewer's question: judge against")
+    print("  annotator, sample by sample.\n")
+    print(f"  {'judge':<22}{'agree':>9}{'kappa':>9}{'pairs':>7}")
+    rows = []
     for who in annotators:
-        target = majority_excluding(st.human, who, scope)
-        pct, k, n = match(st.human[who], target, scope)
+        ms = [match(st.human[who], st.human[o], scope) for o in annotators if o != who]
+        rows.append((who, sum(m[0] for m in ms) / len(ms),
+                     sum(m[1] for m in ms) / len(ms), len(ms)))
+    for who, pct, k, n in sorted(rows, key=lambda r: -r[1]):
         print(f"  {who:<22}{pct:8.1f}%{k:+9.2f}{n:7d}")
+    for label, ans in [("VLM majority of 3", maj_v)] + [(t, st.vlm[t]) for t in trials]:
+        ms = [match(ans, st.human[o], scope) for o in annotators]
+        print(f"  {label:<22}{sum(m[0] for m in ms) / len(ms):8.1f}%"
+              f"{sum(m[1] for m in ms) / len(ms):+9.2f}{len(ms):7d}")
+
+    print("\n## The same thing against a majority-vote panel, and why it is not used\n")
+    print("  A human row here is scored against the majority answer of the other")
+    print("  four annotators, which is an EVEN panel, so 2-2 ties happen on 54 to")
+    print("  90 of the 384 items and are broken by convention. The VLM row uses")
+    print("  all five, an odd panel, where no tie can occur. Switching the tie")
+    print("  rule moves a human row by up to 14 points while leaving the VLM row")
+    print("  untouched, so these numbers are not comparable across rows and the")
+    print("  pairwise table above is the one to quote.\n")
+    print(f"  {'judge':<22}{'tie->no':>9}{'tie->yes':>10}{'ties':>7}")
+    for who in annotators:
+        others = [a for a in annotators if a != who]
+        n_tie = sum(1 for iid in scope if _tied(st, others, iid))
+        a = match(st.human[who], _panel(st, others, scope, "no"), scope)[0]
+        b = match(st.human[who], _panel(st, others, scope, "yes"), scope)[0]
+        print(f"  {who:<22}{a:8.1f}%{b:9.1f}%{n_tie:7d}")
     human_panel = st.majority(st.human)
-    for t in trials:
-        pct, k, n = match(st.vlm[t], human_panel, scope)
-        print(f"  {t:<22}{pct:8.1f}%{k:+9.2f}{n:7d}")
     pct, k, n = match(maj_v, human_panel, scope)
-    print(f"  {'VLM majority of 3':<22}{pct:8.1f}%{k:+9.2f}{n:7d}")
+    print(f"  {'VLM majority of 3':<22}{pct:8.1f}%{'n/a':>9}{0:7d}   (odd panel)")
 
     print("\n## Panel-size control\n")
     print("  A human row above is scored against the other four annotators; the")

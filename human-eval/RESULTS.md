@@ -148,33 +148,49 @@ two judges **item by item**; no aggregate accuracy enters it, which is the point
 of the reviewer's question — two judges can match on marginal accuracy while
 disagreeing on nearly every pair.
 
-Every row scored the same way: one judge against the majority of the human
-annotators who are not that judge.
+Every row is one judge scored against each individual annotator who is not that
+judge, averaged over those pairings. No consensus label is built, so no vote and
+no tie-breaking rule can move a row.
 
-| Judge | Exact agreement | Cohen's kappa |
-|---|---|---|
-| Georgy | 82.8% | +0.56 |
-| srivats | 81.5% | +0.52 |
-| fred | 76.8% | +0.45 |
-| Oscar | 73.4% | +0.41 |
-| **VLM judge (majority of 3 trials)** | **70.6%** | **+0.33** |
-| VLM t1 / t2 / t3 | 71.9 / 69.0 / 68.5% | +0.37 / +0.30 / +0.28 |
-| egor | 52.3% | +0.19 |
+| Judge | Exact agreement | Cohen's kappa | pairings |
+|---|---|---|---|
+| srivats | 71.5% | +0.40 | 4 |
+| Georgy | 71.5% | +0.39 | 4 |
+| Oscar | 70.7% | +0.39 | 4 |
+| fred | 69.7% | +0.36 | 4 |
+| **VLM judge (majority of 3 trials)** | **66.9%** | **+0.29** | 5 |
+| VLM t1 / t2 / t3 | 66.2 / 65.4 / 65.6% | +0.28 / +0.26 / +0.25 | 5 |
+| egor | 57.7% | +0.24 | 4 |
 
 **The ceiling: two VLM trials on the same image agree 80.7%, kappa +0.56.** The
 judge samples its answer, so it does not reproduce itself, and no row above can
-be expected to beat that. Against it, a judge at 70.6% sitting fourth of six is
-not the weak link. Kappa also disposes of the reviewer's stated worry directly: a
-judge reproducing only the marginals scores 0.00, not +0.33.
+be expected to beat that. Against it, a judge at 66.9% sitting fifth of six — and
+1.3 points under the 68.2% two annotators average against each other — is not the
+weak link. Kappa also disposes of the reviewer's stated worry directly: a judge
+reproducing only the marginals scores 0.00, not +0.29.
 
-For reference, mean pairwise annotator-vs-annotator agreement is 68.2%, kappa
-+0.36 — the judge is no further from a human than two humans are from each other.
+### Do not use the majority-vote version of this table
 
-**Panel-size control.** A human row is scored against the other 4 annotators; the
-VLM is never in the panel, so its row uses all 5. Scoring the VLM against
-4-annotator panels instead gives 72.8%, kappa +0.34 (range 70.8–74.5). Size
-matching moves it up, so **70.6% is the conservative number** and is what the
-response quotes.
+An earlier draft scored each judge against the **majority answer** of the
+annotators who are not that judge. **That was wrong and is not quotable.** A
+human row's panel is the other 4 annotators, which is even, so 2–2 ties occur on
+54 to 90 of the 384 items and get broken by convention. The VLM's panel is all 5,
+which is odd, so it never ties.
+
+| Judge | tie → "no" | tie → "yes" | tied items |
+|---|---|---|---|
+| Georgy | 82.8% | 68.8% | 80 |
+| srivats | 81.5% | 71.1% | 90 |
+| fred | 76.8% | 70.3% | 83 |
+| Oscar | 73.4% | 74.7% | 65 |
+| egor | 52.3% | 60.2% | 54 |
+| VLM majority of 3 | 70.6% | n/a | 0 |
+
+Flipping the convention moves a human row by up to 14 points and leaves the VLM
+row untouched, so the rows were never comparable. `pool_human_eval.majority`
+resolves ties to "no" and documents the assumption that "both current panels are
+odd" — true of its own callers, false for the leave-one-out panels used here.
+The pairwise table above has no such dependency.
 
 **Caveat — do not quote per-model kappa.** Splitting the majority-vs-maj3
 agreement by model gives flagship 68.0% (kappa +0.35) but concat_c 67.2%
