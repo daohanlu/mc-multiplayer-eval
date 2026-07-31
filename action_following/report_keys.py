@@ -90,16 +90,38 @@ def gather(datasets, model, source):
     return out
 
 
-# Matrix-Game scores the keyboard as mutually exclusive groups -- (forward,
-# back, empty), (left, right, empty), (attack, empty), (jump, empty) -- each a
-# multi-class problem, and reports the average precision across groups. Our bots
-# never attack and rarely jump, so only the two movement groups are scored and
-# that is stated rather than padded with two trivially perfect groups.
+# Matrix-Game's shipped keyboard metric, from their GameWorldScore repo
+# (GameWorld/third_party/IDM/IDM_bench.py): four groups -- (back, forward) and
+# (left, right) as 3-class problems, attack and jump as binary -- each scored
+# with sklearn's micro-averaged precision over ALL frames, which for
+# multi-class is plain accuracy with the no-op class included, then the four
+# group scores averaged. Our bots never attack or jump and the 5-class IDM
+# cannot predict either, so those two groups score exactly 100 and are
+# included as such, the way their code would.
 MG_GROUPS = {"forward/back": ("forward", "back"), "left/right": ("left", "right")}
 
 
+def _group_labels(y: np.ndarray, members) -> np.ndarray:
+    """5-class label -> the group's 3-class label (0 = neither member)."""
+    out = np.zeros_like(y)
+    for j, m in enumerate(members):
+        out[y == CLASSES.index(m)] = j + 1
+    return out
+
+
+def mg_keyboard_accuracy(y, p) -> float:
+    """Matrix-Game's metric, matching their code: mean over the four groups."""
+    scores = [100 * float((_group_labels(y, m) == _group_labels(p, m)).mean())
+              for m in MG_GROUPS.values()]
+    scores += [100.0, 100.0]  # attack, jump: never commanded, never predicted
+    return float(np.mean(scores))
+
+
+# Our stricter variant, NOT what Matrix-Game ships: per-group precision over
+# the frames where a key is *predicted*, so the no-op floor is removed and a
+# model that hallucinates presses is charged for each one.
 def mg_group_precision(y, p) -> dict:
-    """Per-group precision over positive predictions, Matrix-Game style."""
+    """Per-group precision over positive predictions."""
     out = {}
     for name, members in MG_GROUPS.items():
         idx = [CLASSES.index(m) for m in members]
@@ -184,8 +206,8 @@ def main() -> None:
     print("saw generated video of any episode, but a train episode's ground truth")
     print("shares its scene, so scoring generated clips there would not be like")
     print("for like. The all-episode numbers are printed afterwards for reference.")
-    print(f"\n{'model':<24}{'MG key acc A/B':>18}{'no false press A/B':>22}"
-          f"{'balanced A/B':>18}{'n frames':>10}")
+    print(f"\n{'model':<24}{'MG kb acc A/B':>17}{'strict prec A/B':>18}"
+          f"{'no false press A/B':>22}{'balanced A/B':>18}{'n frames':>10}")
     rows = [("ground truth (ceiling)", "flagship", "gt")]
     rows += [(MODEL_LABEL[m], m, "gen") for m in MODEL_ORDER]
     for label, model, source in rows:
@@ -207,14 +229,15 @@ def main() -> None:
             y = np.concatenate(per[player][1])
             p = clf.predict(x)
             g = mg_group_precision(y, p)
-            cells[player] = (np.nanmean(list(g.values())), no_false_presses(y, p),
+            cells[player] = (mg_keyboard_accuracy(y, p),
+                             np.nanmean(list(g.values())), no_false_presses(y, p),
                              balanced_accuracy(y, p))
             preds.append(p)
             n_total += len(y)
-        a = cells.get("alpha", (float("nan"),) * 3)
-        b = cells.get("bravo", (float("nan"),) * 3)
-        print(f"{label:<24}{a[0]:9.1f} /{b[0]:7.1f}{a[1]:13.1f} /{b[1]:7.1f}"
-              f"{a[2]:9.1f} /{b[2]:7.1f}{n_total:10d}")
+        a = cells.get("alpha", (float("nan"),) * 4)
+        b = cells.get("bravo", (float("nan"),) * 4)
+        print(f"{label:<24}{a[0]:9.1f} /{b[0]:6.1f}{a[1]:10.1f} /{b[1]:6.1f}"
+              f"{a[2]:13.1f} /{b[2]:7.1f}{a[3]:9.1f} /{b[3]:7.1f}{n_total:10d}")
 
     print(f"\n{'model (all episodes)':<24}{'alpha bal%':>12}{'bravo bal%':>12}"
           f"{'n frames':>10}")

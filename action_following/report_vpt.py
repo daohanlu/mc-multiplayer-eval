@@ -15,7 +15,7 @@ the numbers readable:
   other a 1,962-hour neural network. Where they agree, the finding is not an
   artifact of either.
 
-    python3 action_following/report_vpt.py action_following/vpt_raw*.npz
+    python3 action_following/report_vpt.py action_following/results/vpt_raw*.npz
 """
 
 from __future__ import annotations
@@ -64,19 +64,27 @@ ANALYTIC_GAIN = {
 }
 
 
-# Matrix-Game's mouse accuracy: camera movement is binned into 8 directions plus
-# empty by thresholding each axis, and the score is the precision over all
-# positive predictions -- of the frames where a turn is *predicted*, how many
-# match the commanded direction. That is not the same as asking how many
-# commanded turns were rendered: precision charges a model for turns it invents,
-# which is the failure mode a recall-style number misses entirely.
-def _bins(yaw, pitch, thr=THRESHOLD_DEG):
-    return np.stack([np.sign(yaw) * (np.abs(yaw) >= thr),
-                     np.sign(pitch) * (np.abs(pitch) >= thr)], axis=1)
+# Matrix-Game's shipped camera metric, ported from their GameWorldScore repo
+# (GameWorld/third_party/IDM/IDM_bench.py, compute_camera_precision +
+# camera_direction). Every frame is mapped to one of 9 classes -- still plus 8
+# directions, each camera axis thresholded at 1e-2 deg/frame -- and the score
+# is the fraction of frames whose class matches, one score per clip, averaged
+# over clips. Despite their function's name this is per-frame *accuracy*, not
+# precision: a frame with nothing commanded and nothing read counts as a hit,
+# and still frames dominate, which is why published GameWorld numbers sit at
+# 0.89-0.95.
+MG_DELTA_DEG = 1e-2
 
 
-def load_bins(paths):
-    """Both camera axes, binned Matrix-Game style, per (model, player)."""
+def _dirs(yaw, pitch, thr):
+    """Their 9 direction codes per frame; 0 is still."""
+    xs = np.where(np.abs(yaw) < thr, 0, np.sign(yaw)).astype(int)
+    ys = np.where(np.abs(pitch) < thr, 0, np.sign(pitch)).astype(int)
+    return ys * 3 + xs
+
+
+def load_cam(paths):
+    """Raw (pred_yaw, pred_pitch, cmd_yaw, cmd_pitch) per clip, per (model, player)."""
     acc = defaultdict(list)
     for path in paths:
         d = np.load(path)
@@ -89,20 +97,31 @@ def load_bins(paths):
             else:
                 name, player, _ = parts
             pred, cmd = d[k]
-            acc[(name, player)].append((
-                _bins(YAW_SIGN * pred[:, YAW_COL], pred[:, 1 - YAW_COL]),
-                _bins(cmd[:, 0], cmd[:, 1])))
+            acc[(name, player)].append((YAW_SIGN * pred[:, YAW_COL],
+                                        pred[:, 1 - YAW_COL], cmd[:, 0], cmd[:, 1]))
     return acc
 
 
-def mouse_accuracy(pairs) -> tuple:
+def mg_camera_accuracy(clips) -> tuple:
+    """Matrix-Game's metric, matching their code: per-clip mean over clips."""
+    per = [100 * float((_dirs(py, pp, MG_DELTA_DEG) == _dirs(cy, cp, MG_DELTA_DEG)).mean())
+           for py, pp, cy, cp in clips]
+    return float(np.mean(per)), len(per)
+
+
+# Our stricter variant, NOT what Matrix-Game ships: precision over the frames
+# where a turn is *predicted*, frames pooled, 1 deg/frame threshold. It removes
+# the still-frame floor, so it separates models the shipped metric cannot, and
+# it charges a model for turns it invents -- the failure mode an accuracy over
+# mostly-still frames barely notices.
+def strict_mouse_precision(clips) -> tuple:
     """Precision over positive predictions, and the count of them."""
-    pb = np.concatenate([a for a, _ in pairs])
-    cb = np.concatenate([b for _, b in pairs])
-    pos = (pb != 0).any(1)
+    pb = np.concatenate([_dirs(py, pp, THRESHOLD_DEG) for py, pp, _, _ in clips])
+    cb = np.concatenate([_dirs(cy, cp, THRESHOLD_DEG) for _, _, cy, cp in clips])
+    pos = pb != 0
     if not pos.sum():
         return float("nan"), 0
-    return 100 * float((pb[pos] == cb[pos]).all(1).mean()), int(pos.sum())
+    return 100 * float((pb[pos] == cb[pos]).mean()), int(pos.sum())
 
 
 def load(paths):
@@ -177,19 +196,24 @@ def main() -> None:
     print("Absolute gain is compressed at the top because of that, so read the")
     print("'vs GT' columns for magnitude, not the raw gain.")
 
-    b = load_bins(args.npz)
-    print("\n--- Matrix-Game's own mouse accuracy ---")
-    print(f"8 directions plus empty, threshold {THRESHOLD_DEG} deg/frame,")
-    print("precision over all positive predictions.\n")
-    print(f"{'model':<24}{'mouse acc A/B':>18}{'positive preds A/B':>22}")
+    b = load_cam(args.npz)
+    print("\n--- Matrix-Game's camera accuracy, as their code computes it ---")
+    print(f"9 classes at {MG_DELTA_DEG} deg/frame, every frame counted (still")
+    print("frames included), one score per clip, averaged over clips.")
+    print(f"Next to it our strict variant: precision over predicted-turn frames")
+    print(f"only, pooled, {THRESHOLD_DEG} deg/frame threshold.\n")
+    print(f"{'model':<24}{'MG acc A/B':>16}{'strict prec A/B':>18}"
+          f"{'pos preds A/B':>18}")
     for name in [GT] + [m for m in LABEL if (m, "alpha") in s]:
-        cells = [mouse_accuracy(b[(name, p)]) for p in ("alpha", "bravo")]
+        mg = [mg_camera_accuracy(b[(name, p)]) for p in ("alpha", "bravo")]
+        st = [strict_mouse_precision(b[(name, p)]) for p in ("alpha", "bravo")]
         lab = "ground truth" if name == GT else LABEL[name]
-        print(f"{lab:<24}{cells[0][0]:9.1f} /{cells[1][0]:7.1f}"
-              f"{cells[0][1]:13d} /{cells[1][1]:7d}")
-    print("\nA model that invents turns makes many positive predictions and is")
-    print("charged for each wrong one, which is why this ranks differently from a")
-    print("recall-style column.")
+        print(f"{lab:<24}{mg[0][0]:8.1f} /{mg[1][0]:6.1f}"
+              f"{st[0][0]:10.1f} /{st[1][0]:6.1f}"
+              f"{st[0][1]:10d} /{st[1][1]:6d}")
+    print("\nThe MG column is dominated by correct stillness, so every model lands")
+    print("high. The strict column only scores frames where a turn is predicted,")
+    print("so a model that invents turns is charged for each wrong one.")
 
     print("\n--- Cross-check against the analytic estimator ---")
     print("Both normalised by their own ground-truth row, so the two scales meet.\n")

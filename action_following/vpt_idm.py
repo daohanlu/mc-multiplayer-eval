@@ -42,6 +42,16 @@ VPT_DIR = Path(os.environ.get(
 # effective fov of 77. The IDM downsamples to 128x128 internally either way.
 VPT_RESOLUTION = (640, 360)
 
+# --crop-fov: centre-crop each view so its field of view matches what a fov-70
+# client at 16:9 would have rendered, before the resize to VPT_RESOLUTION. Our
+# vertical fov is 77 (fov 70 with the 1.1 flying multiplier), so the crop keeps
+# tan(35)/tan(38.5) = 0.880 of the height and, to also match VPT's 102.7-degree
+# horizontal fov, 16/9 * tan(35)/tan(38.5) = 1.565 times the height in width.
+OUR_VFOV_DEG = 77.0
+VPT_VFOV_DEG = 70.0
+CROP_H_FRAC = np.tan(np.radians(VPT_VFOV_DEG / 2)) / np.tan(np.radians(OUR_VFOV_DEG / 2))
+CROP_W_OVER_H = (16 / 9) * CROP_H_FRAC
+
 # The IDM's camera head saturates here, which matters: our bots command
 # 0.15 rad/frame = 8.594 deg/frame, inside the range but in its outer bins.
 CAMERA_MAXVAL_DEG = 10.0
@@ -86,7 +96,16 @@ def load_agent(device: str = "cuda:0"):
     return agent
 
 
-def read_quadrants_rgb(path: Path):
+def crop_to_vpt_fov(sub: np.ndarray) -> np.ndarray:
+    """Centre-crop a fov-77 view down to what a fov-70 client would render."""
+    h, w = sub.shape[:2]
+    ch = int(round(h * CROP_H_FRAC))
+    cw = min(w, int(round(h * CROP_W_OVER_H)))
+    y0, x0 = (h - ch) // 2, (w - cw) // 2
+    return sub[y0:y0 + ch, x0:x0 + cw]
+
+
+def read_quadrants_rgb(path: Path, crop_fov: bool = False):
     """Decode a side-by-side clip once into four RGB stacks at VPT resolution."""
     cap = cv2.VideoCapture(str(path))
     out = {k: [] for k in ("alpha_gt", "alpha_gen", "bravo_gt", "bravo_gen")}
@@ -98,6 +117,8 @@ def read_quadrants_rgb(path: Path):
         hh, hw = h // 2, w // 2
         for key, sub in (("alpha_gt", frame[:hh, :hw]), ("alpha_gen", frame[:hh, hw:]),
                          ("bravo_gt", frame[hh:, :hw]), ("bravo_gen", frame[hh:, hw:])):
+            if crop_fov:
+                sub = crop_to_vpt_fov(sub)
             out[key].append(cv2.resize(sub, VPT_RESOLUTION)[..., ::-1])  # BGR -> RGB
     cap.release()
     return {k: (np.stack(v) if v else np.zeros((0, 0, 0, 3), np.uint8))
@@ -183,6 +204,8 @@ def main() -> None:
     ap.add_argument("--device", default="cuda:0")
     ap.add_argument("--validate", action="store_true",
                     help="ground-truth views only, to check the IDM reads our render")
+    ap.add_argument("--crop-fov", action="store_true",
+                    help="centre-crop fov 77 -> 70 before resizing, matching VPT's optics")
     ap.add_argument("--out", default="")
     args = ap.parse_args()
 
@@ -196,7 +219,7 @@ def main() -> None:
         # the other half, so it is only predicted once.
         want = sources if mi == 0 else [s for s in sources if s != "gt"]
         for dataset, ep in episodes(args.datasets, model, args.limit):
-            quads = read_quadrants_rgb(ep.sbs)
+            quads = read_quadrants_rgb(ep.sbs, crop_fov=args.crop_fov)
             for player in ("alpha", "bravo"):
                 acts = ep.actions(player)
                 for src in want:

@@ -189,17 +189,53 @@ is far below that ceiling — `no_kv_cache_backprop` 68.5, `no_player_attn_sf`
 Run it with `report_camera.py --axis pitch --datasets structureEval`. Do not pool
 pitch into the yaw tables; the two axes have different ceilings.
 
-# Part 1a — Matrix-Game's own two metrics
+# Part 1a — Matrix-Game's two metrics, as their code actually computes them
 
-The rebuttal reports these, because they are what the reviewer asked for.
+Their GameWorldScore implementation (SkyworkAI/Matrix-Game,
+`GameWorldScore/GameWorld/third_party/IDM/IDM_bench.py`) does **not** compute
+precision over positive predictions, despite the paper's "precision" wording:
 
-**Mouse accuracy.** Camera movement binned into 8 directions plus empty by
-thresholding each axis at 1 deg/frame; the score is the **precision over all
-positive predictions**. This is not a recall-style "how many commanded turns were
-rendered" — it charges a model for turns it invents, and that changes the
-ranking. Computed from the VPT IDM.
+- **Camera** (`compute_camera_precision` + `camera_direction`): each frame's
+  (pitch, yaw) is mapped to one of 9 classes — still plus 8 directions, each
+  axis thresholded at **1e-2 deg/frame** — and the score is per-frame class
+  agreement over **all frames, still frames included**, one score per clip,
+  averaged over clips. Plain accuracy, whatever the function is named.
+- **Keyboard** (`define_exclusive_classification_task` +
+  `classification_metric`): four groups — (back, forward) and (left, right) as
+  3-class, attack and jump as binary — each scored with sklearn micro-averaged
+  precision over all frames pooled across clips, which for multi-class equals
+  plain accuracy with the no-op class included; the four group scores are then
+  averaged. Attack and jump are counted even when trivially perfect.
 
-| Model | Mouse accuracy | positive predictions |
+Both are dominated by still/no-op frames, which is why published GameWorld
+numbers sit at 0.89–0.95. On our clips, their exact recipe gives (A/B):
+
+| Model | MG camera acc | MG keyboard acc |
+|---|---|---|
+| ground truth | 97.2 / 97.3 | 99.0 / 98.9 |
+| `flagship` | 97.8 / 97.2 | 97.7 / 98.1 |
+| `no_player_attn_sf` | 89.2 / 94.6 | 96.9 / 97.6 |
+| `concat_c` | 78.9 / 96.8 | 97.6 / 96.5 |
+| `from_scratch` | 96.9 / 96.9 | 97.0 / 97.3 |
+| `causvid_regression` † | 91.2 / 94.1 | 96.9 / 92.5 |
+| `causvid_dmd` † | 95.1 / 95.8 | 96.4 / 96.9 |
+| `no_kv_cache_backprop` † | 97.9 / 98.1 | 98.2 / 98.2 |
+
+Same ballpark as their published table, and nothing beats ground truth by more
+than noise — the earlier "Solaris above GT" oddity was an artifact of our
+stricter scoring plus pooling, not something their metric produces. A 77→70
+fov centre-crop (`vpt_idm.py --crop-fov`) moves these numbers by at most ±0.2
+and is not used.
+
+## The strict variant (ours, not theirs)
+
+The still-frame floor makes their metric nearly saturate, so it separates our
+models poorly. The strict variant removes the floor: **precision over the
+frames where an action is predicted**, frames pooled, threshold 1 deg/frame,
+and it charges a model for turns it invents — that changes the ranking.
+Mouse from the VPT IDM:
+
+| Model | Strict mouse precision | positive predictions |
 |---|---|---|
 | ground truth | 78.1 / 78.4 | 3157 / 2770 |
 | `flagship` | **81.9 / 76.1** | 3298 / 3266 |
@@ -214,15 +250,14 @@ The positive-prediction counts are the story: `no_player_attn_sf` and `concat_c`
 fire 1.6x and 2.4x as often as ground truth on Alpha and are charged for every
 wrong one. Under a recall-style column both looked *better* than `flagship`.
 
-**Keyboard accuracy.** (forward, back, empty) and (left, right, empty) as
-multi-class groups, average precision across them. Matrix-Game's other two groups
-are (attack, empty) and (jump, empty). Neither key is pressed once in the 32,768
-frames scored here — `translationEval` and `structureEval` both record `attack` 0
-and `jump` 0 — so both groups are omitted rather than padded with two scores that
-would be perfect by default and would lift every row equally. Computed from our
-own IDM, on held-out episodes.
+Keyboard, same idea — per-group precision over predicted-press frames only,
+(forward, back, empty) and (left, right, empty), averaged. Attack and jump are
+never pressed in the 32,768 frames scored here (`translationEval` and
+`structureEval` both record `attack` 0 and `jump` 0), so the strict variant
+omits them rather than padding with two perfect groups. Computed from our own
+IDM, on held-out episodes:
 
-| Model | Keyboard accuracy | No false presses |
+| Model | Strict keyboard precision | No false presses |
 |---|---|---|
 | ground truth | 79.9 / 77.9 | 96.0 / 95.9 |
 | `flagship` | 60.4 / 64.5 | **96.0 / 96.7** |
