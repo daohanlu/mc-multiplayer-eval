@@ -15,6 +15,7 @@
 # actions in the latter half of the episode, so the late-horizon question
 # is ill-posed there — it stays pinned to its OLD baseline in the report).
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -67,7 +68,7 @@ for entry in "${EVALS[@]}"; do
   echo "[$(date '+%F %T')] $ds: LATE_EPISODE_GEN_LEN=$gen_len (probed from $subdir/video_0_side_by_side.mp4) -> $log"
 
   LATE_EPISODE_QUERY=1 LATE_EPISODE_GEN_LEN="$gen_len" \
-    python -u run_eval.py "mc_multiplayer_v2_eval_new_sneak_combined/$ds" \
+    python -u "$SCRIPT_DIR/run_eval.py" "mc_multiplayer_v2_eval_new_sneak_combined/$ds" \
       --num-trials 3 \
       --results-dir "$RESULTS_DIR" \
       2>&1 | tee "$log"

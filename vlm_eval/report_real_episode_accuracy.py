@@ -21,8 +21,8 @@ import statistics
 import sys
 from pathlib import Path
 
-RESULTS_ROOT = Path(__file__).parent / "results_json" / "real"
-OUTPUT_TSV = Path(__file__).parent / "real_episode_accuracy.tsv"
+RESULTS_ROOT = Path(__file__).parent.parent / "results_json" / "real"
+OUTPUT_TSV = Path(__file__).parent.parent / "real_episode_accuracy.tsv"
 
 # Display names for the table (maps folder name → column header).
 DISPLAY_NAMES: dict[str, str] = {

@@ -206,7 +206,7 @@ def _run_one_model(
         # Construct the command
         cmd = [
             "python",
-            "run_eval.py",
+            str(Path(__file__).resolve().parent / "run_eval.py"),
             str(dataset_path),
             "--generated",
             str(model_dir),
@@ -434,7 +434,7 @@ def main():
                         # Construct the command with both --extract-frames and --generated
                         cmd = [
                             "python",
-                            "run_eval.py",
+                            str(Path(__file__).resolve().parent / "run_eval.py"),
                             str(dataset_path),
                             "--extract-frames",
                             "--generated",
@@ -483,7 +483,7 @@ def main():
             # Construct the command (no --generated, add --extract-frames)
             cmd = [
                 "python",
-                "run_eval.py",
+                str(Path(__file__).resolve().parent / "run_eval.py"),
                 str(dataset_path),
                 "--extract-frames",
             ]

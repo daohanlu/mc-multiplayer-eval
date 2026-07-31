@@ -32,8 +32,8 @@ import os
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parent
-sys.path.insert(0, str(REPO))
+REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 DATASET_BASE = REPO / "mc_multiplayer_v2_eval_new_sneak_combined"
 GENERATIONS = REPO / "mc_multiplayer_v2_generations"

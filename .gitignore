@@ -82,3 +82,6 @@ Thumbs.db
 action_following/cache/
 action_following/vpt_raw*.npz
 action_following/vpt*.log
+
+# VPT IDM weights (1.8 GB, fetch with action_following/setup_vpt_idm.sh)
+vpt-idm-weights/

@@ -11,6 +11,7 @@
 # (oneLooksAway has ~64 queries x 3 trials = 192 thinking calls per model;
 # 7 models x ~9 min each).
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -43,7 +44,7 @@ for m in "${MODELS[@]}"; do
   echo "[$(date '+%F %T')] $m / $EVAL [thinking=ON] -> $log"
 
   LATE_EPISODE_QUERY=1 FORCE_VLM_THINKING=1 \
-    python -u run_eval.py "mc_multiplayer_v2_eval_new_sneak_combined/$EVAL" \
+    python -u "$SCRIPT_DIR/run_eval.py" "mc_multiplayer_v2_eval_new_sneak_combined/$EVAL" \
       --num-trials 3 \
       --generated "$gen_dir" \
       --results-dir "$RESULTS_DIR" \

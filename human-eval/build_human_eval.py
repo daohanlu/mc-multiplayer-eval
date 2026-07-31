@@ -41,7 +41,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parent
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "vlm_eval"))
 
 # STRICT toggle must be set before the handlers are imported/used so that
 # camera_utils._late_episode_strict_enabled() sees it.

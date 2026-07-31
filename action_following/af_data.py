@@ -32,7 +32,7 @@ import cv2
 import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "vlm_eval"))
 
 from run_eval import find_mc_video_pairs, identify_handler  # noqa: E402
 from vlm_utils import find_generated_video_subdir  # noqa: E402

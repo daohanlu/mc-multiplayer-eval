@@ -97,7 +97,7 @@ def _run_one_eval_type(
 
     cmd = [
         "python",
-        "run_eval.py",
+        str(Path(__file__).resolve().parent / "run_eval.py"),
         str(dataset_path),
         "--generated-subdir",
         str(gen_subdir),

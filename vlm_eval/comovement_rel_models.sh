@@ -18,6 +18,7 @@
 # a `co_movement_divider_rel/` folder; it is not downloaded — the divider variant
 # has an occlusion confound and is not reported (see COMOVEMENT_EVAL.md).
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -89,7 +90,7 @@ cmd_eval() {
         local subdir="$GEN_ROOT/$key/co_movement_rel"
         [ -d "$subdir" ] || { echo "missing generations for $key — run download first" >&2; exit 1; }
         echo "starting $key -> logs/comovement_rel_$key.log"
-        python3 run_eval.py "$DATASET" \
+        python3 "$SCRIPT_DIR/run_eval.py" "$DATASET" \
             --generated-subdir "$subdir" --model-name "$key" \
             --num-trials "$TRIALS" --results-dir "$RESULTS_DIR" \
             > "logs/comovement_rel_$key.log" 2>&1 &

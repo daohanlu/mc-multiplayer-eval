@@ -2,6 +2,21 @@
 
 A framework for evaluating video generation models on Minecraft multiplayer scenarios using Vision Language Models (VLMs). The evaluation measures whether generated videos correctly preserve multiplayer interactions that were present in the ground-truth training data.
 
+## Repository layout
+
+Run every command from the repository root; scripts resolve datasets and
+results trees relative to the working directory.
+
+| Directory | Contents |
+| --- | --- |
+| `vlm_eval/` | The VLM-as-judge pipeline: `run_eval.py` (core), `vlm_utils.py`, `handlers/`, the `run_all_evals*` drivers, `build_vlm_tables.py` (paper Tables 2/3), late-episode runners and validation scripts, and the co-movement eval (`analyze_comovement.py`, `score_comovement.py`, `comovement_rel_models.sh`, `COMOVEMENT_EVAL.md`) |
+| `action_following/` | Action-following metrics for the NeurIPS rebuttal: VPT IDM mouse/keyboard (`vpt_idm.py`, `report_vpt.py`, `report_keys.py`), the analytic camera estimator, and `results/` with the saved IDM runs. See its `RESULTS.md` |
+| `human-eval/` | Human annotation of the Consistency evals, VLM-vs-human agreement (`agreement_extras.py`), and blind-eval tooling |
+| `tools/` | Standalone utilities: plots, log parsers, download helpers |
+| `docs/` | Dataset build history and source mapping |
+| `mc_multiplayer_*` | Eval datasets (clips + action logs) and model generations |
+| `results_json*`, `results_*` | VLM eval result trees. Left at the root because scripts and provenance records reference them by these paths |
+
 ---
 
 # Part 1: Usage
@@ -16,13 +31,13 @@ export GEMINI_API_KEY="your-api-key"
 gsutil -m cp -r gs://YOUR_BUCKET_NAME/.../mc_multiplayer_v2_eval_max_speed_new_sneak_max_speed mc_multiplayer_v2_eval_max_speed_max_speed
 
 # Run evaluation on ground-truth videos
-python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval
+python vlm_eval/run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval
 
 # Run evaluation on generated videos
-python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final
+python vlm_eval/run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final
 
 # Run structure evaluation
-python run_eval.py ./mc_multiplayer_v2_eval_max_speed/structureEval --generated generations/flagship_final
+python vlm_eval/run_eval.py ./mc_multiplayer_v2_eval_max_speed/structureEval --generated generations/flagship_final
 ```
 
 ## Environment Setup
@@ -38,7 +53,7 @@ pip install google-genai opencv-python
 ## Command Reference
 
 ```
-python run_eval.py <folder> [options]
+python vlm_eval/run_eval.py <folder> [options]
 
 Arguments:
   folder                    Path to dataset folder (e.g., mc_multiplayer_v2_eval_max_speed/turnToLookEval)
@@ -74,30 +89,30 @@ Options:
 ### Dry Run (Inspect Without VLM Queries)
 ```bash
 # View keyframe detection info for first 10 episodes (no API cost)
-python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --dry-run --limit 10
+python vlm_eval/run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --dry-run --limit 10
 ```
 
 ### Extract Frames for Visual Inspection
 ```bash
 # Extract frames to frame_extraction/ folder
-python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --extract-frames --limit 5
+python vlm_eval/run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --extract-frames --limit 5
 ```
 
 ### Run Full Evaluation
 ```bash
 # Evaluate ground-truth videos (sanity check)
-python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval
+python vlm_eval/run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval
 
 # Evaluate generated videos
-python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final
+python vlm_eval/run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final
 ```
 
 ### Batch Evaluation (All Models)
 ```bash
-python run_all_evals.py
+python vlm_eval/run_all_evals.py
 ```
 
-This scans `generations/` for model folders and runs evaluations for each model/dataset combination. Configure which datasets to evaluate by editing `ENABLED_EVAL_TYPES` in `run_all_evals.py`.
+This scans `generations/` for model folders and runs evaluations for each model/dataset combination. Configure which datasets to evaluate by editing `ENABLED_EVAL_TYPES` in `vlm_eval/run_all_evals.py`.
 
 ## Output Location
 
@@ -170,7 +185,7 @@ The `episode_level_accuracy` field measures whether ALL queries for each episode
 
 When you run:
 ```bash
-python run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final --limit 10
+python vlm_eval/run_eval.py ./mc_multiplayer_v2_eval_max_speed/turnToLookEval --generated generations/flagship_final --limit 10
 ```
 
 The execution flows through these steps:
@@ -340,9 +355,9 @@ Layout:
 ## Project Structure
 
 ```
-├── run_eval.py                  # Main entry point for all evaluations
+├── vlm_eval/run_eval.py                  # Main entry point for all evaluations
 ├── vlm_utils.py                 # Core utilities (VLM queries, frame extraction, data classes)
-├── run_all_evals.py             # Batch evaluation across all models
+├── vlm_eval/run_all_evals.py             # Batch evaluation across all models
 ├── parse_structure_logs.py      # Parses structure building logs to create GT files
 │
 ├── handlers/                    # Episode type handlers

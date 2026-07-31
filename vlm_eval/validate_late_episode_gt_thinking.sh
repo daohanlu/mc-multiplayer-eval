@@ -9,6 +9,7 @@
 # thinking might recover accuracy on the close-call cases (the same way
 # turn-to-look already runs with thinking on).
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -59,7 +60,7 @@ for entry in "${EVALS[@]}"; do
   echo "[$(date '+%F %T')] $ds [thinking=ON]: LATE_EPISODE_GEN_LEN=$gen_len -> $log"
 
   LATE_EPISODE_QUERY=1 LATE_EPISODE_GEN_LEN="$gen_len" FORCE_VLM_THINKING=1 \
-    python -u run_eval.py "mc_multiplayer_v2_eval_new_sneak_combined/$ds" \
+    python -u "$SCRIPT_DIR/run_eval.py" "mc_multiplayer_v2_eval_new_sneak_combined/$ds" \
       --num-trials 3 \
       --results-dir "$RESULTS_DIR" \
       2>&1 | tee "$log"

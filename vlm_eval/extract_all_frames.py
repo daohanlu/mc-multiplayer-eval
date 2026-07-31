@@ -97,7 +97,7 @@ def main():
         print(f"\n[GT] Task: {task_name}")
         
         cmd = [
-            sys.executable, "run_eval.py",
+            sys.executable, str(Path(__file__).resolve().parent / "run_eval.py"),
             str(task_folder),
             "--extract-frames",
             "--limit", str(args.limit),
@@ -125,7 +125,7 @@ def main():
             print(f"\n[{current}/{total_combinations}] Model: {model_name}, Task: {task_name}")
             
             cmd = [
-                sys.executable, "run_eval.py",
+                sys.executable, str(Path(__file__).resolve().parent / "run_eval.py"),
                 str(task_folder),
                 "--extract-frames",
                 "--limit", str(args.limit),

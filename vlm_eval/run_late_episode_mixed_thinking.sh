@@ -8,6 +8,7 @@
 # Sequential because we share a single API key. Wall-time ~35-50 min total
 # (thinking-mode calls are ~1.5x slower than non-thinking; 7 x ~6 min).
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -40,7 +41,7 @@ for m in "${MODELS[@]}"; do
   echo "[$(date '+%F %T')] $m / $EVAL [thinking=ON] -> $log"
 
   LATE_EPISODE_QUERY=1 FORCE_VLM_THINKING=1 \
-    python -u run_eval.py "mc_multiplayer_v2_eval_new_sneak_combined/$EVAL" \
+    python -u "$SCRIPT_DIR/run_eval.py" "mc_multiplayer_v2_eval_new_sneak_combined/$EVAL" \
       --num-trials 3 \
       --generated "$gen_dir" \
       --results-dir "$RESULTS_DIR" \

@@ -111,7 +111,7 @@ import math
 from pathlib import Path
 from string import Template
 
-REPO_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 DEFAULT_LATE_TREE = REPO_ROOT / "results_json_late_episode_mixed_thinking"
 OLD_TREE = REPO_ROOT / "results_json" / "generated"
