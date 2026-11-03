@@ -12,8 +12,9 @@ results trees relative to the working directory.
 | `vlm_eval/` | The VLM-as-judge pipeline: `run_eval.py` (core), `vlm_utils.py`, `handlers/`, the `run_all_evals*` drivers, `build_vlm_tables.py` (paper Tables 2/3), late-episode runners and validation scripts, and the co-movement eval (`analyze_comovement.py`, `score_comovement.py`, `comovement_rel_models.sh`, `COMOVEMENT_EVAL.md`) |
 | `action_following/` | Action-following metrics for the NeurIPS rebuttal: VPT IDM mouse/keyboard (`vpt_idm.py`, `report_vpt.py`, `report_keys.py`), the analytic camera estimator, and `results/` with the saved IDM runs. See its `RESULTS.md` |
 | `human-eval/` | Human annotation of the Consistency evals, VLM-vs-human agreement (`agreement_extras.py`), and blind-eval tooling |
+| `fvd/` | Test-split FVD (paper Table 8): the 2026-05-06 code, results, and logs, and `fvd_table8.sh` to regenerate the table. See its `README.md` |
 | `tools/` | Standalone utilities: plots, log parsers, download helpers |
-| `docs/` | Dataset build history and source mapping |
+| `docs/` | Dataset build history and source mapping, and [`NEURIPS2026_PROVENANCE.md`](docs/NEURIPS2026_PROVENANCE.md): where every number in the NeurIPS 2026 submission comes from |
 | `mc_multiplayer_*` | Eval datasets (clips + action logs) and model generations |
 | `results_json*`, `results_*` | VLM eval result trees. Left at the root because scripts and provenance records reference them by these paths |
 
