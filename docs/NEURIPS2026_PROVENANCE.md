@@ -29,7 +29,7 @@ All models are checkpoint `step_0001200`.
 `build_vlm_tables.py --late-tree results_json_late_episode_strict` reproduces all 32 cells
 of the submitted tables, accuracy ± std and FID (checked against the PDF on 2026-07-25 and
 again on 2026-11-02). The FID cells are written into the script's template, not read from
-the results JSON.
+the results JSON. Their source is traced [below](#fid-cells).
 
 **`--late-tree` must be given.** The default (`results_json_late_episode_mixed_thinking`)
 does not reproduce the paper. It matches only 7 of the 24 Grounding, Building, and
@@ -67,6 +67,45 @@ identical between `0c79a4a` and `3360d56`, and the `run_eval.py` changes between
 33-frame ablation flag, `_long` dataset matching) do not affect translationEval. The column
 was still never run under a single code state. One `--eval-types translation` run on
 `4eb426c` or later would settle that for the camera-ready.
+
+### FID cells
+
+The 28 FID cells come from the in-training eval of jax_oasis at step 1200 (logged as
+step 1201), not from this repo. They were copied by hand into the template of
+`build_vlm_tables.py`. Traced on 2026-11-03:
+
+| Column | Source |
+|---|---|
+| Movement | `test_fid__…eval_translation` |
+| Grounding | `one_looks_away_max_speed_long_new` in `~/GitHub/jax_oasis/long_eval_logs/<run>.log` (read with `scripts/extract_fid.sh`); Independent from wandb `test_fid__eval_one_looks_away` |
+| Building | FID on `eval_structure_max_speed`. The training runs only logged `eval_structure`, which gives different values (ODE Reg 88.45, Frame concat 100.19), so these came from separate eval runs that were not found |
+| Consistency | mean of the turn-to-look and turn-to-look-opposite (`_max_speed`) FIDs |
+
+The team spreadsheet export `Solaris Experiments - Multiplayer v2 Script Check.csv`
+(2026-01-28, repo root) records Movement ("FID Translation"), Building, and Consistency for
+the six non-Independent models. It truncates to two decimals (logged 129.4963 appears as
+129.49), and the paper rounds those values.
+
+| Paper row | Movement | Grounding | Building | Consistency |
+|---|---|---|---|---|
+| Independent | 58.9 ← wandb 58.91 | 67.1 ← wandb 67.08 | **77.8: not found** | 104.8 ← wandb (104.99 + 104.54)/2 |
+| Frame concat | 69.5 ← wandb 69.5026 | 66.6 ← log 66.57 | 103.2 ← sheet 103.24 | 129.4 ← sheet 129.38 (wandb has turn-to-look 129.4963 only) |
+| Solaris w/o pretrain | 37.11 ← sheet | 49.9 ← log 49.85 | 86.6 ← sheet 86.60 | 121.4 ← sheet 121.39 |
+| Solaris | 36.84 ← sheet | 38.0 ← log 38.03 | 83.6 ← sheet 83.58 | 99.4 ← sheet 99.40 |
+| ODE Reg | 77.42 ← wandb 77.4241 | 56.6 ← log 56.59 | 95.7 ← sheet 95.69 | 142.3 ← wandb (130.93 + 153.72)/2 |
+| Causal FT, Pre-DMD ✓ | 54.36 ← sheet | 40.4 ← log 40.38 | 90.5 ← sheet 90.51 | 160.1 ← sheet 160.08 |
+| Causal FT, no KV-BP | 53.76 ← sheet | 55.2 ← log 55.23 | 87.4 ← sheet 87.43 | 105.1 ← sheet 105.07 |
+
+"wandb" is the run history of `nyu-visionx/oasis` at step 1201: run
+`v2_concat_c_fix_bidirectional_fix_blocksize_sf`,
+`v2_flagship_fix_bidirectional_sf_regression_lr_1e-4_continue`, or `no_player_attn_sf`.
+"log" is `long_eval_logs`. "sheet" is the spreadsheet export.
+
+In summary, 12 cells match a raw logged value, 15 match only the spreadsheet, and 1 was
+not found. The linked training runs of the other models have no eval FIDs in their wandb
+history, so their raw values were logged elsewhere, probably in eval-only runs or TPU logs.
+For Independent Building, `no_player_attn_sf` has an `eval_structure` key with no values.
+The `step_0001200_eval_*` generation folders on GCS have not been checked for metric files.
 
 ## Table 8: test-split FVD
 
