@@ -47,13 +47,23 @@ training videos". The two players are pooled, not "averaged across two players".
 
 ## Data
 
-| Data | Location |
+Everything except the videos is under `/mnt/data-hdd/dl3957/neurips2026_eval/fvd/` on the lab
+desktop and is mirrored, checksum-verified, at `gs://solaris-central1/solaris/neurips2026_eval/fvd/`:
+
+| Data | Subdirectory |
 |---|---|
-| Features (2026-05-06, used for Table 8) | `/mnt/data-hdd/dl3957/neurips2026_eval/fvd/features_rw16/` |
-| All-frames features (not in the paper) | `/mnt/data-hdd/dl3957/neurips2026_eval/fvd/features_allframes/` |
-| I3D weights | `/mnt/data-hdd/dl3957/neurips2026_eval/fvd/models/i3d_torchscript.pt` |
-| Input videos (backup copy) | `/mnt/data-hdd/dl3957/neurips2026_eval/fvd/test_set_generations/` |
-| Snapshots of both `solaris_fvd` dirs | `/mnt/data-hdd/dl3957/neurips2026_eval/fvd/script_snapshots/` (with `MD5SUMS`) |
+| Features (2026-05-06, used for Table 8) | `features_rw16/` |
+| All-frames features (not in the paper) | `features_allframes/` |
+| I3D weights | `models/i3d_torchscript.pt` |
+| Snapshots of both `solaris_fvd` dirs | `script_snapshots/` (with `MD5SUMS`) |
+| Input videos (HDD only; the GCS copies are listed below) | `test_set_generations/` |
+
+To regenerate the table on another machine, download the features and point the script at them:
+
+```bash
+gsutil -m cp -r gs://solaris-central1/solaris/neurips2026_eval/fvd/features_rw16 .
+FEATS=$PWD/features_rw16 PY=python bash fvd/fvd_table8.sh
+```
 
 The input videos are also on GCS, identical by md5 to the copies used on 2026-05-06
 (checked 2026-11-02 for all 14,336 files):
