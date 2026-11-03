@@ -1,0 +1,15 @@
+[01:40:50] GPU 1  dmd_cont q2 -> outputs_rw16/dmd_cont/q2.npz
+[01:43:22] GPU 1  dmd_cont q3 -> outputs_rw16/dmd_cont/q3.npz
+[01:45:51] GPU 1  v2_blk q2 -> outputs_rw16/v2_blk/q2.npz
+[01:48:24] GPU 1  v2_blk q3 -> outputs_rw16/v2_blk/q3.npz
+[01:50:56] GPU 1  v2_flag q2 -> outputs_rw16/v2_flag/q2.npz
+[01:53:26] GPU 1  v2_flag q3 -> outputs_rw16/v2_flag/q3.npz
+[01:55:58] GPU 1  v2_nokv q2 -> outputs_rw16/v2_nokv/q2.npz
+[01:58:28] GPU 1  v2_nokv q3 -> outputs_rw16/v2_nokv/q3.npz
+[02:00:59] GPU 1  v2_reg q2 -> outputs_rw16/v2_reg/q2.npz
+[02:03:31] GPU 1  v2_reg q3 -> outputs_rw16/v2_reg/q3.npz
+[02:06:03] GPU 1  v2_scratch q2 -> outputs_rw16/v2_scratch/q2.npz
+[02:08:36] GPU 1  v2_scratch q3 -> outputs_rw16/v2_scratch/q3.npz
+[02:11:06] GPU 1  no_player_attn_sf q2 -> outputs_rw16/no_player_attn_sf/q2.npz
+[02:13:38] GPU 1  no_player_attn_sf q3 -> outputs_rw16/no_player_attn_sf/q3.npz
+[02:16:10] GPU 1 chain done
