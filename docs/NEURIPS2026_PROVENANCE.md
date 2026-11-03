@@ -105,7 +105,20 @@ In summary, 12 cells match a raw logged value, 15 match only the spreadsheet, an
 not found. The linked training runs of the other models have no eval FIDs in their wandb
 history, so their raw values were logged elsewhere, probably in eval-only runs or TPU logs.
 For Independent Building, `no_player_attn_sf` has an `eval_structure` key with no values.
-The `step_0001200_eval_*` generation folders on GCS have not been checked for metric files.
+**GCS search (2026-11-03): no logged Building FID was found.** Recursive listings of
+`gs://solaris-central1/{output,outputs,solaris/output,persist}` and
+`gs://solaris-east5/{outputs,solaris,persist}` (about 370,000 objects) have no
+`structure_max_speed` folder and no metric or eval log for it. The only `.log` files are the
+July co-movement `run.log`s. The January generations were downloaded (zsh history,
+2026-01-28) from `gs://solaris-central1/solaris/output/<run>/step_0001200_multiplayer_v2_eval_*`,
+and that prefix now holds 3 objects, so the original eval folders, with any files saved next to
+them, no longer exist. Independent's local `step_0001200_multiplayer_v2_eval_structure_max_speed`
+is a copy of `gs://solaris-central1/output/no_player_attn_sf/step_0001200_eval_structure/`
+(all 32 files md5-identical, created 2026-05-02). Its ground-truth halves show the same
+episodes as Solaris's `structure_max_speed` set, so it is the same Building eval under the
+newer set name. The run that made it, wandb `no_player_attn_sf`, has a
+`test_fid__eval_structure` key with no values. So 77.8 has no recorded source. The paper
+keeps it as submitted (Fred's decision).
 
 **Recompute attempt (2026-11-03): does not reproduce.** `tools/recompute_fid_jax_oasis.py`
 feeds the saved side-by-side mp4s to jax_oasis's own `calculate_metrics_from_batch` with
