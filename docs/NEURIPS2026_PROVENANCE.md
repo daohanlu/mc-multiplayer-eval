@@ -107,6 +107,19 @@ history, so their raw values were logged elsewhere, probably in eval-only runs o
 For Independent Building, `no_player_attn_sf` has an `eval_structure` key with no values.
 The `step_0001200_eval_*` generation folders on GCS have not been checked for metric files.
 
+**Recompute attempt (2026-11-03): does not reproduce.** `tools/recompute_fid_jax_oasis.py`
+feeds the saved side-by-side mp4s to jax_oasis's own `calculate_metrics_from_batch` with
+`FIDCalculator(num_sources=2)`, as the training eval does: prompt frame dropped, one FID per
+player, averaged. On Solaris's 32 Building videos
+(`mc_multiplayer_v2_generations/flagship/step_0001200_multiplayer_v2_eval_structure_max_speed`,
+8,192 frames per player) it gives **81.38**, not 83.58. Independent was therefore not
+recomputed, since the recipe is not validated. Known differences from the logged run: the
+mp4s are H.264-compressed (the training eval scored in-memory frames), and it is not
+established that these videos come from the same eval run as the logged value. The
+Inception model ran on CPU (`JAX_PLATFORMS=cpu`): on the RTX 4090, XLA rewrites the
+pool-count convolution in `inception.py` `avg_pool` into int8, which cuDNN rejects, even with
+`--xla_gpu_strict_conv_algorithm_picker=false`.
+
 ## Table 8: test-split FVD
 
 See [`fvd/README.md`](../fvd/README.md). In short: Table 8 is the random-window 16-frame FVD
