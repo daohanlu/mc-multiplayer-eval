@@ -85,3 +85,4 @@ action_following/vpt*.log
 
 # VPT IDM weights (1.8 GB, fetch with action_following/setup_vpt_idm.sh)
 vpt-idm-weights/
+fvd/outputs_rw16/

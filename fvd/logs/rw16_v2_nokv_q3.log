@@ -1,0 +1,40 @@
+============================================================
+FVD Feature Extraction (side-by-side quadrant)
+============================================================
+{'batch_size': 32,
+ 'data_dir': '/home/dl3957/solaris-additional-metrics/test_set_generations/v2_flagship_fix_bidirectional_sf_no_kv_backprop',
+ 'i3d_weights': 'models/i3d_torchscript.pt',
+ 'num_frames': 16,
+ 'num_workers': 8,
+ 'output': 'outputs_rw16/v2_nokv/q3.npz',
+ 'quadrant': 3,
+ 'resolution': 224,
+ 'sample_mode': 'random_window',
+ 'seed': 42}
+Quadrant 3: gen_bot2 (rows 352:704, cols 640:1280)
+
+Device: cuda
+GPU: NVIDIA GeForce RTX 4090
+VRAM: 25.3 GB
+
+2048 videos discovered
+Video: 1280x704, codec=h264, frames=257
+Crop: 640x352
+
+Loading I3D from models/i3d_torchscript.pt ...
+Loaded in 0.7s
+
+Extracting gen_bot2 features, 16 (random_window) frames/video, batch_size=32, workers=8 ...
+Videos:   0%|          | 0/2048 [00:00<?, ?it/s]Videos:   2%|▏         | 32/2048 [00:22<23:41,  1.42it/s]/home/dl3957/miniconda3/envs/minecraft/lib/python3.10/site-packages/torch/nn/modules/module.py:1501: UserWarning: operator() profile_node %64 : int[] = prim::profile_ivalue(%62)
+ does not have profile information (Triggered internally at ../third_party/nvfuser/csrc/graph_fuser.cpp:104.)
+  return forward_call(*args, **kwargs)
+Videos:   3%|▎         | 64/2048 [00:50<26:52,  1.23it/s]Videos:   5%|▍         | 96/2048 [00:51<14:26,  2.25it/s]Videos:   6%|▋         | 128/2048 [00:51<08:38,  3.70it/s]Videos:   8%|▊         | 160/2048 [00:51<05:29,  5.74it/s]Videos:   9%|▉         | 192/2048 [00:51<03:36,  8.58it/s]Videos:  11%|█         | 224/2048 [00:51<02:25, 12.52it/s]Videos:  12%|█▎        | 256/2048 [00:51<01:40, 17.91it/s]Videos:  14%|█▍        | 288/2048 [00:51<01:09, 25.17it/s]Videos:  16%|█▌        | 320/2048 [00:52<00:49, 34.71it/s]Videos:  17%|█▋        | 352/2048 [00:52<00:36, 46.91it/s]Videos:  19%|█▉        | 384/2048 [00:52<00:26, 61.92it/s]Videos:  20%|██        | 416/2048 [00:52<00:20, 79.52it/s]Videos:  22%|██▏       | 448/2048 [00:52<00:16, 99.19it/s]Videos:  23%|██▎       | 480/2048 [00:52<00:13, 119.76it/s]Videos:  25%|██▌       | 512/2048 [00:52<00:10, 139.94it/s]Videos:  27%|██▋       | 544/2048 [00:53<00:20, 72.72it/s] Videos:  28%|██▊       | 576/2048 [00:54<00:16, 91.65it/s]Videos:  30%|██▉       | 608/2048 [00:54<00:12, 111.70it/s]Videos:  31%|███▏      | 640/2048 [00:56<00:44, 31.61it/s] Videos:  33%|███▎      | 672/2048 [00:56<00:32, 42.62it/s]Videos:  34%|███▍      | 704/2048 [01:00<01:01, 21.96it/s]Videos:  36%|███▌      | 736/2048 [01:00<00:43, 30.14it/s]Videos:  38%|███▊      | 768/2048 [01:00<00:31, 40.67it/s]Videos:  39%|███▉      | 800/2048 [01:11<02:30,  8.30it/s]Videos:  41%|████      | 832/2048 [01:11<01:49, 11.13it/s]Videos:  42%|████▏     | 864/2048 [01:12<01:16, 15.57it/s]Videos:  44%|████▍     | 896/2048 [01:15<01:25, 13.46it/s]Videos:  45%|████▌     | 928/2048 [01:15<01:01, 18.07it/s]Videos:  47%|████▋     | 960/2048 [01:16<00:46, 23.46it/s]Videos:  48%|████▊     | 992/2048 [01:16<00:32, 32.02it/s]Videos:  50%|█████     | 1024/2048 [01:16<00:23, 43.17it/s]Videos:  52%|█████▏    | 1056/2048 [01:29<02:19,  7.13it/s]Videos:  53%|█████▎    | 1088/2048 [01:29<01:35, 10.06it/s]Videos:  55%|█████▍    | 1120/2048 [01:30<01:13, 12.54it/s]Videos:  56%|█████▋    | 1152/2048 [01:34<01:23, 10.76it/s]Videos:  58%|█████▊    | 1184/2048 [01:35<01:05, 13.28it/s]Videos:  59%|█████▉    | 1216/2048 [01:35<00:44, 18.52it/s]Videos:  61%|██████    | 1248/2048 [01:36<00:31, 25.58it/s]Videos:  62%|██████▎   | 1280/2048 [01:36<00:22, 34.87it/s]Videos:  64%|██████▍   | 1312/2048 [01:47<01:33,  7.85it/s]Videos:  66%|██████▌   | 1344/2048 [01:47<01:03, 11.05it/s]Videos:  67%|██████▋   | 1376/2048 [01:50<00:58, 11.45it/s]Videos:  69%|██████▉   | 1408/2048 [01:52<00:53, 11.91it/s]Videos:  70%|███████   | 1440/2048 [01:54<00:42, 14.25it/s]Videos:  72%|███████▏  | 1472/2048 [01:54<00:29, 19.79it/s]Videos:  73%|███████▎  | 1504/2048 [01:54<00:19, 27.27it/s]Videos:  75%|███████▌  | 1536/2048 [01:54<00:13, 37.06it/s]Videos:  77%|███████▋  | 1568/2048 [02:04<00:55,  8.71it/s]Videos:  78%|███████▊  | 1600/2048 [02:05<00:41, 10.83it/s]Videos:  80%|███████▉  | 1632/2048 [02:06<00:30, 13.52it/s]Videos:  81%|████████▏ | 1664/2048 [02:10<00:33, 11.43it/s]Videos:  83%|████████▎ | 1696/2048 [02:13<00:29, 11.97it/s]Videos:  84%|████████▍ | 1728/2048 [02:13<00:19, 16.72it/s]Videos:  86%|████████▌ | 1760/2048 [02:13<00:12, 23.17it/s]Videos:  88%|████████▊ | 1792/2048 [02:13<00:08, 31.73it/s]Videos:  89%|████████▉ | 1824/2048 [02:24<00:27,  8.03it/s]Videos:  91%|█████████ | 1856/2048 [02:24<00:16, 11.30it/s]Videos:  92%|█████████▏| 1888/2048 [02:24<00:10, 15.55it/s]Videos:  94%|█████████▍| 1920/2048 [02:26<00:07, 16.49it/s]Videos:  95%|█████████▌| 1952/2048 [02:26<00:04, 22.45it/s]Videos:  97%|█████████▋| 1984/2048 [02:26<00:02, 30.79it/s]Videos:  98%|█████████▊| 2016/2048 [02:27<00:00, 41.63it/s]Videos: 100%|██████████| 2048/2048 [02:27<00:00, 55.23it/s]Videos: 100%|██████████| 2048/2048 [02:27<00:00, 13.91it/s]
+
+Feature dim: 400
+
+2048 videos in 147.2s (13.9 vid/s)
+Features shape: (2048, 400)
+mu: shape=(400,), ||mu||=36.8921
+sigma: shape=(400, 400), trace=1707.1423
+
+Saved -> outputs_rw16/v2_nokv/q3.npz (4.6 MB)
