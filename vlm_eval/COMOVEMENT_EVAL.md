@@ -76,6 +76,23 @@ the shipped default prompt. No VLM errors in any run.
 | Causal FT Pre-DMD (`causvid_dmd`) | 62.5% +/- 0.0 | 62.5% +/- 0.0 |
 | Independent (`no_player_attn_sf`) | 42.7% +/- 1.9 | 19.8% +/- 2.9 |
 
+**Correction (2026-11-05).** Three rows above were generated from weights that are not the
+paper's step-1200 models: ODE Reg restored `v2_flagship_fix_bidirectional_causal_regression_lr_1e-4_4000.pt`
+and Pre-DMD `v2_flagship_fix_bidirectional_causal_dmd_5000.pt` (both the CausVid inits from
+before Self Forcing), and no KV-BP restored `flagship_no_bp_sf_final`, a different model.
+They were re-generated on GPU from the step-1200 checkpoints (exported with solaris-dev
+`scripts/export_model_weights.py`, branch `fred/gpu-view-memory-eval`) and scored the same way,
+as model keys `<key>_sf1200`:
+
+| Model (step-1200 weights) | query-level | episode-level |
+|---|---|---|
+| Causal FT no KV-BP (`no_kv_cache_backprop_sf1200`) | **100.0% +/- 0.0** | **100.0% +/- 0.0** |
+| Causal FT Pre-DMD (`causvid_dmd_sf1200`) | 76.6% +/- 1.3 | 67.7% +/- 1.5 |
+| ODE Reg (`causvid_regression_sf1200`) | 69.3% +/- 0.7 | 52.1% +/- 2.9 |
+
+ODE Reg and no KV-BP are unchanged; Pre-DMD rises from 62.5% to 76.6%. These three were
+generated on GPU and the rest of the table on TPU.
+
 Chance is 25% at query level. GT is 99.5%, so the judge is not the limit
 anywhere on this table.
 
