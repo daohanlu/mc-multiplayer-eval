@@ -55,6 +55,15 @@ PROMPTS = {
         "or mobs that may have moved, and small differences in distant terrain, lighting or image "
         'quality. Answer with a single word: "yes" or "no".'
     ),
+    # As above, but a generation may end its turn slightly off the commanded angle and still
+    # render the right content, so allow up to 30 degrees of difference in viewing direction.
+    "same_place_allow_30deg_turn": (
+        "You will be shown two Minecraft screenshots. Do they show the same place, seen from the "
+        "same position and roughly the same viewing direction? The viewing direction may differ by "
+        "up to 30 degrees. Ignore the player's own hand and held item, animals or mobs that may "
+        "have moved, and small differences in distant terrain, lighting or image quality. "
+        'Answer with a single word: "yes" or "no".'
+    ),
     # The paper's turn-to-look (co-observation) prompt, for comparison.
     "same_scenery_turn_to_look": (
         "You will be shown two Minecraft screenshots. "
@@ -108,6 +117,35 @@ def build_queries(args, model):
     return queries
 
 
+SWEEP_ANGLES = [0, 10, 20, 30, 40, 50, 60, 90, 120]
+
+
+def build_angle_sweep_queries(args, model, pause=24):
+    """Ground-truth calibration of the judge against camera angle: pair each player's anchor
+    with GT frames from the turn back at known yaw offsets (8.6 deg per frame) from the anchor."""
+    queries = []
+    name = f"turnBackMemoryEval_pause{pause:03d}"
+    gen_dir = Path(args.gen_root) / model / name
+    ids = json.load(open(Path(args.eval_ids) / f"eval_ids_{name}.json"))
+    alphas = sorted(glob.glob(f"{args.data_root}/{name}/test/*_Alpha_*.mp4"))
+    for vi, (ep, s1, _, s2, _) in enumerate(ids):
+        video = gen_dir / f"video_{vi}_side_by_side.mp4"
+        for player, (bot, start) in enumerate((("Alpha", s1), ("Bravo", s2))):
+            stem = Path(alphas[ep]).name.replace("_Alpha_", f"_{bot}_").replace("_camera.mp4", "")
+            actions = json.load(open(f"{args.data_root}/{name}/test/{stem}.json"))
+            yaw = np.degrees(np.unwrap([a["yaw"] for a in actions]))
+            rel = np.abs(yaw - yaw[start])
+            apex_end = int(np.nonzero(rel >= rel.max() - 1)[0].max())  # last frame of the apex hold
+            back = np.arange(apex_end, last_turn_end(actions) + 20)       # the turn back, then settled
+            for target in SWEEP_ANGLES:
+                f = int(back[np.argmin(np.abs(rel[back] - target))])
+                queries.append(dict(model=model, suite="angle_sweep", pause=pause, dataset=name, video=str(video),
+                                    video_index=vi, episode=stem.rsplit(f"_{bot}_", 1)[0], player=bot,
+                                    player_row=player, frame_a=0, frame_b=f - start, offset=target,
+                                    angle=float(rel[f]), expected="yes" if target <= 30 else "no"))
+    return queries
+
+
 def run_query(q, args):
     a = read_half(q["video"], q["frame_a"], "gt")[q["player_row"]]
     b = read_half(q["video"], q["frame_b"], "gt" if args.source == "gt" else "gen")[q["player_row"]]
@@ -153,7 +191,28 @@ def main():
     ap.add_argument("--limit", type=int, default=None, help="queries per model (for smoke tests)")
     ap.add_argument("--workers", type=int, default=16)
     ap.add_argument("--out", default="results_view_memory")
+    ap.add_argument("--angle-sweep", action="store_true",
+                    help="GT calibration: anchor vs GT frames at known yaw offsets (needs --source gt)")
     args = ap.parse_args()
+
+    if args.angle_sweep:
+        assert args.source == "gt", "--angle-sweep compares ground-truth frames"
+        for model in args.models:
+            qs = build_angle_sweep_queries(args, model)[: args.limit]
+            print(f"{model}: {len(qs)} angle-sweep queries ({args.prompt}, judge {VLM_MODEL_NAME})", flush=True)
+            with cf.ThreadPoolExecutor(args.workers) as ex:
+                results = list(ex.map(lambda q: run_query(q, args), qs))
+            out = Path(args.out) / f"angle_sweep_{args.prompt}"
+            out.mkdir(parents=True, exist_ok=True)
+            json.dump(dict(model=model, judge=VLM_MODEL_NAME, prompt=PROMPTS[args.prompt], results=results),
+                      open(out / f"{model}.json", "w"), indent=1)
+            print(f"  errors {sum(r.get('answer') is None for r in results)}; wrote {out / (model + '.json')}")
+            print(f"  {'target':>6} {'actual':>12} | said same | n")
+            for t in SWEEP_ANGLES:
+                rs = [r for r in results if r["offset"] == t and r.get("parsed")]
+                ang = [r["angle"] for r in rs]
+                print(f"  {t:5d}° {min(ang):5.1f}-{max(ang):5.1f}° | {100 * np.mean([r['said_same'] for r in rs]):8.1f}% | {len(rs)}")
+        return
 
     tag = f"{args.source}_{args.prompt}{'_nothink' if args.no_thinking else ''}"
     for model in args.models:
