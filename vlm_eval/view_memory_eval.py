@@ -41,7 +41,7 @@ SUITES = {"turnBackMemoryEval": "yes", "turnAwayControlEval": "no"}
 PAUSES = [12, 24, 36, 48, 64]
 PROMPTS = {
     # Stricter than the turn-to-look prompt: the two views should be identical here.
-    "strict": (
+    "exact_same_view": (
         "You will be shown two Minecraft screenshots. Do they show exactly the same view: "
         "the same terrain, blocks, trees and other objects, and the same players, in the same "
         "places on screen? Ignore small differences in image quality, blur or lighting. "
@@ -49,14 +49,14 @@ PROMPTS = {
     ),
     # Same place and viewpoint, ignoring what legitimately changes in ground truth while the
     # camera is back in the same pose: the player's own hand, mobs that walk, distant detail.
-    "view": (
+    "same_place_ignore_cosmetic": (
         "You will be shown two Minecraft screenshots. Do they show the same place, seen from the "
         "same position and viewing direction? Ignore the player's own hand and held item, animals "
         "or mobs that may have moved, and small differences in distant terrain, lighting or image "
         'quality. Answer with a single word: "yes" or "no".'
     ),
     # The paper's turn-to-look (co-observation) prompt, for comparison.
-    "scenery": (
+    "same_scenery_turn_to_look": (
         "You will be shown two Minecraft screenshots. "
         "Do these two screenshots show the same scenery? Be careful and answer based on the content "
         'of the screenshots, not just the camera angles.Answer with a single word: "yes", "no".'
@@ -146,7 +146,7 @@ def main():
     ap.add_argument("--data-root", default="/mnt/data-hdd/dl3957/view_mem_2p_v3_flat")
     ap.add_argument("--eval-ids", default=os.path.expanduser("~/GitHub/solaris-dev/src/data/eval_ids"))
     ap.add_argument("--source", choices=["generated", "gt"], default="generated")
-    ap.add_argument("--prompt", choices=list(PROMPTS), default="view")
+    ap.add_argument("--prompt", choices=list(PROMPTS), default="same_place_ignore_cosmetic")
     ap.add_argument("--offsets", type=int, nargs="+", default=[10, 90],
                     help="frames after the last turn ends at which frame B is taken")
     ap.add_argument("--no-thinking", action="store_true")
