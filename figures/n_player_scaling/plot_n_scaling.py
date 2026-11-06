@@ -12,9 +12,11 @@ across both model widths (full and 25%):
                                  a segment in the curve's own line style, labeled "OOM"
 
 Outputs in plots/ (next to this script):
-  plot_scaling.{pdf,png}    -- the paper figure: (A) memory and (B) time side by side,
-                               drawn at the paper's text width (5.5 in) with print-size fonts
-  plot_memory.{pdf,png,svg} -- standalone peak HBM vs. N (13 x 7.5 in, slide-size fonts)
+  plot_scaling.{pdf,png}    -- the paper figure: (A) memory and (B) time side by side. Each
+                               panel is drawn at the original 13 x 7.5 in size and scaled down
+                               by LaTeX to the text width, so it looks like the original slide
+                               figure, as vector graphics.
+  plot_memory.{pdf,png,svg} -- standalone peak HBM vs. N
   plot_time.{pdf,png,svg}   -- standalone time per training iteration vs. N
 
 Inputs (CSVs in data/), measured on TPU v5p with random inputs, which cost the same
@@ -41,39 +43,49 @@ OUT = HERE / "plots"
 
 HBM_LIMIT_GIB = 95.74     # v5p chip HBM (nominal)
 MEM_YLIM = (0, 128)       # memory y-axis cap (above HBM line)
+HBM_LABEL_X = 9.5         # HBM label starts here, below the line, clear of every curve
 
 BLUE = "#4C72B0"          # splash_attention
 RED = "#C44E52"           # dot_product_attention
 GRAY = "#8C8C8C"
 
-# Avenir was the original font; the rest are fallbacks for machines without it.
-# Liberation Sans (TrueType, Arial metrics) comes before Nimbus Sans, whose OpenType CFF
-# outlines do not embed cleanly as TrueType.
-FONT_FAMILY = ["Avenir", "Helvetica", "Arial", "Liberation Sans", "DejaVu Sans"]
+PANEL_SIZE = (13, 7.5)    # inches, per standalone panel
+PAPER_PANEL_HEIGHT = 8.1  # inches; a little taller, matching the proportions of the original figure
+LINE_WIDTH = 3
+MARKER_SIZE = 8
+FONT_SIZE_TITLE = 28
+FONT_SIZE_AXIS = 24
+FONT_SIZE_LEGEND = 18
 
-# Standalone slide-size figures (the original layout).
-SLIDE = dict(figsize=(13, 7.5), line=3, marker=8, title=28, axis=24, tick=18, legend=18)
-# Paper figure: two panels at the NeurIPS text width, fonts close to the 9 pt caption.
-PAPER = dict(figsize=(5.5, 2.15), line=1.2, marker=3, title=8, axis=7.5, tick=6.5, legend=5.5)
+# Avenir is the original font. Without it, DejaVu Sans (TrueType) is the closest in width;
+# OpenType CFF fonts such as Nimbus Sans do not embed cleanly as TrueType.
+FONT_FAMILY = ["Avenir", "DejaVu Sans", "Liberation Sans"]
 
-matplotlib.rcParams.update({
+plt.rcParams.update({
     "font.family": "sans-serif",
     "font.sans-serif": FONT_FAMILY,
     "pdf.fonttype": 42,        # embed TrueType, not Type 3
     "ps.fonttype": 42,
     "svg.fonttype": "none",    # keep SVG text as text
-    "axes.titleweight": "bold",
-    "axes.linewidth": 0.8,
+    "font.size": FONT_SIZE_AXIS,
+    "axes.titlesize": FONT_SIZE_TITLE,
+    "axes.titleweight": "normal",  # the original figure rendered its titles in regular weight
+    "axes.labelsize": FONT_SIZE_AXIS,
+    "axes.linewidth": 1.0,
     "axes.spines.top": False,
     "axes.spines.right": False,
+    "xtick.labelsize": FONT_SIZE_AXIS - 6,
+    "ytick.labelsize": FONT_SIZE_AXIS - 6,
+    "legend.fontsize": FONT_SIZE_LEGEND,
     "legend.frameon": True,
     "legend.framealpha": 0.95,
     "legend.edgecolor": "#dddddd",
+    "lines.linewidth": LINE_WIDTH,
+    "lines.markersize": MARKER_SIZE,
     "figure.facecolor": "white",
     "axes.facecolor": "white",
     "savefig.facecolor": "white",
     "savefig.bbox": "tight",
-    "savefig.pad_inches": 0.02,
     "savefig.dpi": 300,
 })
 
@@ -105,29 +117,29 @@ def _all_n(curves):
     return sorted(n)
 
 
-def _style_axes(ax, s, x_values, xlabel, ylabel, title):
-    ax.set_xlabel(xlabel, fontsize=s["axis"])
-    ax.set_ylabel(ylabel, fontsize=s["axis"])
-    ax.set_xticks(x_values)
-    ax.tick_params(length=0, labelsize=s["tick"])
-    ax.set_title(title, fontsize=s["title"])
+def _oom_label(ax, x, y, color):
+    ax.annotate(
+        "OOM", xy=(x, y), xytext=(8, 8), textcoords="offset points",
+        color=color, fontsize=FONT_SIZE_LEGEND, style="italic", fontweight="bold",
+    )
 
 
-def draw_memory(ax, s, title="Peak HBM Memory vs. Number of Players", legend=True, hbm_label_x=None):
+def draw_memory(ax):
     curves = _load_curves()
     x_values = _all_n(curves)
 
-    ax.axhline(HBM_LIMIT_GIB, color=GRAY, linestyle="--", linewidth=s["line"] * 2 / 3)
+    ax.axhline(HBM_LIMIT_GIB, color=GRAY, linestyle="--", linewidth=2)
     ax.text(
-        min(x_values) + 0.05 if hbm_label_x is None else hbm_label_x, HBM_LIMIT_GIB - 4,
+        HBM_LABEL_X, HBM_LIMIT_GIB - 4,
         f"v5p chip HBM ({HBM_LIMIT_GIB:.1f} GiB)",
-        color=GRAY, fontsize=s["legend"] - 1, style="italic", ha="left", va="top",
+        color=GRAY, fontsize=FONT_SIZE_LEGEND - 2, style="italic",
+        ha="left", va="top",
     )
 
     for df, color, linestyle, label in curves:
         fits = df[df["status"] == "fit"].sort_values("N")
         ax.plot(fits["N"], fits["peak_hbm_gib"], marker="o", color=color,
-                linestyle=linestyle, linewidth=s["line"], markersize=s["marker"], label=label)
+                linestyle=linestyle, label=label)
 
         ooms = df[df["status"] == "OOM"].sort_values("N")
         if not ooms.empty and not fits.empty:
@@ -136,28 +148,29 @@ def draw_memory(ax, s, title="Peak HBM Memory vs. Number of Players", legend=Tru
             peak_last = float(fits["peak_hbm_gib"].iloc[-1])
             # connector segment in the curve's own line style, not dotted
             ax.plot([n_last, n_oom], [peak_last, HBM_LIMIT_GIB], color=color,
-                    linestyle=linestyle, linewidth=s["line"], zorder=4)
+                    linestyle=linestyle, zorder=4)
             # filled marker at the chip HBM line (no quantitative claim)
             ax.plot([n_oom], [HBM_LIMIT_GIB], marker="o", color=color, linestyle="None",
-                    markersize=s["marker"] * 1.25, zorder=5)
-            ax.annotate("OOM", xy=(n_oom, HBM_LIMIT_GIB), xytext=(3, 3),
-                        textcoords="offset points", color=color,
-                        fontsize=s["legend"], style="italic", fontweight="bold")
+                    markersize=MARKER_SIZE + 2, zorder=5)
+            _oom_label(ax, n_oom, HBM_LIMIT_GIB, color)
 
-    _style_axes(ax, s, x_values, "Number of players (N)", "Peak Memory (GiB)", title)
+    ax.set_xlabel("Number of players (N)")
+    ax.set_ylabel("Peak Memory (GiB)")
+    ax.set_xticks(x_values)
     ax.set_ylim(*MEM_YLIM)
-    if legend:
-        ax.legend(loc="lower right", fontsize=s["legend"])
+    ax.set_title("Peak HBM Memory vs. Number of Players")
+    ax.tick_params(length=0)
+    ax.legend(loc="lower right")
 
 
-def draw_time(ax, s, title="Time per Training Iteration vs. Number of Players", legend=True):
+def draw_time(ax):
     curves = _load_curves()
     x_values = _all_n(curves)
 
     for df, color, linestyle, label in curves:
         fits = df[df["status"] == "fit"].sort_values("N")
         ax.plot(fits["N"], fits["sec_per_step"], marker="o", color=color,
-                linestyle=linestyle, linewidth=s["line"], markersize=s["marker"], label=label)
+                linestyle=linestyle, label=label)
 
         ooms = df[df["status"] == "OOM"].sort_values("N")
         if not ooms.empty and len(fits) >= 2:
@@ -171,18 +184,18 @@ def draw_time(ax, s, title="Time per Training Iteration vs. Number of Players", 
             time_last = float(fits["sec_per_step"].iloc[-1])
             # connector in the curve's own line style
             ax.plot([n_last, n_oom], [time_last, time_oom], color=color,
-                    linestyle=linestyle, linewidth=s["line"], zorder=4)
+                    linestyle=linestyle, zorder=4)
             # filled marker at the extrapolated time
             ax.plot([n_oom], [time_oom], marker="o", color=color, linestyle="None",
-                    markersize=s["marker"] * 1.25, zorder=5)
-            ax.annotate("OOM", xy=(n_oom, time_oom), xytext=(3, 3),
-                        textcoords="offset points", color=color,
-                        fontsize=s["legend"], style="italic", fontweight="bold")
+                    markersize=MARKER_SIZE + 2, zorder=5)
+            _oom_label(ax, n_oom, time_oom, color)
 
-    _style_axes(ax, s, x_values, "Number of players (N)", "Time per training iter (s)", title)
-    ax.set_ylim(bottom=0)
-    if legend:
-        ax.legend(loc="upper left", fontsize=s["legend"])
+    ax.set_xlabel("Number of players (N)")
+    ax.set_ylabel("Time per training iter (s)")
+    ax.set_xticks(x_values)
+    ax.set_title("Time per Training Iteration vs. Number of Players")
+    ax.tick_params(length=0)
+    ax.legend(loc="upper left")
 
 
 def _save(fig, name, formats):
@@ -194,26 +207,24 @@ def _save(fig, name, formats):
 
 
 def plot_paper():
-    """Both panels side by side, sized for the paper's text width."""
-    s = PAPER
-    fig, (ax_mem, ax_time) = plt.subplots(1, 2, figsize=s["figsize"], constrained_layout=True)
-    # One shared legend below both panels (the four curves are the same in each), and
-    # the HBM label moved right, under the dashed line, where no curve crosses it.
-    draw_memory(ax_mem, s, title="(A) Peak HBM Memory vs. Number of Players",
-                legend=False, hbm_label_x=9.5)
-    draw_time(ax_time, s, title="(B) Time per Training Iteration vs. Number of Players",
-              legend=False)
-    handles, labels = ax_mem.get_legend_handles_labels()
-    fig.legend(handles, labels, loc="outside lower center", ncol=4, fontsize=s["legend"] + 0.5,
-               columnspacing=1.2, handlelength=1.8, handletextpad=0.5, borderpad=0.3)
+    """Both panels side by side at the original panel size, labeled (A) and (B)."""
+    fig, (ax_mem, ax_time) = plt.subplots(
+        1, 2, figsize=(2 * PANEL_SIZE[0], PAPER_PANEL_HEIGHT), constrained_layout=True,
+    )
+    fig.get_layout_engine().set(w_pad=0.3, wspace=0.08)
+    draw_memory(ax_mem)
+    draw_time(ax_time)
+    for ax, tag in ((ax_mem, "(A)"), (ax_time, "(B)")):
+        ax.text(-0.1, 1.04, tag, transform=ax.transAxes, fontsize=FONT_SIZE_TITLE,
+                ha="right", va="bottom")
     _save(fig, "plot_scaling", ("pdf", "png"))
 
 
 def plot_standalone():
-    """The original two slide-size figures."""
+    """The two plots as separate figures."""
     for name, draw in (("plot_memory", draw_memory), ("plot_time", draw_time)):
-        fig, ax = plt.subplots(figsize=SLIDE["figsize"])
-        draw(ax, SLIDE)
+        fig, ax = plt.subplots(figsize=PANEL_SIZE)
+        draw(ax)
         _save(fig, name, ("png", "pdf", "svg"))
 
 
