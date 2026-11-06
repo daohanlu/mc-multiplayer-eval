@@ -2,7 +2,11 @@
 
 The submission was sent on 2026-05-06. This file records how to regenerate each table
 of evaluation numbers in it, and which results trees, code states, and data produced them.
-Branch `neurips2026-camera-ready` holds the code for the camera-ready.
+Branch `neurips2026-camera-ready` holds the code for the camera-ready. The training side,
+including the experiment script and checkpoints behind each paper row and the FID logs,
+is on the same-named branch of the training repo
+([ojmichel/jax_oasis, `neurips2026-camera-ready`](https://github.com/ojmichel/jax_oasis/tree/neurips2026-camera-ready),
+see its `NEURIPS2026.md`).
 
 | Paper table | Regenerate with | Details |
 |---|---|---|
@@ -77,7 +81,7 @@ step 1201), not from this repo. They were copied by hand into the template of
 | Column | Source |
 |---|---|
 | Movement | `test_fid__…eval_translation` |
-| Grounding | `one_looks_away_max_speed_long_new` in `~/GitHub/jax_oasis/long_eval_logs/<run>.log` (read with `scripts/extract_fid.sh`); Independent from wandb `test_fid__eval_one_looks_away` |
+| Grounding | `one_looks_away_max_speed_long_new` in jax_oasis `long_eval_logs/<run>.log` (branch `neurips2026-camera-ready`; read with `scripts/extract_fid.sh`); Independent from wandb `test_fid__eval_one_looks_away` |
 | Building | FID on `eval_structure_max_speed`. The training runs only logged `eval_structure`, which gives different values (ODE Reg 88.45, Frame concat 100.19), so these came from separate eval runs that were not found |
 | Consistency | mean of the turn-to-look and turn-to-look-opposite (`_max_speed`) FIDs |
 
