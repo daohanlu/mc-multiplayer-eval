@@ -57,8 +57,10 @@ PAPER_TAG_X = -0.085      # (A)/(B) start above the y-axis label, in axes coordi
 LINE_WIDTH = 3
 MARKER_SIZE = 8
 FONT_SIZE_TITLE = 28
-FONT_SIZE_AXIS = 24
-FONT_SIZE_LEGEND = 18
+FONT_SIZE_AXIS_LABEL = 28    # axis labels (24 in the submitted figure)
+FONT_SIZE_TICK = 18
+FONT_SIZE_LEGEND = 21        # legend entries (18 in the submitted figure)
+FONT_SIZE_ANNOTATION = 18    # OOM labels; the HBM label is 2 pt smaller
 
 # Avenir is the original font. Without it, DejaVu Sans (TrueType) is the closest in width;
 # OpenType CFF fonts such as Nimbus Sans do not embed cleanly as TrueType.
@@ -70,15 +72,15 @@ plt.rcParams.update({
     "pdf.fonttype": 42,        # embed TrueType, not Type 3
     "ps.fonttype": 42,
     "svg.fonttype": "none",    # keep SVG text as text
-    "font.size": FONT_SIZE_AXIS,
+    "font.size": FONT_SIZE_AXIS_LABEL,
     "axes.titlesize": FONT_SIZE_TITLE,
     "axes.titleweight": "normal",  # the original figure rendered its titles in regular weight
-    "axes.labelsize": FONT_SIZE_AXIS,
+    "axes.labelsize": FONT_SIZE_AXIS_LABEL,
     "axes.linewidth": 1.0,
     "axes.spines.top": False,
     "axes.spines.right": False,
-    "xtick.labelsize": FONT_SIZE_AXIS - 6,
-    "ytick.labelsize": FONT_SIZE_AXIS - 6,
+    "xtick.labelsize": FONT_SIZE_TICK,
+    "ytick.labelsize": FONT_SIZE_TICK,
     "legend.fontsize": FONT_SIZE_LEGEND,
     "legend.frameon": True,
     "legend.framealpha": 0.95,
@@ -123,7 +125,7 @@ def _all_n(curves):
 def _oom_label(ax, x, y, color):
     ax.annotate(
         "OOM", xy=(x, y), xytext=(8, 8), textcoords="offset points",
-        color=color, fontsize=FONT_SIZE_LEGEND, fontweight="bold",
+        color=color, fontsize=FONT_SIZE_ANNOTATION, fontweight="bold",
     )
 
 
@@ -135,7 +137,7 @@ def draw_memory(ax):
     ax.text(
         HBM_LABEL_X, HBM_LIMIT_GIB - 4,
         f"v5p chip HBM ({HBM_LIMIT_GIB:.1f} GiB)",
-        color=GRAY, fontsize=FONT_SIZE_LEGEND - 2, style="italic",
+        color=GRAY, fontsize=FONT_SIZE_ANNOTATION - 2, style="italic",
         ha="left", va="top",
     )
 
