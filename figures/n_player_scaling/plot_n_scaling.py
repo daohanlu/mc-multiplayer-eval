@@ -54,6 +54,7 @@ PAPER_PANEL_HEIGHT = 8.7  # inches; a little taller, matching the proportions of
 PAPER_LEFT = 0.05         # left edge of panel A's plot area, as a fraction of the figure width
 PAPER_WSPACE = 0.14       # gap between the panels, as a fraction of the plot width
 PAPER_TAG_X = -0.085      # (A)/(B) start above the y-axis label, in axes coordinates
+PAPER_TAG_Y = 1.04        # (A)/(B) and the panel titles sit on this line, in axes coordinates
 LINE_WIDTH = 3
 MARKER_SIZE = 8
 FONT_SIZE_TITLE = 28
@@ -223,8 +224,10 @@ def plot_paper():
     draw_memory(ax_mem)
     draw_time(ax_time)
     for ax, tag in ((ax_mem, "(A)"), (ax_time, "(B)")):
-        ax.text(PAPER_TAG_X, 1.04, tag, transform=ax.transAxes, fontsize=FONT_SIZE_TITLE,
+        ax.text(PAPER_TAG_X, PAPER_TAG_Y, tag, transform=ax.transAxes, fontsize=FONT_SIZE_TITLE,
                 ha="left", va="bottom")
+        # raise the title onto the same line as its (A)/(B) tag
+        ax.set_title(ax.get_title(), y=PAPER_TAG_Y, pad=0, va="bottom")
     _save(fig, "plot_scaling", ("pdf", "png"))
 
 
