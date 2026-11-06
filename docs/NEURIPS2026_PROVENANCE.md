@@ -13,6 +13,7 @@ see its `NEURIPS2026.md`).
 | Tables 2 and 3 (VLM accuracy and FID) | `python vlm_eval/build_vlm_tables.py --late-tree results_json_late_episode_strict` | [below](#tables-2-and-3-vlm-accuracy-and-fid) |
 | Table 8 (test-split FVD) | `bash fvd/fvd_table8.sh` | [`fvd/README.md`](../fvd/README.md) |
 | Co-movement eval | `bash vlm_eval/comovement_rel_models.sh` | [`vlm_eval/COMOVEMENT_EVAL.md`](../vlm_eval/COMOVEMENT_EVAL.md) |
+| Fig. 9 (N-player memory and time scaling) | `python figures/n_player_scaling/plot_n_scaling.py` | [below](#fig-9-n-player-scaling) |
 
 ## Model names
 
@@ -145,6 +146,17 @@ The shaded Self Forcing row is Solaris, so it should read **81.3**. The 88.7 pri
 is Independent's value. The features, I3D weights, and script snapshots are archived on
 `/mnt/data-hdd/dl3957/neurips2026_eval/fvd/` and at
 `gs://solaris-central1/solaris/neurips2026_eval/fvd/`.
+
+## Fig. 9: N-player scaling
+
+`figures/n_player_scaling/plot_n_scaling.py` draws the figure from the four CSVs in
+`figures/n_player_scaling/data/`: peak HBM and time per training iteration on TPU v5p, for
+Splash and standard attention at full and 25% width, with random inputs (which cost the same
+memory and time as real gameplay data). Each CSV row names its profiling run; all 51 runs are
+under `gs://solaris-central1/outputs/<run_name>/` (checked 2026-11-06). The script writes
+`plots/plot_scaling.pdf`, the paper figure: both panels at the paper's text width, vector,
+with TrueType fonts. Copy it to `figs/assets/scaling.pdf` in the paper. It also writes the two
+original standalone slide-size plots.
 
 ## Co-movement eval
 

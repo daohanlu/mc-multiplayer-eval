@@ -1,0 +1,5 @@
+N,batch_size,per_chip_batch,run_name,status,peak_hbm_mib,peak_hbm_gib,hbm_headroom_gib,steps_per_second,sec_per_step,argument_size_gib,hlo_temp_gib,padding_gib,dataset,notes
+1,4,1,1_player_no_splash_20260429_193602,fit,38210.32,37.3,58.4,0.693,1.44,20.4,17.4,0.8,trio,"baseline; HLO temp grows as ~8.6+4.73N+4.04N^2 across N=1-3"
+2,4,1,2_player_no_splash_20260429_180823,fit,55102.87,53.8,41.9,0.266,3.76,20.4,33.4,2.7,trio,"+16 GiB vs splash-on N=2 (37.8); HLO temp 34.2 vs ~14"
+3,4,1,3_player_no_splash_20260429_182208,fit,80081.67,78.2,17.5,0.125,8.00,20.4,57.8,4.1,trio,"+37 GiB vs splash-on N=3 (41.5); HLO temp ratio N=3/N=2 = 2.05x (theory 2.25x)"
+4,4,1,4_player_no_splash_20260429_183639,OOM,104274.18,101.83,-6.09,,,20.5,81.34,,trio,"OOM by only 6 GiB; smoking gun: top 2 allocations are f32[12,31680,31680]=44.96GiB + bf16[12,31680,31680]=22.48GiB (T×T score matrices)"

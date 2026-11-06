@@ -13,6 +13,7 @@ results trees relative to the working directory.
 | `action_following/` | Action-following metrics for the NeurIPS rebuttal: VPT IDM mouse/keyboard (`vpt_idm.py`, `report_vpt.py`, `report_keys.py`), the analytic camera estimator, and `results/` with the saved IDM runs. See its `RESULTS.md` |
 | `human-eval/` | Human annotation of the Consistency evals, VLM-vs-human agreement (`agreement_extras.py`), and blind-eval tooling |
 | `fvd/` | Test-split FVD (paper Table 8): the 2026-05-06 code, results, and logs, and `fvd_table8.sh` to regenerate the table. See its `README.md` |
+| `figures/` | Scripts and data for paper figures made outside the eval pipeline, e.g. `n_player_scaling/` (Fig. 9) |
 | `tools/` | Standalone utilities: plots, log parsers, download helpers |
 | `docs/` | Dataset build history and source mapping, and [`NEURIPS2026_PROVENANCE.md`](docs/NEURIPS2026_PROVENANCE.md): where every number in the NeurIPS 2026 submission comes from |
 | `mc_multiplayer_*` | Eval datasets (clips + action logs) and model generations |
