@@ -50,7 +50,10 @@ RED = "#C44E52"           # dot_product_attention
 GRAY = "#8C8C8C"
 
 PANEL_SIZE = (13, 7.5)    # inches, per standalone panel
-PAPER_PANEL_HEIGHT = 8.1  # inches; a little taller, matching the proportions of the original figure
+PAPER_PANEL_HEIGHT = 8.7  # inches; a little taller, matching the proportions of the original figure
+PAPER_LEFT = 0.05         # left edge of panel A's plot area, as a fraction of the figure width
+PAPER_WSPACE = 0.14       # gap between the panels, as a fraction of the plot width
+PAPER_TAG_X = -0.085      # (A)/(B) start above the y-axis label, in axes coordinates
 LINE_WIDTH = 3
 MARKER_SIZE = 8
 FONT_SIZE_TITLE = 28
@@ -120,7 +123,7 @@ def _all_n(curves):
 def _oom_label(ax, x, y, color):
     ax.annotate(
         "OOM", xy=(x, y), xytext=(8, 8), textcoords="offset points",
-        color=color, fontsize=FONT_SIZE_LEGEND, style="italic", fontweight="bold",
+        color=color, fontsize=FONT_SIZE_LEGEND, fontweight="bold",
     )
 
 
@@ -208,15 +211,16 @@ def _save(fig, name, formats):
 
 def plot_paper():
     """Both panels side by side at the original panel size, labeled (A) and (B)."""
-    fig, (ax_mem, ax_time) = plt.subplots(
-        1, 2, figsize=(2 * PANEL_SIZE[0], PAPER_PANEL_HEIGHT), constrained_layout=True,
-    )
-    fig.get_layout_engine().set(w_pad=0.3, wspace=0.08)
+    fig, (ax_mem, ax_time) = plt.subplots(1, 2, figsize=(2 * PANEL_SIZE[0], PAPER_PANEL_HEIGHT))
+    # Fixed margins instead of constrained layout, which left a wider left margin and a
+    # wider gap between the panels than the original figure (measured at print width:
+    # plot areas ~44% of the width each, a ~6% gap between them).
+    fig.subplots_adjust(left=PAPER_LEFT, right=0.995, bottom=0.12, top=0.9, wspace=PAPER_WSPACE)
     draw_memory(ax_mem)
     draw_time(ax_time)
     for ax, tag in ((ax_mem, "(A)"), (ax_time, "(B)")):
-        ax.text(-0.1, 1.04, tag, transform=ax.transAxes, fontsize=FONT_SIZE_TITLE,
-                ha="right", va="bottom")
+        ax.text(PAPER_TAG_X, 1.04, tag, transform=ax.transAxes, fontsize=FONT_SIZE_TITLE,
+                ha="left", va="bottom")
     _save(fig, "plot_scaling", ("pdf", "png"))
 
 
