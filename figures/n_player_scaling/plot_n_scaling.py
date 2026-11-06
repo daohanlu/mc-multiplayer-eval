@@ -61,6 +61,7 @@ FONT_SIZE_AXIS_LABEL = 28    # axis labels (24 in the submitted figure)
 FONT_SIZE_TICK = 18
 FONT_SIZE_LEGEND = 21        # legend entries (18 in the submitted figure)
 FONT_SIZE_ANNOTATION = 18    # OOM labels; the HBM label is 2 pt smaller
+OOM_DY_TIME = 22             # points above the marker for the OOM labels on (B); 8 on (A)
 
 # Avenir is the original font. Without it, DejaVu Sans (TrueType) is the closest in width;
 # OpenType CFF fonts such as Nimbus Sans do not embed cleanly as TrueType.
@@ -122,9 +123,9 @@ def _all_n(curves):
     return sorted(n)
 
 
-def _oom_label(ax, x, y, color):
+def _oom_label(ax, x, y, color, dy=8):
     ax.annotate(
-        "OOM", xy=(x, y), xytext=(8, 8), textcoords="offset points",
+        "OOM", xy=(x, y), xytext=(8, dy), textcoords="offset points",
         color=color, fontsize=FONT_SIZE_ANNOTATION, fontweight="bold",
     )
 
@@ -193,7 +194,8 @@ def draw_time(ax):
             # filled marker at the extrapolated time
             ax.plot([n_oom], [time_oom], marker="o", color=color, linestyle="None",
                     markersize=MARKER_SIZE + 2, zorder=5)
-            _oom_label(ax, n_oom, time_oom, color)
+            # raised further than on (A), so the labels clear the curves passing below them
+            _oom_label(ax, n_oom, time_oom, color, dy=OOM_DY_TIME)
 
     ax.set_xlabel("Number of players (N)")
     ax.set_ylabel("Time per training iter (s)")
