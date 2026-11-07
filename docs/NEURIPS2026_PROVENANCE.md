@@ -183,6 +183,26 @@ under `gs://solaris-central1/outputs/<run_name>/` (checked 2026-11-06). The scri
 with TrueType fonts. Copy it to `figs/assets/scaling.pdf` in the paper. It also writes the two
 original standalone slide-size plots.
 
+## Fig. 14: VLM query figure
+
+The figure is built in Figma (VisionX team, file "Solaris NeurIPS 2026 - VLM query figure",
+<https://www.figma.com/design/FQ0UjvREJm77rK1rS0iGPp>). Its "Source images" frame lists every
+image with the slot it fills. The paper's `figs/assets/query.pdf` is a PDF export of a copy of
+the figure with the text outlined (so the PDF has no fonts), with images downsampled by
+Ghostscript to 300 ppi at the figure's own scale (`-dColorImageResolution=300`, JPEG quality 92).
+
+- **Building, Grounding, Consistency, Movement:** frames from the submission's slide
+  (`new_teaser.pptx`, slide 14). Their source episodes are not recorded. Movement's frames come
+  from a translationEval demo episode, which, like the eval's translationEval episodes, was
+  recorded with structures on.
+- **Co-Movement:** episode 0 of a demo-camera recording of `coMovementAlwaysRelativeMotionEval`
+  made on 2026-11-06 with `run_gpu_local_comovement_demo.sh` on `mc-multiplayer-data` branch
+  `tim/birds-eye-view-for-figure` (8 episodes, structures off), saved to
+  `/mnt/data/dl3957/mc_multiplayer_v2_demo_evals/coMovementAlwaysRelativeMotionEval/`. Both bots
+  step forward. `MinecraftCoMovementAlwaysRelativeHandler` gives query frames 90 and 130 and the
+  answer "closer" for both players. The first-person views are those frames; the third-person
+  views are the demo camera's frames 90 and 130, cropped to pixels (450, 610)–(1926, 1440).
+
 ## Co-movement eval
 
 Each model's generations are in its own bucket under `gs://solaris-east5/outputs/`, in a
