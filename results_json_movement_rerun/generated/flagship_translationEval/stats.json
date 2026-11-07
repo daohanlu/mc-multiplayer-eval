@@ -1,0 +1,21 @@
+{
+  "metric": "episode_level_accuracy.episode_accuracy",
+  "num_trials": 3,
+  "trials": [
+    {
+      "trial": 1,
+      "episode_accuracy": 75.0
+    },
+    {
+      "trial": 2,
+      "episode_accuracy": 71.875
+    },
+    {
+      "trial": 3,
+      "episode_accuracy": 78.125
+    }
+  ],
+  "mean": 75.0,
+  "median": 75.0,
+  "std": 2.551551815399144
+}
