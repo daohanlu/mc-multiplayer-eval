@@ -73,6 +73,31 @@ identical between `0c79a4a` and `3360d56`, and the `run_eval.py` changes between
 was still never run under a single code state. One `--eval-types translation` run on
 `4eb426c` or later would settle that for the camera-ready.
 
+**Sanity check, 2026-11-06 (not published).** The whole Movement column was re-run once on
+this branch (`329a2ae`), all 7 models and ground truth, 3 trials each, with the same judge
+(`gemini-3-flash-preview`, thinking off), dataset, and generations; results in
+`results_json_movement_rerun/`. The only change to the translation handler since `0c79a4a`
+is the late-episode hook, which is inactive unless `LATE_EPISODE_QUERY` is set (it was not).
+The paper keeps the published numbers; this run only checks them.
+
+| Row | Published | Re-run | Difference |
+|---|---|---|---|
+| Independent | 12.5 ± 0.0 | 14.6 ± 1.5 | +2.1 |
+| Frame concat | 84.4 ± 4.4 | 85.4 ± 1.5 | +1.0 |
+| Solaris w/o pretrain | 69.8 ± 1.5 | 71.9 ± 0.0 | +2.1 |
+| Solaris | 67.7 ± 5.3 | 75.0 ± 2.6 | +7.3 |
+| ODE Reg | 19.8 ± 1.5 | 20.8 ± 1.5 | +1.0 |
+| Causal FT, Pre-DMD ✓ | 35.4 ± 3.9 | 32.3 ± 1.5 | −3.1 |
+| Causal FT, no KV-BP | 88.5 ± 1.5 | 89.6 ± 1.5 | +1.0 |
+| Ground truth | 100.0 ± 0.0 | 99.0 ± 1.5 | −1.0 |
+
+All rows but Solaris are within about 3 points (one episode is 3.1). Solaris's published trials
+got 24, 20, and 21 of 32 episodes right and the re-run's 24, 23, and 25, so the shift is within
+the judge's trial-to-trial spread; the judge is also a preview model that may have changed
+since January. Every Movement-based claim holds: Frame concat and no KV-BP still score above
+Solaris, and the bottom ordering (Independent < ODE Reg < Pre-DMD) is unchanged. The other
+three columns were not re-run on this code.
+
 ### FID cells
 
 The 28 FID cells come from the in-training eval of jax_oasis at step 1200 (logged as
