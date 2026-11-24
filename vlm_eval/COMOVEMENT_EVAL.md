@@ -1,5 +1,7 @@
 # Co-movement evals
 
+> **Public name (2026-11-24).** The reported dataset `coMovementAlwaysRelativeMotionEval` is published as **`coMovementEval`**: in the public `solaris` repo (PR #7), on Hugging Face (`eval/coMovementEval/`), in `solaris-engine` (PR #13) and in the NeurIPS paper. It is the only co-movement mode that was kept (both bots take the same egocentric action), so the qualifier was dropped. **The public `coMovementEval` is not the internal `coMovementEval` in this repo**, which is the unreported diagnostic with opposite-command episodes (from `mc-multiplayer-data`, branch `fred/mutual-approach-eval`). Folder and result names here keep the old names.
+
 Two new datasets pulled from
 `gs://solaris-central1/solaris/data/neurips_eval_coMovement/` into
 `mc_multiplayer_v2_eval_new_sneak_combined_simplified_naming/`:
