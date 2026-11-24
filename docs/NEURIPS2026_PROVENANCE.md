@@ -205,6 +205,8 @@ Ghostscript to 300 ppi at the figure's own scale (`-dColorImageResolution=300`, 
 
 ## Co-movement eval
 
+> **Public name (2026-11-24).** The reported dataset `coMovementAlwaysRelativeMotionEval` is published as **`coMovementEval`**: in the public `solaris` repo (PR #7), on Hugging Face (`eval/coMovementEval/`), in `solaris-engine` (PR #13) and in the NeurIPS paper. It is the only co-movement mode that was kept (both bots take the same egocentric action), so the qualifier was dropped. **The public `coMovementEval` is not the internal `coMovementEval` in this repo**, which is the unreported diagnostic with opposite-command episodes (from `mc-multiplayer-data`, branch `fred/mutual-approach-eval`). Folder and result names here keep the old names.
+
 Each model's generations are in its own bucket under `gs://solaris-east5/outputs/`, in a
 `co_movement_rel/` subfolder of 32 side-by-side videos. The `co_movement_divider_rel/`
 subfolder is not used. Ground truth is
